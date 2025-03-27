@@ -27,6 +27,7 @@ const studentRoutes = require('./routes/students');
 const announcementRoutes = require('./routes/announcements');
 const userRoutes = require('./routes/users');
 const sessionRoutes = require('./routes/sessions');
+const systemOptionsRoutes = require('./routes/systemOptions');
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -37,6 +38,7 @@ app.use('/api/students', studentRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/sessions', sessionRoutes);
+app.use('/api/system-options', systemOptionsRoutes);
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI)
@@ -84,7 +86,8 @@ app.get('/api/health', (req, res) => {
       students: '/api/students',
       announcements: '/api/announcements',
       users: '/api/users',
-      sessions: '/api/sessions'
+      sessions: '/api/sessions',
+      systemOptions: '/api/system-options'
     }
   });
 });

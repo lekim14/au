@@ -1,6 +1,6 @@
 import api from './api'
 
-// Default options
+// Default options for UI display while loading
 const defaultOptions = {
   class: {
     yearLevels: ['2nd', '3rd', '4th'],
@@ -8,7 +8,12 @@ const defaultOptions = {
     defaultSessions: [
       { title: 'INTRODUCTION', count: 0 },
       { title: 'ORIENTATION', count: 0 }
-    ]
+    ],
+    sections: {
+      '2nd': ['South-1', 'South-2', 'South-3', 'South-4', 'South-5'],
+      '3rd': ['South-1', 'South-2', 'South-3'],
+      '4th': ['South-1', 'South-2']
+    }
   },
   subject: {
     schoolYear: '2025 - 2026',
@@ -27,20 +32,11 @@ export const systemOptionsService = {
    */
   async getAll() {
     try {
-      // Try API first
       const response = await api.get('/api/system-options')
       return response.data
     } catch (error) {
       console.error('Error fetching system options:', error)
-      
-      // Fallback to localStorage if API fails
-      const storedOptions = localStorage.getItem('systemOptions')
-      if (storedOptions) {
-        return JSON.parse(storedOptions)
-      }
-      
-      // Return default options if nothing in localStorage
-      return defaultOptions
+      throw error
     }
   },
 
@@ -51,15 +47,11 @@ export const systemOptionsService = {
    */
   async update(options) {
     try {
-      // Try API first
       const response = await api.post('/api/system-options', options)
       return response.data
     } catch (error) {
       console.error('Error updating system options:', error)
-      
-      // Fallback to localStorage if API fails
-      localStorage.setItem('systemOptions', JSON.stringify(options))
-      return options
+      throw error
     }
   },
 
@@ -69,15 +61,19 @@ export const systemOptionsService = {
    */
   async resetToDefaults() {
     try {
-      // Try API first
       const response = await api.post('/api/system-options/reset')
       return response.data
     } catch (error) {
       console.error('Error resetting system options:', error)
-      
-      // Fallback to localStorage if API fails
-      localStorage.setItem('systemOptions', JSON.stringify(defaultOptions))
-      return defaultOptions
+      throw error
     }
+  },
+  
+  /**
+   * Get default options (used only for UI display while loading)
+   * @returns {Object} Default options
+   */
+  getDefaults() {
+    return { ...defaultOptions }
   }
 } 

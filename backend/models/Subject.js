@@ -4,7 +4,7 @@ const SessionSchema = new mongoose.Schema({
   day: {
     type: Number,
     required: true,
-    min: 1,
+    min: 0,
     max: 17
   },
   title: {
@@ -35,14 +35,31 @@ const SubjectSchema = new mongoose.Schema({
     enum: ['2nd', '3rd', '4th'],
     required: true
   },
+  schoolYear: {
+    type: String,
+    required: true,
+    trim: true,
+    default: '2024 - 2025'
+  },
+  semester: {
+    type: String,
+    enum: ['1st Semester', '2nd Semester'],
+    required: true
+  },
+  hours: {
+    type: Number,
+    required: true,
+    enum: [1, 2, 3],
+    default: 1
+  },
   sessions: {
     type: [SessionSchema],
     validate: [
       {
         validator: function(sessions) {
-          return sessions.length <= 17;
+          return sessions.length <= 18;
         },
-        message: 'Maximum 17 sessions allowed per subject'
+        message: 'Maximum 18 sessions allowed per subject'
       }
     ]
   },
