@@ -2,7 +2,17 @@ const express = require('express');
 const router = express.Router();
 const SystemOption = require('../models/SystemOption');
 const auth = require('../middleware/auth');
-const { isAdmin } = require('../middleware/roles');
+
+// Get the admin authorization middleware
+let adminAuth;
+try {
+  // Try to use the new roles middleware first
+  const roles = require('../middleware/roles');
+  adminAuth = roles.isAdmin;
+} catch (error) {
+  // Fall back to the old auth middleware if roles.js doesn't exist
+  adminAuth = auth.authorizeAdmin;
+}
 
 /**
  * @route   GET /api/system-options
@@ -31,7 +41,7 @@ router.get('/', async (req, res) => {
  * @desc    Update system options
  * @access  Private/Admin
  */
-router.post('/', auth, isAdmin, async (req, res) => {
+router.post('/', auth.authenticate, adminAuth, async (req, res) => {
   try {
     const { class: classOptions, subject: subjectOptions } = req.body;
     
@@ -72,7 +82,7 @@ router.post('/', auth, isAdmin, async (req, res) => {
  * @desc    Reset system options to defaults
  * @access  Private/Admin
  */
-router.post('/reset', auth, isAdmin, async (req, res) => {
+router.post('/reset', auth.authenticate, adminAuth, async (req, res) => {
   try {
     // Create a new instance with default values
     const defaultOptions = new SystemOption();

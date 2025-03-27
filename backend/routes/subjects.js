@@ -3,7 +3,17 @@ const router = express.Router();
 const Subject = require('../models/Subject');
 const SystemOption = require('../models/SystemOption');
 const auth = require('../middleware/auth');
-const { isAdmin } = require('../middleware/roles');
+
+// Get the admin authorization middleware
+let adminAuth;
+try {
+  // Try to use the new roles middleware first
+  const roles = require('../middleware/roles');
+  adminAuth = roles.isAdmin;
+} catch (error) {
+  // Fall back to the old auth middleware if roles.js doesn't exist
+  adminAuth = auth.authorizeAdmin;
+}
 
 // Get all subjects
 router.get('/', async (req, res) => {
@@ -33,7 +43,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new subject
-router.post('/', auth, isAdmin, async (req, res) => {
+router.post('/', auth.authenticate, adminAuth, async (req, res) => {
   try {
     // Get subject data from request body
     const { sspCode, name, yearLevel, sessions, semester, hours, schoolYear } = req.body;
@@ -107,7 +117,7 @@ router.post('/', auth, isAdmin, async (req, res) => {
 });
 
 // Update a subject
-router.put('/:id', auth, isAdmin, async (req, res) => {
+router.put('/:id', auth.authenticate, adminAuth, async (req, res) => {
   try {
     const { sspCode, name, yearLevel, sessions, semester, hours, schoolYear } = req.body;
     
@@ -180,7 +190,7 @@ router.put('/:id', auth, isAdmin, async (req, res) => {
 });
 
 // Delete subject
-router.delete('/:id', auth, isAdmin, async (req, res) => {
+router.delete('/:id', auth.authenticate, adminAuth, async (req, res) => {
   try {
     const subject = await Subject.findById(req.params.id);
     
