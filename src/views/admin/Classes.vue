@@ -142,6 +142,19 @@
       </table>
     </div>
     
+    <!-- Replace with a link to the dedicated archive page -->
+    <div class="mt-10 flex justify-end">
+      <router-link 
+        to="/admin/class-archive" 
+        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v1H3V4zm1 2h12v10a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm6 5a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+        </svg>
+        View Archived Classes
+      </router-link>
+    </div>
+
     <!-- Add Modal -->
     <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
       <div class="bg-white rounded-lg shadow-lg w-full max-w-lg mx-auto p-6 z-50">
@@ -161,6 +174,7 @@
               v-model="newClass.yearLevel"
               class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
               :class="{ 'border-red-500': errors.yearLevel }"
+              @change="handleYearLevelChange"
             >
               <option value="">Select Year Level</option>
               <option value="2nd">2nd Year</option>
@@ -263,8 +277,8 @@
               :class="{ 'border-red-500': errors.subjectId }"
             >
               <option value="">Select Subject</option>
-              <option v-for="subject in subjects" :key="subject._id" :value="subject._id">
-                {{ subject.sspCode }} - {{ subject.name }}
+              <option v-for="subject in filteredSubjects" :key="subject._id" :value="subject._id">
+                {{ subject.sspCode }} - {{ subject.name }} ({{ subject.yearLevel }} Year)
               </option>
             </select>
             <p v-if="errors.subjectId" class="mt-1 text-sm text-red-500">{{ errors.subjectId }}</p>
@@ -341,6 +355,13 @@
           </table>
         </div>
         
+        <!-- Students in Class section -->
+        <class-details-view 
+          :class-data="selectedClass" 
+          @view-student="handleViewStudent" 
+          @error="handleViewError" 
+        />
+        
         <div class="flex justify-end mt-6">
           <button
             @click="showDetailsModal = false"
@@ -377,6 +398,7 @@
               v-model="editedClass.yearLevel"
               class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
               :class="{ 'border-red-500': errors.yearLevel }"
+              @change="handleEditYearLevelChange"
             >
               <option value="">Select Year Level</option>
               <option value="2nd">2nd Year</option>
@@ -479,8 +501,8 @@
               :class="{ 'border-red-500': errors.subjectId }"
             >
               <option value="">Select Subject</option>
-              <option v-for="subject in subjects" :key="subject._id" :value="subject._id">
-                {{ subject.sspCode }} - {{ subject.name }}
+              <option v-for="subject in editFilteredSubjects" :key="subject._id" :value="subject._id">
+                {{ subject.sspCode }} - {{ subject.name }} ({{ subject.yearLevel }} Year)
               </option>
             </select>
             <p v-if="errors.subjectId" class="mt-1 text-sm text-red-500">{{ errors.subjectId }}</p>
@@ -530,6 +552,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { classService } from '../../services/classService'
 import { subjectService } from '../../services/subjectService'
 import { notificationService } from '../../services/notificationService'
+import ClassDetailsView from '../../components/admin/ClassDetailsView.vue'
 
 // State
 const loading = ref(true)
@@ -600,6 +623,9 @@ const errors = reactive({
 // Computed properties
 const filteredClasses = computed(() => {
   return allClasses.value.filter(classItem => {
+    // Only include active classes
+    if (classItem.status !== 'active') return false;
+    
     const matchesYearLevel = !filters.yearLevel || classItem.yearLevel === filters.yearLevel
     const matchesMajor = !filters.major || classItem.major === filters.major
     
@@ -610,6 +636,22 @@ const filteredClasses = computed(() => {
     
     return matchesYearLevel && matchesMajor && matchesSearch
   })
+})
+
+// Filter subjects based on selected year level
+const filteredSubjects = computed(() => {
+  if (!newClass.yearLevel) {
+    return subjects.value
+  }
+  return subjects.value.filter(subject => subject.yearLevel === newClass.yearLevel)
+})
+
+// Filter subjects for edit modal based on selected year level
+const editFilteredSubjects = computed(() => {
+  if (!editedClass.value.yearLevel) {
+    return subjects.value
+  }
+  return subjects.value.filter(subject => subject.yearLevel === editedClass.value.yearLevel)
 })
 
 // Section options based on year level
@@ -646,9 +688,11 @@ onMounted(async () => {
 async function fetchClasses() {
   loading.value = true
   try {
+    console.log('Fetching active classes')
     const response = await classService.getAll()
     allClasses.value = response
     classes.value = response
+    console.log(`Fetched ${response.length} active classes`)
   } catch (error) {
     console.error('Error fetching classes:', error)
     notificationService.showError('Failed to fetch classes. Please try again later.')
@@ -802,46 +846,48 @@ function editClass(classItem) {
   });
 
   try {
-    // Create direct object (not using .value since editedClass is already a ref)
-    editedClass._id = classItem._id || '';
-    editedClass.yearLevel = classItem.yearLevel || '';
-    editedClass.section = classItem.section || '';
-    editedClass.major = classItem.major || '';
-    editedClass.daySchedule = classItem.daySchedule || '';
-    editedClass.room = classItem.room || '';
-    editedClass.status = classItem.status || 'active';
-    editedClass.startTime = '';
-    editedClass.endTime = '';
-    editedClass.subjectId = '';
+    // Create a copy of the class item to edit (using ref's value property)
+    editedClass.value = {
+      _id: classItem._id || '',
+      yearLevel: classItem.yearLevel || '',
+      section: classItem.section || '',
+      major: classItem.major || '',
+      daySchedule: classItem.daySchedule || '',
+      room: classItem.room || '',
+      status: classItem.status || 'active',
+      startTime: '',
+      endTime: '',
+      subjectId: ''
+    };
 
     // Try to find the subject ID from all possible sources
     if (classItem.subject?._id) {
-      editedClass.subjectId = classItem.subject._id;
+      editedClass.value.subjectId = classItem.subject._id;
     } else if (classItem.sspSubject?._id) {
-      editedClass.subjectId = classItem.sspSubject._id;
+      editedClass.value.subjectId = classItem.sspSubject._id;
     } else if (classItem.subjectId) {
-      editedClass.subjectId = classItem.subjectId;
+      editedClass.value.subjectId = classItem.subjectId;
     } else if (classItem.sspSubjectId) {
-      editedClass.subjectId = classItem.sspSubjectId;
+      editedClass.value.subjectId = classItem.sspSubjectId;
     }
     
     // Parse time schedule if available
     if (classItem.timeSchedule && typeof classItem.timeSchedule === 'string') {
       const parts = classItem.timeSchedule.split('-');
       if (parts.length === 2) {
-        editedClass.startTime = parts[0].trim();
-        editedClass.endTime = parts[1].trim();
+        editedClass.value.startTime = parts[0].trim();
+        editedClass.value.endTime = parts[1].trim();
       } else {
         // Try another format
         const altParts = classItem.timeSchedule.split(' - ');
         if (altParts.length === 2) {
-          editedClass.startTime = altParts[0].trim();
-          editedClass.endTime = altParts[1].trim();
+          editedClass.value.startTime = altParts[0].trim();
+          editedClass.value.endTime = altParts[1].trim();
         }
       }
     }
 
-    console.log('Setting up editedClass with data:', editedClass);
+    console.log('Setting up editedClass with data:', editedClass.value);
     
     // Save reference to current class
     currentClass.value = JSON.parse(JSON.stringify(classItem));
@@ -862,32 +908,39 @@ async function updateClass() {
     }
     
     // Create time schedule from start and end times
-    if (editedClass.startTime && editedClass.endTime) {
-      const timeSchedule = `${editedClass.startTime} - ${editedClass.endTime}`
+    if (editedClass.value.startTime && editedClass.value.endTime) {
+      const timeSchedule = `${editedClass.value.startTime} - ${editedClass.value.endTime}`
       
       // Prepare the class data
       const classData = {
-        yearLevel: editedClass.yearLevel,
-        section: editedClass.section,
-        major: editedClass.major,
-        daySchedule: editedClass.daySchedule,
-        room: editedClass.room,
-        status: editedClass.status,
+        yearLevel: editedClass.value.yearLevel,
+        section: editedClass.value.section,
+        major: editedClass.value.major,
+        daySchedule: editedClass.value.daySchedule,
+        room: editedClass.value.room,
+        status: editedClass.value.status,
         timeSchedule: timeSchedule,
-        sspSubjectId: editedClass.subjectId
+        sspSubjectId: editedClass.value.subjectId
       }
       
-      const response = await classService.update(editedClass._id, classData)
+      const response = await classService.update(editedClass.value._id, classData)
       
       // Update the class list
-      const index = allClasses.value.findIndex(c => c._id === editedClass._id)
+      const index = allClasses.value.findIndex(c => c._id === editedClass.value._id)
       if (index !== -1) {
         allClasses.value[index] = { ...allClasses.value[index], ...response }
+        
+        // Apply filtering rules - if status is inactive, it shouldn't show in active list
         classes.value = filteredClasses.value
       }
       
       notificationService.showSuccess('Class updated successfully')
       showEditModal.value = false
+      
+      // If status changed to inactive, refresh class list to remove it from view
+      if (editedClass.value.status === 'inactive') {
+        await fetchClasses()
+      }
     } else {
       notificationService.showError('Please select both start and end times')
     }
@@ -905,42 +958,42 @@ function validateEditForm() {
     errors[key] = ''
   })
   
-  if (!editedClass.yearLevel) {
+  if (!editedClass.value.yearLevel) {
     errors.yearLevel = 'Year level is required'
     isValid = false
   }
   
-  if (!editedClass.section) {
+  if (!editedClass.value.section) {
     errors.section = 'Section is required'
     isValid = false
   }
   
-  if (!editedClass.major) {
+  if (!editedClass.value.major) {
     errors.major = 'Major is required'
     isValid = false
   }
   
-  if (!editedClass.daySchedule) {
+  if (!editedClass.value.daySchedule) {
     errors.daySchedule = 'Day schedule is required'
     isValid = false
   }
   
-  if (!editedClass.startTime) {
+  if (!editedClass.value.startTime) {
     errors.startTime = 'Start time is required'
     isValid = false
   }
   
-  if (!editedClass.endTime) {
+  if (!editedClass.value.endTime) {
     errors.endTime = 'End time is required'
     isValid = false
   }
   
-  if (!editedClass.room) {
+  if (!editedClass.value.room) {
     errors.room = 'Room is required'
     isValid = false
   }
   
-  if (!editedClass.subjectId) {
+  if (!editedClass.value.subjectId) {
     errors.subjectId = 'Subject is required'
     isValid = false
   }
@@ -954,10 +1007,10 @@ async function deleteClass() {
       return;
     }
     
-    await classService.delete(editedClass._id);
+    await classService.delete(editedClass.value._id);
     
     // Remove from local state
-    const index = allClasses.value.findIndex(c => c._id === editedClass._id);
+    const index = allClasses.value.findIndex(c => c._id === editedClass.value._id);
     if (index !== -1) {
       allClasses.value.splice(index, 1);
       classes.value = filteredClasses.value;
@@ -969,5 +1022,37 @@ async function deleteClass() {
     console.error('Error deleting class:', error);
     notificationService.showError('Failed to delete class. Please try again later.');
   }
+}
+
+// When year level changes, reset subject selection if it doesn't match the year level
+function handleYearLevelChange() {
+  if (newClass.subjectId) {
+    const selectedSubject = subjects.value.find(s => s._id === newClass.subjectId)
+    if (selectedSubject && selectedSubject.yearLevel !== newClass.yearLevel) {
+      newClass.subjectId = ''
+    }
+  }
+}
+
+// Same function for edit modal
+function handleEditYearLevelChange() {
+  if (editedClass.value.subjectId) {
+    const selectedSubject = subjects.value.find(s => s._id === editedClass.value.subjectId)
+    if (selectedSubject && selectedSubject.yearLevel !== editedClass.value.yearLevel) {
+      editedClass.value.subjectId = ''
+    }
+  }
+}
+
+// Handle view student from ClassDetailsView component
+function handleViewStudent(student) {
+  console.log('View student from class detail:', student);
+  // Later implement navigation to student details
+  notificationService.showInfo(`View student: ${student.user?.firstName} ${student.user?.lastName}`);
+}
+
+function handleViewError(errorMessage) {
+  console.error('Error from ClassDetailsView:', errorMessage);
+  notificationService.showError(errorMessage);
 }
 </script> 

@@ -40,8 +40,8 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
     const { firstName, middleName, lastName, nameExtension, idNumber, salutation, email, password, sendWelcomeEmail, sspAdvisoryClassId } = req.body;
     
     // Validate email domain
-    if (!email.endsWith('@phinmaed.com')) {
-      return res.status(400).json({ message: 'Email must be from phinmaed.com domain' });
+    if (!email.endsWith('@gmail.com')) {
+      return res.status(400).json({ message: 'Email must be from gmail.com domain' });
     }
     
     // Check if user already exists
@@ -83,7 +83,8 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
       email,
       password: password || defaultPassword,
       role: 'adviser',
-      status: 'active'
+      status: 'active',
+      passwordChangeRequired: true // Set flag to require password change on first login
     });
     
     await adviser.save();
@@ -98,18 +99,9 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
       await advisoryClass.save();
     }
     
-    // If sendWelcomeEmail flag is true, send a welcome email with password reset link
+    // If sendWelcomeEmail flag is true, send a welcome email with login instructions
     if (sendWelcomeEmail) {
       try {
-        // Generate reset token
-        const resetToken = crypto.randomBytes(20).toString('hex');
-        
-        // Set token and expiry
-        adviser.resetPasswordToken = resetToken;
-        adviser.resetPasswordExpires = Date.now() + 172800000; // 48 hours
-        
-        await adviser.save();
-        
         console.log('Creating email transporter with:', {
           service: process.env.EMAIL_SERVICE,
           user: process.env.EMAIL_USER,
@@ -125,9 +117,8 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
           }
         });
         
-        // Reset link
-        const resetUrl = `${process.env.BASE_URL}/reset-password/${resetToken}`;
-        console.log('Using reset URL:', resetUrl);
+        // Login URL
+        const loginUrl = `http://localhost:5173/login`;
         
         // Email options
         const mailOptions = {
@@ -138,9 +129,9 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
           
           Your default password is: ${defaultPassword}
           
-          Please use the following link to set a new password: ${resetUrl}
+          Please log in at: ${loginUrl}
           
-          For security reasons, please change your password immediately after logging in.`
+          You will be required to change your password on your first login for security reasons.`
         };
         
         console.log('Sending email to:', adviser.email);

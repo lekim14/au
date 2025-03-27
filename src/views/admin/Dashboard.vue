@@ -57,6 +57,29 @@
       </div>
     </div>
     
+    <!-- Pending Registrations Card -->
+    <div v-if="stats.pendingRegistrations > 0" class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-8">
+      <div class="flex items-center justify-between cursor-pointer" @click="goToPendingRegistrations">
+        <div class="flex items-center">
+          <div class="p-3 rounded-full bg-yellow-100 text-yellow-700 mr-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-sm text-yellow-700 font-medium">Pending Student Registrations</p>
+            <p class="text-2xl font-bold text-yellow-800">{{ stats.pendingRegistrations }}</p>
+            <p class="text-sm text-yellow-700">Click to review</p>
+          </div>
+        </div>
+        <div class="text-yellow-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </div>
+    
     <!-- Charts -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       <!-- Completion Rates Chart -->
@@ -125,10 +148,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
 import CompletionChart from '../../components/ui/CompletionChart.vue'
 import ConsultationChart from '../../components/ui/ConsultationChart.vue'
 import api from '../../services/api'
+import { studentService } from '../../services/studentService'
 
+const router = useRouter()
 const API_URL = 'http://localhost:5000/api'
 const loading = ref(true)
 const stats = ref({})
@@ -182,6 +208,15 @@ async function fetchStats() {
       stats.value.students = 0
     }
     
+    try {
+      const pendingResponse = await studentService.getPendingRegistrations()
+      stats.value.pendingRegistrations = pendingResponse.length
+      console.log('Pending registrations:', stats.value.pendingRegistrations)
+    } catch (error) {
+      console.error('Error fetching pending registrations:', error)
+      stats.value.pendingRegistrations = 0
+    }
+    
     // Set chart data to 0 - remove mock data
     stats.value.odysseyCompletionRate = 0
     stats.value.srmCompletionRate = 0
@@ -195,6 +230,7 @@ async function fetchStats() {
       classes: 0,
       subjects: 0,
       students: 0,
+      pendingRegistrations: 0,
       odysseyCompletionRate: 0,
       srmCompletionRate: 0,
       consultations: 0
@@ -237,5 +273,9 @@ function getBadgeClass(targetAudience) {
     default:
       return 'badge-info'
   }
+}
+
+function goToPendingRegistrations() {
+  router.push('/admin/pending-registrations')
 }
 </script> 

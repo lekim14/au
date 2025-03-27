@@ -184,7 +184,7 @@
         
         <div class="text-sm text-gray-600 mb-4 p-3 bg-blue-50 rounded-md">
           <p class="font-medium text-blue-700 mb-1">Important:</p>
-          <p>A password reset link will be sent to the adviser's email. They will need to set their password before logging in.</p>
+          <p>The adviser will receive an email with login instructions. They will be required to change their password on first login.</p>
         </div>
         
         <div class="flex justify-end mt-6">

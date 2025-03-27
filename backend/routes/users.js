@@ -86,6 +86,11 @@ router.put('/change-password', authenticate, async (req, res) => {
     user.password = await bcrypt.hash(newPassword, salt);
     user.updatedAt = new Date();
     
+    // Clear the password change required flag
+    if (user.passwordChangeRequired) {
+      user.passwordChangeRequired = false;
+    }
+    
     await user.save();
     
     res.json({ message: 'Password changed successfully' });

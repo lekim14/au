@@ -29,6 +29,17 @@
               @input="filterAdvisoryClasses"
             />
           </div>
+          <div>
+            <select 
+              v-model="statusFilter" 
+              class="p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              @change="filterAdvisoryClasses"
+            >
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
         </div>
       </div>
       
@@ -73,6 +84,12 @@
               {{ getAdviserName(advisoryClass.adviser) }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <span 
+                v-if="advisoryClass.status === 'archived'" 
+                class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 mr-2"
+              >
+                Archived
+              </span>
               <button 
                 @click="viewDetails(advisoryClass)" 
                 class="text-primary hover:text-primary-dark mr-2"
@@ -181,6 +198,87 @@
           </table>
         </div>
         
+        <!-- Students in Advisory Class Section -->
+        <div class="mt-6 border-t pt-4">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-medium text-gray-900">Students in this Class</h3>
+            <button 
+              @click="toggleStudentList" 
+              class="flex items-center text-sm text-primary hover:text-primary-dark focus:outline-none"
+            >
+              <span>{{ showStudents ? 'Hide Students' : 'Show Students' }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1 transition-transform duration-200" :class="{'rotate-180': showStudents}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+          
+          <div v-if="showStudents">
+            <div class="p-4">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Students ({{ students.length }})</h3>
+                <button 
+                  @click="fetchStudentsInClass" 
+                  class="text-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
+                  :disabled="loadingStudents"
+                >
+                  <span v-if="loadingStudents">Loading...</span>
+                  <span v-else>Refresh Students</span>
+                </button>
+              </div>
+              
+              <div v-if="loadingStudents" class="flex justify-center items-center p-4">
+                <svg class="animate-spin h-6 w-6 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="ml-2">Loading students...</span>
+              </div>
+              
+              <div v-else-if="students.length === 0" class="text-center p-4 bg-gray-50 rounded-md">
+                <p>No students found for this class.</p>
+                <button 
+                  @click="fetchStudentsInClass" 
+                  class="mt-2 text-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
+                >
+                  Refresh List
+                </button>
+              </div>
+              
+              <div v-else class="bg-white rounded-md overflow-hidden shadow-sm">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ID Number
+                      </th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr v-for="student in students" :key="student._id" class="hover:bg-gray-50">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ getUserField(student, 'idNumber') || 'N/A' }}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ getFullName(student) }}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ getUserField(student, 'email') || 'N/A' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div class="flex justify-end mt-6">
           <button
             @click="closeDetailsModal"
@@ -240,6 +338,19 @@
             </select>
             <p v-if="errors.classId" class="mt-1 text-sm text-red-500">{{ errors.classId }}</p>
           </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+            <select
+              v-model="editedAdvisoryClass.status"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              :class="{ 'border-red-500': errors.status }"
+            >
+              <option value="active">Active</option>
+              <option value="archived">Archived</option>
+            </select>
+            <p v-if="errors.status" class="mt-1 text-sm text-red-500">{{ errors.status }}</p>
+          </div>
         </div>
         
         <div class="flex justify-end mt-6">
@@ -273,12 +384,14 @@ import { adviserService } from '../../services/adviserService';
 import { classService } from '../../services/classService';
 import { notificationService } from '../../services/notificationService';
 import api from '../../services/api';
+import { studentService } from '../../services/studentService';
 
 // State
 const advisoryClasses = ref([]);
 const filteredClasses = ref([]);
 const loading = ref(true);
 const search = ref('');
+const statusFilter = ref('active');
 const showAddModal = ref(false);
 const advisers = ref([]);
 const classes = ref([]);
@@ -290,7 +403,8 @@ const selectedAdvisoryClass = ref(null);
 const editedAdvisoryClass = reactive({
   adviserId: '',
   classId: '',
-  _id: ''
+  _id: '',
+  status: 'active'
 });
 
 // Form state
@@ -302,8 +416,13 @@ const newAdvisoryClass = reactive({
 // Error state
 const errors = reactive({
   adviserId: '',
-  classId: ''
+  classId: '',
+  status: ''
 });
+
+const showStudents = ref(false);
+const students = ref([]);
+const loadingStudents = ref(false);
 
 onMounted(async () => {
   await fetchAdvisoryClasses();
@@ -358,7 +477,7 @@ async function fetchClasses() {
 }
 
 function filterAdvisoryClasses() {
-  if (!search.value) {
+  if (!search.value && statusFilter.value === 'all') {
     filteredClasses.value = advisoryClasses.value;
     return;
   }
@@ -367,8 +486,14 @@ function filterAdvisoryClasses() {
   filteredClasses.value = advisoryClasses.value.filter(advisoryClass => {
     const className = getClassName(advisoryClass).toLowerCase();
     const adviserName = getAdviserName(advisoryClass.adviser).toLowerCase();
+    const matchesSearch = !searchTerm || className.includes(searchTerm) || adviserName.includes(searchTerm);
     
-    return className.includes(searchTerm) || adviserName.includes(searchTerm);
+    // Filter by status if needed
+    const matchesStatus = statusFilter.value === 'all' || 
+                          advisoryClass.status === statusFilter.value ||
+                          (!advisoryClass.status && statusFilter.value === 'active'); // Default to active if no status
+    
+    return matchesSearch && matchesStatus;
   });
 }
 
@@ -460,11 +585,96 @@ async function addAdvisoryClass() {
 function viewDetails(advisoryClass) {
   selectedAdvisoryClass.value = advisoryClass;
   showDetailsModal.value = true;
+  // Reset students state
+  students.value = [];
+  showStudents.value = false;
+}
+
+function toggleStudentList() {
+  showStudents.value = !showStudents.value;
+  if (showStudents.value && students.value.length === 0) {
+    fetchStudentsInClass();
+  }
+}
+
+async function fetchStudentsInClass() {
+  if (!selectedAdvisoryClass.value?.class?._id) {
+    console.error('No class ID provided to fetch students');
+    return;
+  }
+  
+  loadingStudents.value = true;
+  try {
+    console.log(`Fetching students for class ${selectedAdvisoryClass.value.class._id}`);
+    
+    // Fetch from the API to ensure most up-to-date data
+    const response = await studentService.getStudentsByClass(selectedAdvisoryClass.value.class._id);
+    
+    if (response && Array.isArray(response)) {
+      students.value = response;
+      console.log(`Fetched ${students.value.length} students for class ${selectedAdvisoryClass.value.class._id}`);
+    } else {
+      console.error('Invalid response format from getStudentsByClass:', response);
+      students.value = [];
+    }
+  } catch (error) {
+    console.error('Failed to fetch students:', error);
+    notificationService.showError('Failed to load students for this class');
+    students.value = [];
+  } finally {
+    loadingStudents.value = false;
+  }
+}
+
+function getUserField(student, field) {
+  if (!student) return null;
+  
+  // Try to get from user object first
+  if (student.user && student.user[field]) {
+    return student.user[field];
+  }
+  
+  // If no user object, try the student object directly
+  if (student[field]) {
+    return student[field];
+  }
+  
+  return null;
+}
+
+function getFullName(student) {
+  if (!student) return 'Unknown Student';
+  
+  // Try to get from user object
+  if (student.user) {
+    const firstName = student.user.firstName || '';
+    const middleName = student.user.middleName ? ` ${student.user.middleName.charAt(0)}.` : '';
+    const lastName = student.user.lastName || '';
+    const nameExt = student.user.nameExtension && student.user.nameExtension !== 'N/A' 
+      ? ` ${student.user.nameExtension}` 
+      : '';
+      
+    return `${firstName}${middleName} ${lastName}${nameExt}`;
+  }
+  
+  // If no user object, try from student directly (pending students)
+  const firstName = student.firstName || student.pendingRegistration?.firstName || '';
+  const middleName = student.middleName || student.pendingRegistration?.middleName 
+    ? ` ${(student.middleName || student.pendingRegistration?.middleName).charAt(0)}.` 
+    : '';
+  const lastName = student.lastName || student.pendingRegistration?.lastName || '';
+  const nameExt = student.nameExtension || student.pendingRegistration?.nameExtension;
+  const nameExtension = nameExt && nameExt !== 'N/A' ? ` ${nameExt}` : '';
+    
+  return `${firstName}${middleName} ${lastName}${nameExtension}` || 'Unknown Student';
 }
 
 function closeDetailsModal() {
   showDetailsModal.value = false;
   selectedAdvisoryClass.value = null;
+  // Reset students state when closing modal
+  students.value = [];
+  showStudents.value = false;
 }
 
 function editAdvisoryClass(advisoryClass) {
@@ -473,6 +683,7 @@ function editAdvisoryClass(advisoryClass) {
   // Reset errors
   errors.adviserId = '';
   errors.classId = '';
+  errors.status = '';
   
   // Fetch advisers and classes if not already loaded
   Promise.all([fetchAdvisers(), fetchClasses()]).then(() => {
@@ -480,9 +691,12 @@ function editAdvisoryClass(advisoryClass) {
     selectedAdvisoryClass.value = { ...advisoryClass };
     
     // Set edited advisory class fields
-    editedAdvisoryClass._id = advisoryClass._id;
+    editedAdvisoryClass._id = advisoryClass._id || '';
     editedAdvisoryClass.adviserId = advisoryClass.adviser?._id || '';
     editedAdvisoryClass.classId = advisoryClass.class?._id || '';
+    editedAdvisoryClass.status = advisoryClass.status || 'active';
+    
+    console.log('Populated edit form with:', editedAdvisoryClass);
     
     // Show the edit modal
     showEditModal.value = true;
@@ -502,6 +716,7 @@ function validateEditForm() {
   // Reset errors
   errors.adviserId = '';
   errors.classId = '';
+  errors.status = '';
   
   if (!editedAdvisoryClass.adviserId) {
     errors.adviserId = 'Adviser is required';
@@ -510,6 +725,11 @@ function validateEditForm() {
   
   if (!editedAdvisoryClass.classId) {
     errors.classId = 'Class is required';
+    isValid = false;
+  }
+  
+  if (!editedAdvisoryClass.status) {
+    errors.status = 'Status is required';
     isValid = false;
   }
   
@@ -524,7 +744,8 @@ async function updateAdvisoryClass() {
   try {
     await api.put(`/advisers/advisory/classes/${editedAdvisoryClass._id}`, {
       adviser: editedAdvisoryClass.adviserId,
-      class: editedAdvisoryClass.classId
+      class: editedAdvisoryClass.classId,
+      status: editedAdvisoryClass.status
     });
     
     await fetchAdvisoryClasses();

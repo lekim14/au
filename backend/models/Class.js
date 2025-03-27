@@ -32,6 +32,10 @@ const ClassSchema = new mongoose.Schema({
     ref: 'Subject',
     required: true
   },
+  students: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student'
+  }],
   status: {
     type: String,
     enum: ['active', 'inactive', 'archived'],

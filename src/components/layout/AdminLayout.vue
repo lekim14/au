@@ -93,6 +93,14 @@
           </router-link>
           
           <router-link 
+            to="/admin/pending-registrations" 
+            class="block px-4 py-2 rounded-md transition-colors"
+            :class="isActive('/admin/pending-registrations') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+          >
+            Pending Registrations
+          </router-link>
+          
+          <router-link 
             to="/admin/announcements" 
             class="block px-4 py-2 rounded-md transition-colors"
             :class="isActive('/admin/announcements') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"

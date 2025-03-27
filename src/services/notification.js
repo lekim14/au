@@ -153,4 +153,17 @@ const notificationService = {
   NOTIFICATION_TYPES
 }
 
+// Add a Vue 3 composable for the notification service
+export function useNotificationService() {
+  return {
+    showSuccess: success,
+    showError: error,
+    showInfo: info,
+    showWarning: warning,
+    removeNotification,
+    clearAllNotifications,
+    getAll: () => notifications.value
+  };
+}
+
 export default notificationService 

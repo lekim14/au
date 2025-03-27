@@ -9,7 +9,9 @@ export const useAuthStore = defineStore('auth', {
     loading: false,
     error: null,
     // Flag to prevent welcome message on page refresh
-    hasShownWelcomeMessage: false
+    hasShownWelcomeMessage: false,
+    // Flag to track if password change is required
+    passwordChangeRequired: false
   }),
   
   getters: {
@@ -31,10 +33,12 @@ export const useAuthStore = defineStore('auth', {
         if (response.data && response.data.token) {
           this.token = response.data.token
           this.user = response.data.user
+          this.passwordChangeRequired = response.data.user.passwordChangeRequired || false
           
           // Save to localStorage
           localStorage.setItem('token', this.token)
           localStorage.setItem('userRole', this.user.role)
+          localStorage.setItem('userId', this.user.id)
           
           // Only show welcome message on actual login, not page refresh
           if (!this.hasShownWelcomeMessage) {
@@ -66,6 +70,7 @@ export const useAuthStore = defineStore('auth', {
         const response = await api.get('/auth/me')
         if (response.data) {
           this.user = response.data
+          this.passwordChangeRequired = response.data.passwordChangeRequired || false
           return true
         }
         return false
@@ -83,18 +88,24 @@ export const useAuthStore = defineStore('auth', {
       this.user = null
       this.token = null
       this.hasShownWelcomeMessage = false
+      this.passwordChangeRequired = false
       
       // Remove from localStorage
       localStorage.removeItem('token')
       localStorage.removeItem('userRole')
+      localStorage.removeItem('userId')
       
       notificationService.showInfo('You have been logged out')
+    },
+    
+    clearPasswordChangeRequired() {
+      this.passwordChangeRequired = false
     }
   },
   
   persist: {
     key: 'ssp-auth',
     storage: localStorage,
-    paths: ['token', 'hasShownWelcomeMessage']
+    paths: ['token', 'hasShownWelcomeMessage', 'passwordChangeRequired']
   }
 }) 

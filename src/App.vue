@@ -28,6 +28,14 @@ onMounted(async () => {
       
       if (!success) {
         router.push('/login')
+      } else {
+        // Check if password change is required for advisers
+        if (authStore.isAdviser && authStore.passwordChangeRequired) {
+          // Redirect to profile page if not already there
+          if (!router.currentRoute.value.path.includes('/adviser/profile')) {
+            router.push('/adviser/profile')
+          }
+        }
       }
     } catch (error) {
       console.error('Authentication error:', error)

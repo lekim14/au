@@ -1,33 +1,40 @@
-import axios from 'axios';
+import api from './api';
 
-const API_URL = '/api/users';
-
-// Get user profile
-export const getUserProfile = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/profile`);
-    return response.data;
-  } catch (error) {
-    throw error.response.data;
+// User service functions
+export const userService = {
+  // Get current user profile
+  getProfile: async () => {
+    try {
+      const response = await api.get('/users/profile');
+      return response.data;
+    } catch (error) {
+      console.error('Error getting profile:', error);
+      throw error;
+    }
+  },
+  
+  // Update user profile
+  updateProfile: async (profileData) => {
+    try {
+      const response = await api.put('/users/profile', profileData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  },
+  
+  // Change password
+  changePassword: async (passwordData) => {
+    try {
+      console.log('Sending password change request:', { ...passwordData, newPassword: '[REDACTED]' });
+      const response = await api.put('/users/change-password', passwordData);
+      return response.data;
+    } catch (error) {
+      console.error('Error changing password:', error.response?.data || error.message);
+      throw error;
+    }
   }
 };
 
-// Update user profile
-export const updateUserProfile = async (profileData) => {
-  try {
-    const response = await axios.put(`${API_URL}/profile`, profileData);
-    return response.data;
-  } catch (error) {
-    throw error.response.data;
-  }
-};
-
-// Change password
-export const changePassword = async (passwordData) => {
-  try {
-    const response = await axios.put(`${API_URL}/change-password`, passwordData);
-    return response.data;
-  } catch (error) {
-    throw error.response.data;
-  }
-}; 
+export default userService; 
