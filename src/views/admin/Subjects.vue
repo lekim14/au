@@ -26,9 +26,7 @@
             @change="fetchSubjects"
           >
             <option value="">All Year Levels</option>
-            <option value="2nd">2nd Year</option>
-            <option value="3rd">3rd Year</option>
-            <option value="4th">4th Year</option>
+            <option v-for="option in yearLevelOptions" :key="option" :value="option">{{ option }} Year</option>
           </select>
         </div>
         <div>
@@ -56,6 +54,15 @@
               Year Level
             </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              School Year
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Semester
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Hours
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Sessions
             </th>
             <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -65,7 +72,7 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <tr v-if="loading">
-            <td colspan="4" class="px-6 py-4 text-center">
+            <td colspan="6" class="px-6 py-4 text-center">
               <div class="flex justify-center items-center">
                 <svg class="animate-spin h-5 w-5 text-primary mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -76,7 +83,7 @@
             </td>
           </tr>
           <tr v-else-if="subjects.length === 0">
-            <td colspan="4" class="px-6 py-4 text-center">
+            <td colspan="6" class="px-6 py-4 text-center">
               <p v-if="filters.search || filters.yearLevel">No subjects match your filters</p>
               <p v-else>No subjects found</p>
             </td>
@@ -86,10 +93,19 @@
               {{ subject.sspCode || 'No Code' }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ subject.yearLevel || 'Unknown' }} Year
+              {{ subject.yearLevel }} Year
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ subject.sessions ? subject.sessions.length : 0 }} / 17
+              {{ subject.schoolYear || '2024 - 2025' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ subject.semester }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ subject.hours || '1' }} {{ subject.hours === 1 ? 'Hour' : 'Hours' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ subject.sessions ? subject.sessions.length : 0 }} / 18
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <button 
@@ -145,35 +161,95 @@
                   :class="{ 'border-red-500': errors.yearLevel }"
                 >
                   <option value="">Select Year Level</option>
-                  <option value="2nd">2nd Year</option>
-                  <option value="3rd">3rd Year</option>
-                  <option value="4th">4th Year</option>
+                  <option v-for="option in yearLevelOptions" :key="option" :value="option">{{ option }} Year</option>
                 </select>
                 <p v-if="errors.yearLevel" class="mt-1 text-sm text-red-500">{{ errors.yearLevel }}</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="border-r border-gray-300 font-medium p-2">Semester</td>
+              <td class="p-2">
+                <select
+                  v-model="newSubject.semester"
+                  class="w-full p-1 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  :class="{ 'border-red-500': errors.semester }"
+                >
+                  <option value="">Select Semester</option>
+                  <option value="1st Semester">1st Semester</option>
+                  <option value="2nd Semester">2nd Semester</option>
+                </select>
+                <p v-if="errors.semester" class="mt-1 text-sm text-red-500">{{ errors.semester }}</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="border-r border-gray-300 font-medium p-2">Hours</td>
+              <td class="p-2">
+                <select
+                  v-model="newSubject.hours"
+                  class="w-full p-1 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  :class="{ 'border-red-500': errors.hours }"
+                >
+                  <option v-for="hour in hoursOptions" :key="hour" :value="hour.toString()">{{ hour }} {{ hour === 1 ? 'Hour' : 'Hours' }}</option>
+                </select>
+                <p v-if="errors.hours" class="mt-1 text-sm text-red-500">{{ errors.hours }}</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="border-r border-gray-300 font-medium p-2">School Year *</td>
+              <td class="p-2">
+                <input
+                  v-model="newSubject.schoolYear"
+                  type="text"
+                  placeholder="e.g., 2025 - 2026"
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary bg-gray-100"
+                  :class="{ 'border-red-500': errors.schoolYear }"
+                  readonly
+                />
+                <p v-if="errors.schoolYear" class="mt-1 text-sm text-red-500">{{ errors.schoolYear }}</p>
+                <p class="text-xs text-gray-500 mt-1">Fixed school year for all new subjects</p>
               </td>
             </tr>
           </table>
         </div>
         
-        <div class="italic font-medium text-center mb-2">Calendar</div>
+        <div class="bg-gray-50 p-4 rounded-lg mb-4">
+          <p class="text-sm">Currently defined sessions: {{ sessionTitles.filter(t => t).length || 0 }} / 18</p>
+        </div>
         
-        <div class="border border-gray-300 rounded-md mb-4">
-          <table class="w-full">
-            <tr class="bg-gray-50 border-b border-gray-300">
-              <th class="border-r border-gray-300 p-2 w-1/6">Days/Sessions</th>
-              <th class="p-2">Title</th>
-            </tr>
-            
-            <tr v-for="day in 17" :key="day" class="border-b border-gray-300">
-              <td class="border-r border-gray-300 p-2 text-center">{{ day }}</td>
-              <td class="p-2">
-                <input
-                  v-model="sessionTitles[day-1]"
-                  type="text"
-                  class="w-full p-1 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-                />
-              </td>
-            </tr>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Day</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <!-- Day 0 - Introduction (read-only) -->
+              <tr>
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">0</td>
+                <td class="px-4 py-2">
+                  <input 
+                    type="text" 
+                    v-model="sessionTitles[0]" 
+                    class="w-full p-2 border border-gray-300 rounded-md bg-gray-50 focus:ring-primary focus:border-primary"
+                    readonly
+                  />
+                  <span class="text-xs text-gray-500 mt-1 block">Auto-added</span>
+                </td>
+              </tr>
+              <!-- Days 1-17 -->
+              <tr v-for="day in 17" :key="day">
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{{ day }}</td>
+                <td class="px-4 py-2">
+                  <input 
+                    type="text" 
+                    v-model="sessionTitles[day]" 
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  />
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
         
@@ -201,12 +277,19 @@
           <div>
             <h2 class="text-xl font-semibold">Subject: {{ selectedSubject?.sspCode }}</h2>
             <p class="text-sm text-gray-600">Year Level: <span class="font-medium">{{ selectedSubject?.yearLevel }} Year</span></p>
+            <p class="text-sm text-gray-600">School Year: <span class="font-medium">{{ selectedSubject?.schoolYear || '2024 - 2025' }}</span></p>
+            <p class="text-sm text-gray-600">Semester: <span class="font-medium">{{ selectedSubject?.semester }}</span></p>
+            <p class="text-sm text-gray-600">Hours: <span class="font-medium">{{ selectedSubject?.hours }} {{ selectedSubject?.hours === 1 ? 'Hour' : 'Hours' }}</span></p>
           </div>
           <button @click="showSessionsModal = false" class="text-gray-500 hover:text-gray-700">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+        </div>
+        
+        <div class="bg-gray-50 p-4 rounded-lg mb-4">
+          <p class="text-sm">Sessions: {{ sortedSessions.length || 0 }} / 18</p>
         </div>
         
         <div class="border border-gray-300 rounded-md mb-4">
@@ -216,7 +299,7 @@
               <th class="p-2 w-2/3">Title</th>
             </tr>
             
-            <tr v-for="session in selectedSubject?.sessions" :key="session._id" class="border-b border-gray-300">
+            <tr v-for="session in sortedSessions" :key="session.day" class="border-b border-gray-300">
               <td class="border-r border-gray-300 p-2 text-center">{{ session.day }}</td>
               <td class="p-2">{{ session.title }}</td>
             </tr>
@@ -269,35 +352,95 @@
                   :class="{ 'border-red-500': errors.yearLevel }"
                 >
                   <option value="">Select Year Level</option>
-                  <option value="2nd">2nd Year</option>
-                  <option value="3rd">3rd Year</option>
-                  <option value="4th">4th Year</option>
+                  <option v-for="option in yearLevelOptions" :key="option" :value="option">{{ option }} Year</option>
                 </select>
                 <p v-if="errors.yearLevel" class="mt-1 text-sm text-red-500">{{ errors.yearLevel }}</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="border-r border-gray-300 font-medium p-2">School Year *</td>
+              <td class="p-2">
+                <input
+                  v-model="editedSubject.schoolYear"
+                  type="text"
+                  placeholder="e.g., 2025 - 2026"
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary bg-gray-100"
+                  :class="{ 'border-red-500': errors.schoolYear }"
+                  readonly
+                />
+                <p v-if="errors.schoolYear" class="mt-1 text-sm text-red-500">{{ errors.schoolYear }}</p>
+                <p class="text-xs text-gray-500 mt-1">Fixed school year for all subjects</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="border-r border-gray-300 font-medium p-2">Semester</td>
+              <td class="p-2">
+                <select
+                  v-model="editedSubject.semester"
+                  class="w-full p-1 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  :class="{ 'border-red-500': errors.semester }"
+                >
+                  <option value="">Select Semester</option>
+                  <option value="1st Semester">1st Semester</option>
+                  <option value="2nd Semester">2nd Semester</option>
+                </select>
+                <p v-if="errors.semester" class="mt-1 text-sm text-red-500">{{ errors.semester }}</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="border-r border-gray-300 font-medium p-2">Hours</td>
+              <td class="p-2">
+                <select
+                  v-model="editedSubject.hours"
+                  class="w-full p-1 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  :class="{ 'border-red-500': errors.hours }"
+                >
+                  <option v-for="hour in hoursOptions" :key="hour" :value="hour.toString()">{{ hour }} {{ hour === 1 ? 'Hour' : 'Hours' }}</option>
+                </select>
+                <p v-if="errors.hours" class="mt-1 text-sm text-red-500">{{ errors.hours }}</p>
               </td>
             </tr>
           </table>
         </div>
         
-        <div class="italic font-medium text-center mb-2">Calendar</div>
+        <div class="bg-gray-50 p-4 rounded-lg mb-4">
+          <p class="text-sm">Currently defined sessions: {{ editSessionTitles.filter(t => t).length || 0 }} / 18</p>
+        </div>
         
-        <div class="border border-gray-300 rounded-md mb-4">
-          <table class="w-full">
-            <tr class="bg-gray-50 border-b border-gray-300">
-              <th class="border-r border-gray-300 p-2 w-1/6">Days/Sessions</th>
-              <th class="p-2">Title</th>
-            </tr>
-            
-            <tr v-for="day in 17" :key="day" class="border-b border-gray-300">
-              <td class="border-r border-gray-300 p-2 text-center">{{ day }}</td>
-              <td class="p-2">
-                <input
-                  v-model="editSessionTitles[day-1]"
-                  type="text"
-                  class="w-full p-1 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-                />
-              </td>
-            </tr>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Day</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <!-- Day 0 - Introduction (read-only) -->
+              <tr>
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">0</td>
+                <td class="px-4 py-2">
+                  <input 
+                    type="text" 
+                    v-model="editSessionTitles[0]" 
+                    class="w-full p-2 border border-gray-300 rounded-md bg-gray-50 focus:ring-primary focus:border-primary"
+                    readonly
+                  />
+                  <span class="text-xs text-gray-500 mt-1 block">Auto-added</span>
+                </td>
+              </tr>
+              <!-- Days 1-17 -->
+              <tr v-for="day in 17" :key="day">
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{{ day }}</td>
+                <td class="px-4 py-2">
+                  <input 
+                    type="text" 
+                    v-model="editSessionTitles[day]" 
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  />
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
         
@@ -324,31 +467,44 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { subjectService } from '../../services/subjectService'
 import { notificationService } from '../../services/notificationService'
+import { systemOptionsService } from '../../services/systemOptionsService'
 
 // State
 const subjects = ref([])
 const allSubjects = ref([])
 const loading = ref(false)
 const showAddModal = ref(false)
-const sessionTitles = ref(Array(17).fill(''))
+const sessionTitles = ref(Array(18).fill(''))
 const selectedSubject = ref(null)
 const showSessionsModal = ref(false)
 const currentSubject = ref(null)
 const editedSubject = ref({})
-const editSessionTitles = ref(Array(17).fill(''))
+const editSessionTitles = ref(Array(18).fill(''))
 const showEditModal = ref(false)
+
+// Dynamic options
+const yearLevelOptions = ref(['2nd', '3rd', '4th'])
+const hoursOptions = ref([1, 2, 3])
+const defaultZeroDayTitle = ref('INTRODUCTION')
 
 // Form state
 const newSubject = reactive({
   sspCode: '',
+  name: '',
   yearLevel: '',
-  sessions: []
+  sessions: [],
+  semester: '',
+  hours: 1,
+  schoolYear: '2025 - 2026'
 })
 
 // Error state
 const errors = reactive({
   sspCode: '',
-  yearLevel: ''
+  yearLevel: '',
+  semester: '',
+  hours: '',
+  schoolYear: ''
 })
 
 // Filters
@@ -360,8 +516,43 @@ const filters = reactive({
 // Search input debounce
 let searchTimeout = null
 
-onMounted(() => {
-  fetchSubjects()
+onMounted(async () => {
+  try {
+    // First fetch system options
+    const systemOptions = await systemOptionsService.getAll()
+    
+    // Update school year
+    if (systemOptions?.subject?.schoolYear) {
+      newSubject.schoolYear = systemOptions.subject.schoolYear
+      console.log('Setting school year from system config:', newSubject.schoolYear)
+    }
+    
+    // Update zero day title
+    if (systemOptions?.subject?.defaultZeroDayTitle) {
+      defaultZeroDayTitle.value = systemOptions.subject.defaultZeroDayTitle
+      console.log('Setting default zero day title from system config:', defaultZeroDayTitle.value)
+    }
+    
+    // Update year level options
+    if (systemOptions?.class?.yearLevels && systemOptions.class.yearLevels.length > 0) {
+      yearLevelOptions.value = systemOptions.class.yearLevels
+      console.log('Setting year level options from system config:', yearLevelOptions.value)
+    }
+    
+    // Update hours options
+    if (systemOptions?.subject?.hoursOptions && systemOptions.subject.hoursOptions.length > 0) {
+      hoursOptions.value = systemOptions.subject.hoursOptions
+      console.log('Setting hours options from system config:', hoursOptions.value)
+    }
+    
+    console.log('System options loaded successfully (using localStorage fallback if API not available)')
+  } catch (error) {
+    console.error('Error loading system options:', error)
+    // Continue with defaults
+    notificationService.showWarning('Using default system options. Settings not loaded from server.')
+  }
+  
+  await fetchSubjects()
 })
 
 // Filtered subjects based on current filters
@@ -421,9 +612,13 @@ function openAddModal() {
   newSubject.sspCode = ''
   newSubject.yearLevel = ''
   newSubject.sessions = []
+  newSubject.semester = ''
+  newSubject.hours = ''
   
   // Reset session titles
-  sessionTitles.value = Array(17).fill('')
+  sessionTitles.value = Array(18).fill('').map((_, i) => 
+    i === 0 ? defaultZeroDayTitle.value : ''
+  )
   
   // Reset errors
   Object.keys(errors).forEach(key => {
@@ -453,8 +648,26 @@ function validateForm() {
   if (!newSubject.yearLevel) {
     errors.yearLevel = 'Year level is required'
     isValid = false
-  } else if (!['2nd', '3rd', '4th'].includes(newSubject.yearLevel)) {
-    errors.yearLevel = 'Year level must be 2nd, 3rd, or 4th'
+  } else if (!yearLevelOptions.value.includes(newSubject.yearLevel)) {
+    errors.yearLevel = `Year level must be one of: ${yearLevelOptions.value.join(', ')}`
+    isValid = false
+  }
+  
+  if (!newSubject.semester) {
+    errors.semester = 'Semester is required'
+    isValid = false
+  }
+  
+  if (!newSubject.hours) {
+    errors.hours = 'Hours are required'
+    isValid = false
+  } else if (!hoursOptions.value.map(h => h.toString()).includes(newSubject.hours)) {
+    errors.hours = `Hours must be one of: ${hoursOptions.value.join(', ')}`
+    isValid = false
+  }
+  
+  if (!newSubject.schoolYear) {
+    errors.schoolYear = 'School Year is required'
     isValid = false
   }
   
@@ -476,6 +689,13 @@ async function addSubject() {
   try {
     // Create sessions array from the titles that have been entered
     const sessions = []
+    
+    // Always add day zero with title from system options
+    sessions.push({
+      day: 0,
+      title: defaultZeroDayTitle.value
+    })
+    
     sessionTitles.value.forEach((title, index) => {
       if (title.trim()) {
         sessions.push({
@@ -527,34 +747,23 @@ function viewSessions(subject) {
 }
 
 function editSubject(subject) {
-  // Reset form and errors
-  Object.keys(errors).forEach(key => {
-    errors[key] = ''
-  })
+  setupEditForm(subject)
   
-  // Set current subject data to form
-  currentSubject.value = { ...subject }
+  // Reset session titles array to proper length
+  editSessionTitles.value = Array(18).fill('')
   
-  // Create a new reactive object for editing with all current values
-  editedSubject.sspCode = subject.sspCode || ''
-  editedSubject.name = subject.name || subject.sspCode || ''
-  editedSubject.yearLevel = subject.yearLevel || ''
-  editedSubject._id = subject._id
-  editedSubject.description = subject.description || ''
-  
-  // Set up session titles for editing
-  editSessionTitles.value = Array(17).fill('')
+  // Fill in existing session titles
   if (subject.sessions && subject.sessions.length > 0) {
     subject.sessions.forEach(session => {
-      // Sessions are 1-indexed in the database, but 0-indexed in the array
-      if (session.day >= 1 && session.day <= 17) {
-        editSessionTitles.value[session.day - 1] = session.title
+      // Make sure we don't go out of bounds
+      if (session.day >= 0 && session.day < 18) {
+        editSessionTitles.value[session.day] = session.title || ''
       }
     })
+  } else {
+    // If no sessions exist yet, set default for day 0
+    editSessionTitles.value[0] = defaultZeroDayTitle.value
   }
-  
-  // Log for debugging
-  console.log('Editing subject:', subject.sspCode, 'with data:', editedSubject)
   
   showEditModal.value = true
 }
@@ -571,16 +780,37 @@ function validateEditForm() {
     errors[key] = ''
   })
   
-  if (!editedSubject.sspCode) {
+  if (!editedSubject.value.sspCode) {
     errors.sspCode = 'SSP Code is required'
     isValid = false
   }
   
-  if (!editedSubject.yearLevel) {
+  if (!editedSubject.value.yearLevel) {
     errors.yearLevel = 'Year level is required'
     isValid = false
-  } else if (!['2nd', '3rd', '4th'].includes(editedSubject.yearLevel)) {
-    errors.yearLevel = 'Year level must be 2nd, 3rd, or 4th'
+  } else if (!yearLevelOptions.value.includes(editedSubject.value.yearLevel)) {
+    errors.yearLevel = `Year level must be one of: ${yearLevelOptions.value.join(', ')}`
+    isValid = false
+  }
+  
+  if (!editedSubject.value.semester) {
+    errors.semester = 'Semester is required'
+    isValid = false
+  } else if (!['1st Semester', '2nd Semester'].includes(editedSubject.value.semester)) {
+    errors.semester = 'Semester must be 1st Semester or 2nd Semester'
+    isValid = false
+  }
+  
+  if (!editedSubject.value.hours) {
+    errors.hours = 'Hours is required'
+    isValid = false
+  } else if (!hoursOptions.value.map(h => h.toString()).includes(editedSubject.value.hours.toString())) {
+    errors.hours = `Hours must be one of: ${hoursOptions.value.join(', ')}`
+    isValid = false
+  }
+  
+  if (!editedSubject.value.schoolYear) {
+    errors.schoolYear = 'School Year is required'
     isValid = false
   }
   
@@ -602,6 +832,13 @@ async function updateSubject() {
   try {
     // Update sessions array with the edited titles
     const updatedSessions = []
+    
+    // Always include the day zero session with title from system options
+    updatedSessions.push({
+      day: 0,
+      title: defaultZeroDayTitle.value
+    })
+    
     editSessionTitles.value.forEach((title, index) => {
       if (title.trim()) {
         updatedSessions.push({
@@ -611,16 +848,22 @@ async function updateSubject() {
       }
     })
     
-    // Set the updated sessions in the subject object
-    editedSubject.sessions = updatedSessions
-    
-    // Always set the name field using the SSP code
-    editedSubject.name = editedSubject.sspCode
+    // Create the updated subject object
+    const subjectToUpdate = {
+      _id: editedSubject.value._id,
+      sspCode: editedSubject.value.sspCode,
+      yearLevel: editedSubject.value.yearLevel,
+      semester: editedSubject.value.semester,
+      hours: editedSubject.value.hours,
+      schoolYear: editedSubject.value.schoolYear,
+      sessions: updatedSessions,
+      name: editedSubject.value.sspCode // Update name to match sspCode
+    }
     
     // Log the data we're sending
-    console.log('Updating subject with data:', JSON.stringify(editedSubject))
+    console.log('Updating subject with data:', JSON.stringify(subjectToUpdate))
     
-    const response = await subjectService.update(currentSubject.value._id, editedSubject)
+    const response = await subjectService.update(editedSubject.value._id, subjectToUpdate)
     console.log('Subject updated:', response)
     
     // Refresh the subject list to show the updated entry
@@ -639,4 +882,10 @@ async function updateSubject() {
     }
   }
 }
+
+// Computed properties
+const sortedSessions = computed(() => {
+  if (!selectedSubject.value || !selectedSubject.value.sessions) return [];
+  return [...selectedSubject.value.sessions].sort((a, b) => a.day - b.day);
+})
 </script> 
