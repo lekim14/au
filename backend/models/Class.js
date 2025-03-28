@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const ClassSchema = new mongoose.Schema({
   yearLevel: {
     type: String,
-    enum: ['2nd', '3rd', '4th'],
     required: true
   },
   section: {
@@ -26,6 +25,11 @@ const ClassSchema = new mongoose.Schema({
   room: {
     type: String,
     required: true
+  },
+  hours: {
+    type: Number,
+    enum: [1, 2, 3],
+    default: 1
   },
   sspSubject: {
     type: mongoose.Schema.Types.ObjectId,

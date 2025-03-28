@@ -37,7 +37,7 @@ router.get('/:id', authenticate, authorizeAdmin, async (req, res) => {
 // Create new adviser
 router.post('/', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { firstName, middleName, lastName, nameExtension, idNumber, salutation, email, password, sendWelcomeEmail, sspAdvisoryClassId } = req.body;
+    const { firstName, middleName, lastName, nameExtension, idNumber, salutation, email, password, sendWelcomeEmail, sspAdvisoryClassId, contactNumber } = req.body;
     
     // Validate email domain
     if (!email.endsWith('@gmail.com')) {
@@ -80,6 +80,7 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
       nameExtension: nameExtension || 'N/A',
       idNumber,
       salutation,
+      contactNumber,
       email,
       password: password || defaultPassword,
       role: 'adviser',
@@ -155,7 +156,7 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
 // Update adviser
 router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { firstName, middleName, lastName, nameExtension, idNumber, salutation, email, status } = req.body;
+    const { firstName, middleName, lastName, nameExtension, idNumber, salutation, email, status, contactNumber } = req.body;
     
     const adviser = await User.findById(req.params.id);
     
@@ -170,6 +171,7 @@ router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
     if (nameExtension) adviser.nameExtension = nameExtension;
     if (idNumber) adviser.idNumber = idNumber;
     if (salutation) adviser.salutation = salutation;
+    if (contactNumber) adviser.contactNumber = contactNumber;
     if (email) {
       // Validate email domain
       if (!email.endsWith('@phinmaed.com')) {
@@ -236,17 +238,62 @@ router.get('/advisory/classes', authenticate, authorizeAdmin, async (req, res) =
       })
       .populate('adviser', 'firstName lastName salutation email status');
     
-    // Filter out classes where either adviser or class is inactive
-    const activeAdvisoryClasses = advisoryClasses.filter(ac => {
-      return (
-        ac.adviser?.status === 'active' && 
-        ac.class?.status === 'active'
-      );
+    // Filter to include:
+    // 1. Classes with active advisers and active class status
+    // 2. Classes without advisers but with active class status
+    const filteredClasses = advisoryClasses.filter(ac => {
+      // If no adviser, just check if class is active
+      if (!ac.adviser) {
+        return ac.class?.status === 'active';
+      }
+      
+      // If has adviser, check both adviser and class are active
+      return ac.adviser?.status === 'active' && ac.class?.status === 'active';
     });
+    
+    res.json(filteredClasses);
+  } catch (error) {
+    console.error('Get advisory classes error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get my advisory classes (for adviser use)
+router.get('/my/classes', authenticate, async (req, res) => {
+  try {
+    console.log(`Adviser ${req.user._id} requesting their own classes`);
+    
+    // Ensure the user is an adviser
+    if (req.user.role !== 'adviser') {
+      return res.status(403).json({ message: 'Only advisers can access this endpoint' });
+    }
+    
+    // Find all advisory classes for this adviser
+    const advisoryClasses = await AdvisoryClass.find({ 
+      adviser: req.user._id,
+      status: 'active'
+    })
+    .populate({
+      path: 'class',
+      select: 'yearLevel section major room daySchedule timeSchedule status students',
+      populate: [
+        { path: 'sspSubject', select: 'sspCode name sessions' },
+        { path: 'students', 
+          select: 'odysseyPlanCompleted srmSurveyCompleted consultations',
+          populate: { path: 'user', select: 'firstName lastName idNumber email' }
+        }
+      ]
+    })
+    .populate('adviser', 'firstName lastName salutation email status');
+    
+    console.log(`Found ${advisoryClasses.length} advisory classes for adviser ${req.user._id}`);
+    
+    // Filter out classes where the class is inactive
+    const activeAdvisoryClasses = advisoryClasses.filter(ac => ac.class?.status === 'active');
     
     res.json(activeAdvisoryClasses);
   } catch (error) {
-    console.error('Get advisory classes error:', error);
+    console.error('Get my advisory classes error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -254,19 +301,29 @@ router.get('/advisory/classes', authenticate, authorizeAdmin, async (req, res) =
 // Get available classes for advisory (classes not already assigned to an adviser)
 router.get('/advisory/available-classes', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    // Find all classes that already have an adviser
-    const assignedClasses = await AdvisoryClass.find({ status: 'active' }).distinct('class');
+    // Get all classes
+    const allClasses = await Class.find({ status: 'active' })
+      .populate('sspSubject', 'sspCode name hours');
     
-    // Find all active classes that are not in the assignedClasses list
-    const availableClasses = await Class.find({
-      _id: { $nin: assignedClasses },
-      status: 'active'
-    }).populate('sspSubject', 'sspCode name');
+    // Get all advisory classes that have an adviser assigned
+    const advisoryClasses = await AdvisoryClass.find({ 
+      adviser: { $ne: null } 
+    });
+    
+    // Extract class IDs that already have an adviser
+    const classIdsWithAdvisers = advisoryClasses.map(ac => ac.class.toString());
+    
+    // Filter classes that don't have an adviser assigned
+    const availableClasses = allClasses.filter(cls => 
+      !classIdsWithAdvisers.includes(cls._id.toString())
+    );
+    
+    console.log(`Found ${availableClasses.length} classes available for assignment out of ${allClasses.length} total classes`);
     
     res.json(availableClasses);
   } catch (error) {
     console.error('Get available classes error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
@@ -276,14 +333,8 @@ router.post('/advisory/classes', authenticate, authorizeAdmin, async (req, res) 
     const { adviser, class: classId } = req.body;
 
     // Validate inputs
-    if (!adviser || !classId) {
-      return res.status(400).json({ message: 'Adviser ID and Class ID are required' });
-    }
-
-    // Check if adviser exists
-    const adviserExists = await User.findOne({ _id: adviser, role: 'adviser' });
-    if (!adviserExists) {
-      return res.status(400).json({ message: 'Adviser not found' });
+    if (!classId) {
+      return res.status(400).json({ message: 'Class ID is required' });
     }
 
     // Check if class exists
@@ -292,24 +343,35 @@ router.post('/advisory/classes', authenticate, authorizeAdmin, async (req, res) 
       return res.status(400).json({ message: 'Class not found' });
     }
 
-    // Check if this class is already assigned to another adviser
+    // Check if this class is already assigned in an advisory class
     const existingAssignment = await AdvisoryClass.findOne({ 
-      class: classId,
-      status: 'active' 
+      class: classId
     });
     
     if (existingAssignment) {
-      return res.status(400).json({ message: 'This class is already assigned to an adviser' });
+      return res.status(400).json({ 
+        message: 'This class is already assigned to an advisory class',
+        existingAssignment
+      });
+    }
+
+    // Check adviser if provided
+    if (adviser) {
+      const adviserExists = await User.findOne({ _id: adviser, role: 'adviser' });
+      if (!adviserExists) {
+        return res.status(400).json({ message: 'Adviser not found' });
+      }
     }
 
     // Create new advisory class assignment
     const newAssignment = new AdvisoryClass({
-      adviser,
+      adviser: adviser || null,
       class: classId,
       status: 'active'
     });
 
-    await newAssignment.save();
+    const savedAssignment = await newAssignment.save();
+    console.log('Created new advisory class assignment:', savedAssignment);
 
     // Return the new assignment with populated fields
     const populatedAssignment = await AdvisoryClass.findById(newAssignment._id)
@@ -319,7 +381,7 @@ router.post('/advisory/classes', authenticate, authorizeAdmin, async (req, res) 
     res.status(201).json(populatedAssignment);
   } catch (error) {
     console.error('Create advisory class error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const systemOptionSchema = new mongoose.Schema({
+const SystemOptionSchema = new mongoose.Schema({
   class: {
     yearLevels: {
       type: [String],
@@ -11,9 +11,9 @@ const systemOptionSchema = new mongoose.Schema({
       default: ['Business Informatics', 'System Development', 'Digital Arts', 'Computer Security']
     },
     defaultSessions: {
-      type: [{ 
-        title: String, 
-        count: Number 
+      type: [{
+        title: String,
+        count: Number
       }],
       default: [
         { title: 'INTRODUCTION', count: 0 },
@@ -21,8 +21,7 @@ const systemOptionSchema = new mongoose.Schema({
       ]
     },
     sections: {
-      type: Map,
-      of: [String],
+      type: mongoose.Schema.Types.Mixed,
       default: {
         '2nd': ['South-1', 'South-2', 'South-3', 'South-4', 'South-5'],
         '3rd': ['South-1', 'South-2', 'South-3'],
@@ -31,6 +30,10 @@ const systemOptionSchema = new mongoose.Schema({
     }
   },
   subject: {
+    yearLevels: {
+      type: [String],
+      default: ['2nd', '3rd', '4th']
+    },
     schoolYear: {
       type: String,
       default: '2025 - 2026'
@@ -54,10 +57,4 @@ const systemOptionSchema = new mongoose.Schema({
   }
 });
 
-// Set updatedAt on save
-systemOptionSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
-
-module.exports = mongoose.model('SystemOption', systemOptionSchema);
+module.exports = mongoose.model('SystemOption', SystemOptionSchema);

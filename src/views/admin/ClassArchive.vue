@@ -136,7 +136,9 @@ function getClassName(classItem) {
 
 function getSubjectName(classItem) {
   if (!classItem.sspSubject) return 'Not assigned';
-  return `${classItem.sspSubject.sspCode || ''} - ${classItem.sspSubject.name || ''}`;
+  
+  const hours = classItem.hours || classItem.sspSubject?.hours || 1;
+  return `${classItem.sspSubject.sspCode || ''} - ${classItem.sspSubject.name || ''} (${hours} hr${hours > 1 ? 's' : ''})`;
 }
 
 function getSchedule(classItem) {

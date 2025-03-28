@@ -32,7 +32,7 @@ const SubjectSchema = new mongoose.Schema({
   },
   yearLevel: {
     type: String,
-    enum: ['2nd', '3rd', '4th'],
+    enum: ['1st', '2nd', '3rd', '4th'],
     required: true
   },
   schoolYear: {

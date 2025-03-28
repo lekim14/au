@@ -45,6 +45,9 @@
               Email
             </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Contact Number
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Status
             </th>
             <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -79,6 +82,9 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ adviser.email || 'N/A' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ adviser.contactNumber || 'N/A' }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span 
@@ -180,6 +186,18 @@
             />
             <p v-if="errors.email" class="mt-1 text-sm text-red-500">{{ errors.email }}</p>
           </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number *</label>
+            <input
+              v-model="newAdviser.contactNumber"
+              type="text"
+              placeholder="e.g., 09123456789"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              :class="{ 'border-red-500': errors.contactNumber }"
+            />
+            <p v-if="errors.contactNumber" class="mt-1 text-sm text-red-500">{{ errors.contactNumber }}</p>
+          </div>
         </div>
         
         <div class="text-sm text-gray-600 mb-4 p-3 bg-blue-50 rounded-md">
@@ -228,6 +246,10 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <p>{{ selectedAdviser.email || 'N/A' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+            <p>{{ selectedAdviser.contactNumber || 'N/A' }}</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -328,6 +350,18 @@
           </div>
           
           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number *</label>
+            <input
+              v-model="editedAdviser.contactNumber"
+              type="text"
+              placeholder="e.g., 09123456789"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              :class="{ 'border-red-500': errors.contactNumber }"
+            />
+            <p v-if="errors.contactNumber" class="mt-1 text-sm text-red-500">{{ errors.contactNumber }}</p>
+          </div>
+          
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
             <select
               v-model="editedAdviser.status"
@@ -383,7 +417,10 @@ const selectedAdviser = ref(null)
 const newAdviser = reactive({
   salutation: '',
   firstName: '',
+  middleName: '',
   lastName: '',
+  nameExtension: '',
+  contactNumber: '',
   idNumber: '',
   email: '',
   status: 'active',
@@ -393,7 +430,10 @@ const newAdviser = reactive({
 const editedAdviser = reactive({
   salutation: '',
   firstName: '',
+  middleName: '',
   lastName: '',
+  nameExtension: '',
+  contactNumber: '',
   idNumber: '',
   email: '',
   status: 'active'
@@ -404,7 +444,8 @@ const errors = reactive({
   firstName: '',
   lastName: '',
   idNumber: '',
-  email: ''
+  email: '',
+  contactNumber: ''
 })
 
 onMounted(() => {
@@ -508,6 +549,11 @@ function validateForm() {
     isValid = false
   }
   
+  if (!newAdviser.contactNumber) {
+    errors.contactNumber = 'Contact number is required'
+    isValid = false
+  }
+  
   return isValid
 }
 
@@ -568,6 +614,7 @@ function editAdviser(adviser) {
   editedAdviser.idNumber = adviser.idNumber || ''
   editedAdviser.email = adviser.email || ''
   editedAdviser.status = adviser.status || 'active'
+  editedAdviser.contactNumber = adviser.contactNumber || ''
   editedAdviser._id = adviser._id
   
   // Show the edit modal
@@ -637,6 +684,11 @@ function validateAdviserForm(adviser) {
     isValid = false
   } else if (!/^\S+@\S+\.\S+$/.test(adviser.email)) {
     errors.email = 'Invalid email format'
+    isValid = false
+  }
+  
+  if (!adviser.contactNumber) {
+    errors.contactNumber = 'Contact number is required'
     isValid = false
   }
   

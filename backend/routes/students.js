@@ -376,6 +376,33 @@ router.get('/test', async (req, res) => {
   }
 });
 
+// Get student by user ID
+router.get('/user/:userId', authenticate, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Find student with this user ID
+    const student = await Student.findOne({ user: userId })
+      .populate('user', 'firstName middleName lastName nameExtension idNumber email')
+      .populate({
+        path: 'class',
+        populate: {
+          path: 'sspSubject',
+          select: 'sspCode name sessions'
+        }
+      });
+    
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found for this user' });
+    }
+    
+    res.json(student);
+  } catch (error) {
+    console.error('Get student by user ID error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Review student registration (approve/reject)
 router.put('/registration/:id/review', authenticate, authorizeAdmin, async (req, res) => {
   try {
@@ -1177,6 +1204,61 @@ router.put('/:id/fix-yearLevel', authenticate, authorizeAdmin, async (req, res) 
       message: 'Error fixing year level format', 
       error: error.message 
     });
+  }
+});
+
+// Update student profile information
+router.put('/:id/profile', authenticate, async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const { firstName, lastName, email, contactNumber } = req.body;
+    
+    // Find the student record
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    
+    // Verify that the logged-in user owns this student record
+    if (student.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'You do not have permission to update this profile' });
+    }
+    
+    // Update contact information on student record
+    if (contactNumber) {
+      student.contactNumber = contactNumber;
+    }
+    
+    await student.save();
+    
+    // Update user information
+    if (firstName || lastName || email) {
+      const user = await User.findById(student.user);
+      if (!user) {
+        return res.status(404).json({ message: 'User record not found' });
+      }
+      
+      if (firstName) user.firstName = firstName;
+      if (lastName) user.lastName = lastName;
+      if (email) user.email = email;
+      
+      await user.save();
+    }
+    
+    res.json({ 
+      message: 'Profile updated successfully',
+      student: {
+        ...student.toObject(),
+        user: {
+          firstName: firstName || student.user.firstName,
+          lastName: lastName || student.user.lastName,
+          email: email || student.user.email
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Update student profile error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

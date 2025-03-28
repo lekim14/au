@@ -46,7 +46,7 @@ router.get('/:id', authenticate, async (req, res) => {
     
     // First get the class with populated students and subject
     const classItem = await Class.findById(id)
-      .populate('sspSubject')
+      .populate('sspSubject', 'sspCode name sessions')
       .populate({
         path: 'students',
         populate: {
@@ -146,23 +146,26 @@ router.get('/:id', authenticate, async (req, res) => {
 // Create new class
 router.post('/', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { yearLevel, section, major, daySchedule, timeSchedule, room, sspSubjectId } = req.body;
+    const { yearLevel, section, major, daySchedule, timeSchedule, room, sspSubjectId, hours } = req.body;
     
-    // Validate section based on year level
-    if (yearLevel === '2nd') {
-      if (!['South-1', 'South-2', 'South-3', 'South-4'].includes(section)) {
-        return res.status(400).json({ message: 'Invalid section for 2nd year' });
-      }
-    } else if (yearLevel === '3rd') {
-      if (!['South-1', 'South-2', 'South-3'].includes(section)) {
-        return res.status(400).json({ message: 'Invalid section for 3rd year' });
-      }
-    } else if (yearLevel === '4th') {
-      if (!['South-1', 'South-2'].includes(section)) {
-        return res.status(400).json({ message: 'Invalid section for 4th year' });
-      }
-    } else {
-      return res.status(400).json({ message: 'Invalid year level' });
+    // Check if yearLevel is provided
+    if (!yearLevel) {
+      return res.status(400).json({ message: 'Year level is required' });
+    }
+    
+    // Check if section is provided
+    if (!section) {
+      return res.status(400).json({ message: 'Section is required' });
+    }
+    
+    // Check if major is provided
+    if (!major) {
+      return res.status(400).json({ message: 'Major is required' });
+    }
+    
+    // Check if SSP subject ID is provided
+    if (!sspSubjectId) {
+      return res.status(400).json({ message: 'SSP Subject is required' });
     }
     
     // Check if SSP subject exists
@@ -183,6 +186,9 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
       return res.status(400).json({ message: 'This class already exists' });
     }
     
+    // If hours not provided, get from subject
+    const classHours = hours || subject.hours || 1;
+    
     // Create new class
     const newClass = new Class({
       yearLevel,
@@ -191,7 +197,8 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
       daySchedule,
       timeSchedule,
       room,
-      sspSubject: sspSubjectId
+      hours: classHours,
+      sspSubject: sspSubjectId  // Map sspSubjectId to sspSubject for the database
     });
     
     await newClass.save();
@@ -206,7 +213,7 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
 // Update class
 router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { yearLevel, section, major, daySchedule, timeSchedule, room, sspSubjectId, status } = req.body;
+    const { yearLevel, section, major, daySchedule, timeSchedule, room, sspSubjectId, status, hours } = req.body;
     
     const classItem = await Class.findById(req.params.id);
     
@@ -221,6 +228,7 @@ router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
     if (daySchedule) classItem.daySchedule = daySchedule;
     if (timeSchedule) classItem.timeSchedule = timeSchedule;
     if (room) classItem.room = room;
+    if (hours) classItem.hours = hours;
     
     if (sspSubjectId) {
       // Check if SSP subject exists
@@ -229,6 +237,11 @@ router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
         return res.status(404).json({ message: 'SSP Subject not found' });
       }
       classItem.sspSubject = sspSubjectId;
+      
+      // If hours not provided but subject changed, update hours from subject
+      if (!hours && subject.hours) {
+        classItem.hours = subject.hours;
+      }
     }
     
     if (status) {
@@ -255,13 +268,10 @@ router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
     classItem.updatedAt = Date.now();
     await classItem.save();
     
-    res.json({
-      message: 'Class updated successfully',
-      class: await Class.findById(classItem._id).populate('sspSubject', 'sspCode')
-    });
+    res.json(classItem);
   } catch (error) {
     console.error('Update class error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

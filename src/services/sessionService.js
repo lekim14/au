@@ -138,5 +138,20 @@ export const sessionService = {
       console.error(`Error validating sessions for class ${classId}:`, error);
       throw error;
     }
+  },
+  
+  /**
+   * Save all pending session status changes
+   * @param {string} classId - The class ID 
+   * @param {Array} changes - The changes to save
+   * @returns {Promise<Object>} - The response data
+   */
+  saveSessionChanges: async (classId, changes) => {
+    try {
+      return await api.post(`/sessions/save-changes/${classId}`, { changes });
+    } catch (error) {
+      console.error('Error saving session changes:', error);
+      throw error;
+    }
   }
 }; 

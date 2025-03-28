@@ -193,6 +193,37 @@
       <!-- Subject Settings Tab -->
       <div v-if="activeTab === 'subject'" class="p-6">
         <div class="mb-6">
+          <h3 class="text-lg font-medium mb-3">Subject Year Levels</h3>
+          <div class="space-y-2 mb-4">
+            <div v-for="(yearLevel, index) in options.subject.yearLevels" :key="index" class="flex items-center">
+              <input 
+                type="text" 
+                v-model="options.subject.yearLevels[index]" 
+                class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              />
+              <button 
+                @click="removeSubjectYearLevel(index)" 
+                class="ml-2 text-red-500 hover:text-red-700"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button 
+            @click="addSubjectYearLevel" 
+            class="text-primary hover:text-primary-dark flex items-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            Add Year Level
+          </button>
+          <p class="mt-2 text-sm text-gray-500">These are the year levels available for subjects. Different from class year levels.</p>
+        </div>
+        
+        <div class="mb-6">
           <h3 class="text-lg font-medium mb-3">School Year</h3>
           <div class="space-y-2 mb-4">
             <input 
@@ -290,7 +321,8 @@ const options = reactive({
   subject: {
     schoolYear: '2025 - 2026',
     defaultZeroDayTitle: 'INTRODUCTION',
-    hoursOptions: [1, 2, 3]
+    hoursOptions: [1, 2, 3],
+    yearLevels: ['1st', '2nd', '3rd', '4th']
   }
 })
 
@@ -312,7 +344,8 @@ const defaultOptions = {
   subject: {
     schoolYear: '2025 - 2026',
     defaultZeroDayTitle: 'INTRODUCTION',
-    hoursOptions: [1, 2, 3]
+    hoursOptions: [1, 2, 3],
+    yearLevels: ['1st', '2nd', '3rd', '4th']
   }
 }
 
@@ -362,23 +395,73 @@ async function fetchOptions() {
 
 async function saveOptions() {
   try {
+    // Check if user is logged in first
+    const token = localStorage.getItem('token');
+    if (!token) {
+      notificationService.showError('You must be logged in as an admin to save options');
+      showStatus('Authentication required', 'error');
+      return;
+    }
+    
     await systemOptionsService.update(options)
     notificationService.showSuccess('System options saved successfully')
     showStatus('Settings saved successfully', 'success')
   } catch (error) {
     console.error('Error saving system options:', error)
-    notificationService.showError('Failed to save system options')
+    
+    if (error.response) {
+      if (error.response.status === 401) {
+        notificationService.showError('You must be logged in to save options');
+      } else if (error.response.status === 403) {
+        notificationService.showError('You must be an admin to save options');
+      } else {
+        notificationService.showError('Failed to save system options: ' + (error.response.data?.message || 'Server error'));
+      }
+    } else {
+      notificationService.showError('Failed to save system options: Network error');
+    }
+    
     showStatus('Error saving settings', 'error')
   }
 }
 
-function resetToDefaults() {
+async function resetToDefaults() {
   if (confirm('Are you sure you want to reset all options to defaults? This cannot be undone.')) {
-    // Deep copy the default options
-    options.class = JSON.parse(JSON.stringify(defaultOptions.class))
-    options.subject = JSON.parse(JSON.stringify(defaultOptions.subject))
-    notificationService.showInfo('Options reset to defaults. Remember to save your changes.')
-    showStatus('Settings reset to defaults', 'success')
+    try {
+      // Check if user is logged in first
+      const token = localStorage.getItem('token');
+      if (!token) {
+        notificationService.showError('You must be logged in as an admin to reset options');
+        showStatus('Authentication required', 'error');
+        return;
+      }
+      
+      // Try API first
+      await systemOptionsService.resetToDefaults();
+      await fetchOptions(); // Refresh options from server
+      
+      notificationService.showSuccess('Options reset to defaults successfully.');
+      showStatus('Settings reset to defaults', 'success');
+    } catch (error) {
+      console.error('Error resetting system options:', error);
+      
+      if (error.response) {
+        if (error.response.status === 401) {
+          notificationService.showError('You must be logged in to reset options');
+        } else if (error.response.status === 403) {
+          notificationService.showError('You must be an admin to reset options');
+        } else {
+          notificationService.showError('Failed to reset options: ' + (error.response.data?.message || 'Server error'));
+        }
+      } else {
+        // Fallback to local reset
+        options.class = JSON.parse(JSON.stringify(defaultOptions.class));
+        options.subject = JSON.parse(JSON.stringify(defaultOptions.subject));
+        notificationService.showWarning('Reset applied locally. Server reset failed.');
+      }
+      
+      showStatus('Reset applied locally only', 'warning');
+    }
   }
 }
 
@@ -446,5 +529,13 @@ function removeSectionForYearLevel(yearLevel, index) {
   if (options.class.sections[yearLevel]) {
     options.class.sections[yearLevel].splice(index, 1);
   }
+}
+
+function addSubjectYearLevel() {
+  options.subject.yearLevels.push('')
+}
+
+function removeSubjectYearLevel(index) {
+  options.subject.yearLevels.splice(index, 1)
 }
 </script> 

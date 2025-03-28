@@ -75,9 +75,12 @@ router.post('/login', async (req, res) => {
       user: {
         id: user._id,
         firstName: user.firstName,
+        middleName: user.middleName,
         lastName: user.lastName,
+        nameExtension: user.nameExtension,
         email: user.email,
         role: user.role,
+        contactNumber: user.contactNumber,
         passwordChangeRequired: user.passwordChangeRequired || false
       }
     });
@@ -314,6 +317,37 @@ router.post('/register-student', async (req, res) => {
       message: 'Server error during registration',
       error: error.message 
     });
+  }
+});
+
+// Update password
+router.post('/update-password', authenticate, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    // Find user
+    const user = await User.findById(req.user._id);
+    
+    // Check if current password is correct
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+    
+    // Update password
+    user.password = newPassword;
+    
+    // Clear password change required flag if it was set
+    if (user.passwordChangeRequired) {
+      user.passwordChangeRequired = false;
+    }
+    
+    await user.save();
+    
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Update password error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

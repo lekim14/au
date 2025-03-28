@@ -54,7 +54,12 @@
       <!-- Session data display -->
       <div v-else>
         <div class="flex flex-col md:flex-row justify-between mb-4">
-          <h3 class="text-lg font-medium text-gray-800 mb-2 md:mb-0">SSP Sessions</h3>
+          <div>
+            <h3 class="text-lg font-medium text-gray-800 mb-2 md:mb-0">
+              {{ student.class?.sspSubject?.sspCode }}
+            </h3>
+            <p class="text-sm text-gray-600">{{ student.class?.daySchedule }} / {{ student.class?.timeSchedule }}</p>
+          </div>
           <div class="flex items-center">
             <div class="bg-gray-100 rounded-lg px-3 py-1 text-sm flex items-center mr-2">
               <span class="mr-2">Completed:</span>
@@ -81,7 +86,7 @@
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -118,7 +123,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { sessionService } from '../../services/sessionService';
 import { studentService } from '../../services/studentService';
 import { useAuthStore } from '../../stores/authStore';
@@ -131,6 +136,7 @@ const noClassAssigned = ref(false);
 const student = ref(null);
 const sessions = ref([]);
 const authStore = useAuthStore();
+const refreshInterval = ref(null);
 
 // Computed properties
 const completedSessions = computed(() => {
@@ -145,6 +151,20 @@ const completionPercentage = computed(() => {
 // Lifecycle hooks
 onMounted(async () => {
   await loadData();
+  
+  // Set up refresh interval (every 30 seconds)
+  refreshInterval.value = setInterval(async () => {
+    console.log("Auto-refreshing session data...");
+    await refreshSessions();
+  }, 30000); // 30 seconds
+});
+
+// Clean up interval when component is unmounted
+onUnmounted(() => {
+  if (refreshInterval.value) {
+    clearInterval(refreshInterval.value);
+    refreshInterval.value = null;
+  }
 });
 
 // Methods
@@ -172,15 +192,7 @@ async function loadData() {
         await sessionService.initSessionsForStudent(student.value._id, student.value.class._id);
         
         // Fetch session data from backend
-        const sessionResponse = await sessionService.getSessionsForStudent(student.value._id, student.value.class._id);
-        
-        if (sessionResponse && Array.isArray(sessionResponse.data)) {
-          console.log("Sessions loaded:", sessionResponse.data.length);
-          sessions.value = sessionResponse.data;
-        } else {
-          console.warn("No session data returned or not in expected format");
-          sessions.value = [];
-        }
+        await fetchSessions();
       } catch (sessionError) {
         console.error("Error fetching session data:", sessionError);
         notificationService.showError("Failed to load session data");
@@ -197,6 +209,48 @@ async function loadData() {
     notificationService.showError("Failed to load SSP data: " + (error.message || "Unknown error"));
   } finally {
     loading.value = false;
+  }
+}
+
+// New function to fetch sessions and process them
+async function fetchSessions() {
+  try {
+    const sessionResponse = await sessionService.getSessionsForStudent(student.value._id, student.value.class._id);
+    
+    if (sessionResponse && Array.isArray(sessionResponse.data)) {
+      console.log("Sessions loaded:", sessionResponse.data.length);
+      
+      // Ensure uniqueness by using a Map with session day as the key
+      const uniqueSessions = new Map();
+      sessionResponse.data.forEach(session => {
+        if (!uniqueSessions.has(session.sessionDay)) {
+          uniqueSessions.set(session.sessionDay, session);
+        }
+      });
+      
+      // Convert Map back to array and sort by session day
+      sessions.value = Array.from(uniqueSessions.values()).sort((a, b) => a.sessionDay - b.sessionDay);
+      console.log("Unique sessions after deduplication:", sessions.value.length);
+    } else {
+      console.warn("No session data returned or not in expected format");
+      sessions.value = [];
+    }
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    throw error;
+  }
+}
+
+// Add function to refresh only the sessions, not the whole page
+async function refreshSessions() {
+  if (!student.value?.class || !student.value?._id) return;
+  
+  try {
+    await fetchSessions();
+    console.log("Sessions refreshed successfully");
+  } catch (error) {
+    console.error("Error refreshing sessions:", error);
+    // Don't show error notifications during auto-refresh to avoid annoying the user
   }
 }
 

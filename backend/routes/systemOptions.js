@@ -1,97 +1,139 @@
 const express = require('express');
 const router = express.Router();
 const SystemOption = require('../models/SystemOption');
-const auth = require('../middleware/auth');
+const Class = require('../models/Class');
+const Subject = require('../models/Subject');
+const { authenticate, authorizeAdmin } = require('../middleware/auth');
 
-// Get the admin authorization middleware
-let adminAuth;
-try {
-  // Try to use the new roles middleware first
-  const roles = require('../middleware/roles');
-  adminAuth = roles.isAdmin;
-} catch (error) {
-  // Fall back to the old auth middleware if roles.js doesn't exist
-  adminAuth = auth.authorizeAdmin;
-}
-
-/**
- * @route   GET /api/system-options
- * @desc    Get system options
- * @access  Public (for now, can be restricted later if needed)
- */
+// Get all system options - allow public access for read-only
 router.get('/', async (req, res) => {
   try {
-    // Find the most recent options or create default if none exists
-    let options = await SystemOption.findOne().sort({ updatedAt: -1 });
+    // Find the options in the database, or create default if none exist
+    let options = await SystemOption.findOne();
     
     if (!options) {
+      // Create default options
       options = new SystemOption();
       await options.save();
     }
     
-    return res.json(options);
+    res.json(options);
   } catch (error) {
-    console.error('Error fetching system options:', error);
-    return res.status(500).json({ message: 'Server error' });
+    console.error('Error getting system options:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-/**
- * @route   POST /api/system-options
- * @desc    Update system options
- * @access  Private/Admin
- */
-router.post('/', auth.authenticate, adminAuth, async (req, res) => {
+// Update system options - admin only
+router.post('/', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { class: classOptions, subject: subjectOptions } = req.body;
+    const updatedOptions = req.body;
     
-    // Find the most recent options or create a new one
-    let options = await SystemOption.findOne().sort({ updatedAt: -1 });
+    // Find the options in the database, or create default if none exist
+    let options = await SystemOption.findOne();
     
     if (!options) {
-      options = new SystemOption();
+      options = new SystemOption(updatedOptions);
+    } else {
+      // Update the options
+      if (updatedOptions.class) options.class = updatedOptions.class;
+      if (updatedOptions.subject) options.subject = updatedOptions.subject;
+      options.updatedAt = Date.now();
     }
     
-    // Update options
-    if (classOptions) {
-      options.class = {
-        ...options.class,
-        ...classOptions
-      };
-    }
-    
-    if (subjectOptions) {
-      options.subject = {
-        ...options.subject,
-        ...subjectOptions
-      };
-    }
-    
-    // Save the updated options
     await options.save();
     
-    return res.json(options);
+    // Update Class model schema validation based on new options
+    if (updatedOptions.class) {
+      // Update validation for year levels in Class model
+      if (updatedOptions.class.yearLevels && updatedOptions.class.yearLevels.length > 0) {
+        try {
+          // Update Class schema to match new year levels
+          Class.schema.path('yearLevel').enum(updatedOptions.class.yearLevels);
+          console.log('Updated Class schema yearLevel enum with:', updatedOptions.class.yearLevels);
+        } catch (err) {
+          console.error('Error updating Class schema yearLevel enum:', err);
+        }
+      }
+      
+      // Update validation for majors in Class model
+      if (updatedOptions.class.majors && updatedOptions.class.majors.length > 0) {
+        try {
+          // Update Class schema to match new majors
+          Class.schema.path('major').enum(updatedOptions.class.majors);
+          console.log('Updated Class schema major enum with:', updatedOptions.class.majors);
+        } catch (err) {
+          console.error('Error updating Class schema major enum:', err);
+        }
+      }
+    }
+    
+    if (updatedOptions.subject) {
+      // Update validation for subject year levels separately
+      if (updatedOptions.subject.yearLevels && updatedOptions.subject.yearLevels.length > 0) {
+        try {
+          // Update Subject schema to match new year levels
+          Subject.schema.path('yearLevel').enum(updatedOptions.subject.yearLevels);
+          console.log('Updated Subject schema yearLevel enum with:', updatedOptions.subject.yearLevels);
+        } catch (err) {
+          console.error('Error updating Subject schema yearLevel enum:', err);
+        }
+      }
+      
+      // Update validation for hours in Subject model
+      if (updatedOptions.subject.hoursOptions && updatedOptions.subject.hoursOptions.length > 0) {
+        try {
+          // Update subject hours options
+          Subject.schema.path('hours').enum(updatedOptions.subject.hoursOptions);
+          console.log('Updated Subject schema hours enum with:', updatedOptions.subject.hoursOptions);
+        } catch (err) {
+          console.error('Error updating Subject schema hours enum:', err);
+        }
+      }
+    }
+    
+    res.json(options);
   } catch (error) {
     console.error('Error updating system options:', error);
-    return res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-/**
- * @route   POST /api/system-options/reset
- * @desc    Reset system options to defaults
- * @access  Private/Admin
- */
-router.post('/reset', auth.authenticate, adminAuth, async (req, res) => {
+// Reset system options to defaults - admin only
+router.post('/reset', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    // Create a new instance with default values
-    const defaultOptions = new SystemOption();
-    await defaultOptions.save();
+    // Find the options in the database, or create default if none exist
+    let options = await SystemOption.findOne();
     
-    return res.json(defaultOptions);
+    if (options) {
+      await SystemOption.deleteOne({ _id: options._id });
+    }
+    
+    // Create new options with defaults
+    options = new SystemOption();
+    await options.save();
+    
+    // Reset Class model schema validation to defaults
+    try {
+      // Reset year levels to default
+      Class.schema.path('yearLevel').enum(['2nd', '3rd', '4th']);
+      console.log('Reset Class schema yearLevel enum to defaults');
+      
+      // Reset majors to default
+      Class.schema.path('major').enum(['Business Informatics', 'System Development', 'Digital Arts', 'Computer Security']);
+      console.log('Reset Class schema major enum to defaults');
+      
+      // Reset Subject year levels to default
+      Subject.schema.path('yearLevel').enum(['2nd', '3rd', '4th']);
+      console.log('Reset Subject schema yearLevel enum to defaults');
+    } catch (err) {
+      console.error('Error resetting schema enum values:', err);
+    }
+    
+    res.json(options);
   } catch (error) {
     console.error('Error resetting system options:', error);
-    return res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

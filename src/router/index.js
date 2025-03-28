@@ -15,6 +15,7 @@ const Students = () => import('../views/admin/Students.vue')
 const PendingRegistrations = () => import('../views/admin/PendingRegistrations.vue')
 const Announcements = () => import('../views/admin/Announcements.vue')
 const Profile = () => import('../views/admin/Profile.vue')
+const SystemOptions = () => import('../views/admin/SystemOptions.vue')
 
 // Adviser views
 const AdviserLayout = () => import('../components/layout/AdviserLayout.vue')
@@ -157,6 +158,12 @@ const routes = [
         name: 'Profile',
         component: Profile,
         meta: { title: 'Profile' }
+      },
+      {
+        path: 'system-options',
+        name: 'SystemOptions',
+        component: SystemOptions,
+        meta: { title: 'System Options' }
       }
     ]
   },

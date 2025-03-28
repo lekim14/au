@@ -240,12 +240,15 @@ export const studentService = {
     try {
       const authStore = useAuthStore();
       
-      if (!authStore.userId) {
+      // Get the user ID from either the store or localStorage
+      const userId = authStore.user?.id || localStorage.getItem('userId');
+      
+      if (!userId) {
         throw new Error('User not authenticated');
       }
       
-      console.log(`Fetching student details for user ${authStore.userId}`);
-      const response = await api.get(`/students/user/${authStore.userId}`);
+      console.log(`Fetching student details for user ${userId}`);
+      const response = await api.get(`/students/user/${userId}`);
       
       // Ensure we have the expected data structure
       if (!response.data) {
@@ -270,6 +273,52 @@ export const studentService = {
       return response;
     } catch (error) {
       console.error('Error fetching student details:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update student profile information
+   * @param {Object} profileData - The profile data to update
+   * @returns {Promise<Object>} - The response
+   */
+  updateStudentProfile: async (profileData) => {
+    try {
+      const authStore = useAuthStore();
+      
+      // Get the user ID from either the store or localStorage
+      const userId = authStore.user?.id || localStorage.getItem('userId');
+      
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      
+      // First, get the student ID from the user ID
+      const studentResponse = await api.get(`/students/user/${userId}`);
+      if (!studentResponse || !studentResponse.data || !studentResponse.data._id) {
+        throw new Error('Student record not found');
+      }
+      
+      // Now update the student record
+      const response = await api.put(`/students/${studentResponse.data._id}/profile`, profileData);
+      return response;
+    } catch (error) {
+      console.error('Error updating student profile:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update student password
+   * @param {Object} passwordData - The password data
+   * @returns {Promise<Object>} - The response
+   */
+  updatePassword: async (passwordData) => {
+    try {
+      const response = await api.post('/users/change-password', passwordData);
+      return response;
+    } catch (error) {
+      console.error('Error updating password:', error);
       throw error;
     }
   }

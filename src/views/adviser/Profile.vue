@@ -26,7 +26,7 @@
               {{ userInitials }}
             </div>
             <h2 class="text-xl font-bold">{{ profile.firstName }} {{ profile.lastName }}</h2>
-            <p class="text-gray-600">{{ profile.salutation }} | {{ profile.idNumber }}</p>
+            <p class="text-gray-600">{{ profile.salutation || 'Adviser' }} | {{ profile.idNumber }}</p>
             <p class="text-gray-500 mt-1">{{ profile.email }}</p>
           </div>
           
@@ -42,15 +42,32 @@
                   <p>{{ profile.email }}</p>
                 </div>
               </div>
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                <div>
+                  <p class="text-sm text-gray-500">Phone</p>
+                  <p>{{ profile.contactNumber || 'Not set' }}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
         
         <!-- Change Password -->
         <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
-          <h2 class="text-lg font-semibold mb-4">Change Password</h2>
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-medium text-lg">Change Password</h3>
+            <button 
+              @click="togglePasswordForm" 
+              class="text-sm text-primary hover:text-primary-dark focus:outline-none"
+            >
+              {{ showPasswordForm ? 'Cancel' : 'Change' }}
+            </button>
+          </div>
           
-          <form @submit.prevent="changeUserPassword" class="space-y-4">
+          <form v-if="showPasswordForm" @submit.prevent="changeUserPassword" class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Current Password *</label>
               <input
@@ -104,12 +121,134 @@
               </button>
             </div>
           </form>
+          
+          <div v-else>
+            <p class="text-sm text-gray-500">For security reasons, passwords are not displayed. Click 'Change' to update your password.</p>
+          </div>
         </div>
       </div>
       
-      <!-- Assigned Advisory Classes -->
+      <!-- Adviser Information -->
       <div class="lg:col-span-2">
         <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-medium text-lg">Adviser Information</h3>
+            <button 
+              @click="toggleProfileEdit" 
+              class="text-sm text-primary hover:text-primary-dark focus:outline-none"
+            >
+              {{ editingProfile ? 'Cancel' : 'Edit' }}
+            </button>
+          </div>
+          
+          <form v-if="editingProfile" @submit.prevent="updateProfile" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                <input
+                  v-model="editProfile.firstName"
+                  type="text"
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  required
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <input
+                  v-model="editProfile.lastName"
+                  type="text"
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  required
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Middle Name</label>
+                <input
+                  v-model="editProfile.middleName"
+                  type="text"
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <input
+                  v-model="editProfile.contactNumber"
+                  type="text"
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Salutation</label>
+                <input
+                  v-model="editProfile.salutation"
+                  type="text"
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                />
+              </div>
+            </div>
+            
+            <div class="flex justify-end">
+              <button
+                type="submit"
+                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                :disabled="profileLoading"
+              >
+                <span v-if="profileLoading" class="flex items-center">
+                  <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Updating...
+                </span>
+                <span v-else>Save Changes</span>
+              </button>
+            </div>
+          </form>
+          
+          <div v-else>
+            <div class="border rounded-md overflow-hidden">
+              <table class="min-w-full divide-y divide-gray-200">
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700 w-1/3">First Name</td>
+                    <td class="px-4 py-3">{{ profile.firstName || 'Not set' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Middle Name</td>
+                    <td class="px-4 py-3">{{ profile.middleName || 'Not set' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Last Name</td>
+                    <td class="px-4 py-3">{{ profile.lastName || 'Not set' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Email</td>
+                    <td class="px-4 py-3">{{ profile.email || 'Not set' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Phone Number</td>
+                    <td class="px-4 py-3">{{ profile.contactNumber || 'Not set' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">ID Number</td>
+                    <td class="px-4 py-3">{{ profile.idNumber || 'Not available' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Salutation</td>
+                    <td class="px-4 py-3">{{ profile.salutation || 'Not set' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Role</td>
+                    <td class="px-4 py-3">{{ profile.role ? (profile.role.charAt(0).toUpperCase() + profile.role.slice(1)) : 'Adviser' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Assigned Advisory Classes -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
           <h2 class="text-lg font-semibold mb-4">Your SSP Advisory Classes</h2>
           
           <div v-if="loading" class="py-10 text-center">
@@ -221,6 +360,8 @@ import { advisoryClassService } from '../../services/advisoryClassService';
 import { notificationService } from '../../services/notificationService';
 import api from '../../services/api';
 import { userService } from '../../services/userService';
+import { classService } from '../../services/classService';
+import { sessionService } from '../../services/sessionService';
 
 const authStore = useAuthStore();
 const loading = ref(true);
@@ -231,7 +372,8 @@ const profile = ref({
   lastName: '',
   salutation: '',
   email: '',
-  idNumber: ''
+  idNumber: '',
+  contactNumber: ''
 });
 
 // Password data
@@ -249,12 +391,26 @@ const meetings = ref([]);
 
 // Loading states
 const changePasswordLoading = ref(false);
+const profileLoading = ref(false);
 
 // Error states
 const passwordErrors = ref({
   currentPassword: '',
   newPassword: '',
   confirmPassword: ''
+});
+
+// Show password form
+const showPasswordForm = ref(false);
+
+// Editing profile
+const editingProfile = ref(false);
+const editProfile = ref({
+  firstName: '',
+  lastName: '',
+  middleName: '',
+  salutation: '',
+  contactNumber: ''
 });
 
 // Computed property for user initials
@@ -267,6 +423,11 @@ const userInitials = computed(() => {
 
 onMounted(async () => {
   try {
+    // Check if we need to clear any lingering password change requirements
+    if (localStorage.getItem('passwordChangeRequired') === 'true') {
+      localStorage.removeItem('passwordChangeRequired');
+    }
+    
     await fetchProfileData();
     await fetchAdvisoryClasses();
     await fetchMeetings();
@@ -281,73 +442,109 @@ onMounted(async () => {
 // Fetch profile data
 const fetchProfileData = async () => {
   try {
-    // Use the user data from the auth store if available
-    if (authStore.user) {
+    loading.value = true;
+    // Fetch the current user profile using the userService
+    const userData = await userService.getProfile();
+    
+    if (userData) {
       profile.value = {
-        firstName: authStore.user.firstName || '',
-        lastName: authStore.user.lastName || '',
-        salutation: authStore.user.salutation || '',
-        email: authStore.user.email || '',
-        idNumber: authStore.user.idNumber || ''
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
+        salutation: userData.salutation || '',
+        email: userData.email || '',
+        idNumber: userData.idNumber || '',
+        contactNumber: userData.contactNumber || ''
       };
     } else {
-      // Fetch the current user profile if not in the store
-      const response = await api.get('/auth/me');
+      // Fallback to auth store if userService fails
       profile.value = {
-        firstName: response.data.firstName || '',
-        lastName: response.data.lastName || '',
-        salutation: response.data.salutation || '',
-        email: response.data.email || '',
-        idNumber: response.data.idNumber || ''
+        firstName: authStore.user?.firstName || '',
+        lastName: authStore.user?.lastName || '',
+        salutation: authStore.user?.salutation || '',
+        email: authStore.user?.email || '',
+        idNumber: authStore.user?.idNumber || '',
+        contactNumber: authStore.user?.contactNumber || ''
       };
     }
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    notificationService.showError('Failed to load user profile');
+    notificationService.showError('Failed to load user profile: ' + (error.message || 'Unknown error'));
+    
+    // Use auth store data as fallback
+    profile.value = {
+      firstName: authStore.user?.firstName || '',
+      lastName: authStore.user?.lastName || '',
+      salutation: authStore.user?.salutation || '',
+      email: authStore.user?.email || '',
+      idNumber: authStore.user?.idNumber || '',
+      contactNumber: authStore.user?.contactNumber || ''
+    };
   }
 };
 
 // Fetch advisory classes
 const fetchAdvisoryClasses = async () => {
   try {
-    const response = await advisoryClassService.getAll();
+    loading.value = true;
+    // Use the dedicated endpoint for adviser's classes
+    const response = await api.get('/advisers/my/classes');
     
-    // Filter classes for the current adviser
-    const userId = authStore.user?.id || localStorage.getItem('userId');
-    if (!userId) {
-      console.warn('No user ID found');
+    if (!response.data || response.data.length === 0) {
+      console.log('No advisory classes found for this adviser');
       advisoryClasses.value = [];
       return;
     }
     
-    // Transform the data to include completion metrics
-    const adviserClasses = response.filter(ac => ac.adviser?._id === userId);
-    
-    advisoryClasses.value = adviserClasses.map(ac => {
-      const cls = ac.class || {};
-      const subject = cls.sspSubject || {};
+    // Process each advisory class from the direct endpoint
+    advisoryClasses.value = response.data.map(ac => {
+      const classData = ac.class || {};
+      const subject = classData.sspSubject || {};
+      const students = classData.students || [];
       
-      // In a real application, these would come from the API
-      // For now, generate random completion numbers
-      const studentCount = Math.floor(Math.random() * 30) + 10;
-      const odysseyCompleted = Math.floor(Math.random() * studentCount);
-      const srmCompleted = Math.floor(Math.random() * studentCount);
-      const consultationsCompleted = Math.floor(Math.random() * studentCount);
+      // Count completions
+      let odysseyCompleted = 0;
+      let srmCompleted = 0;
+      let consultationsCompleted = 0;
+      
+      // Count odyssey and SRM completions
+      students.forEach(student => {
+        if (student.odysseyPlanCompleted) odysseyCompleted++;
+        if (student.srmSurveyCompleted) srmCompleted++;
+        
+        // Count consultations if available
+        if (student.consultations && Array.isArray(student.consultations)) {
+          consultationsCompleted += student.consultations.length;
+        }
+      });
       
       return {
         id: ac._id,
+        classId: classData._id,
         name: subject.sspCode || 'Unknown Subject',
-        section: `${cls.yearLevel || ''} Year - ${cls.section || ''}`,
-        studentCount: studentCount,
+        section: `${classData.yearLevel || ''} Year - ${classData.section || ''}`,
+        studentCount: students.length,
         odysseyPlanCompleted: odysseyCompleted,
         srmSurveyCompleted: srmCompleted,
-        consultationsCompleted: consultationsCompleted
+        consultationsCompleted: consultationsCompleted,
+        program: classData.program || '',
+        major: classData.major || '',
+        room: classData.room || 'Not assigned',
+        daySchedule: classData.daySchedule || '',
+        timeSchedule: classData.timeSchedule || '',
+        sspSubject: subject
       };
     });
+    
+    // If we've fetched data successfully, but have no classes, show a message
+    if (advisoryClasses.value.length === 0) {
+      notificationService.showInfo('You have no advisory classes assigned');
+    }
   } catch (error) {
     console.error('Error fetching advisory classes:', error);
-    notificationService.showError('Failed to load advisory classes');
+    notificationService.showError('Failed to load advisory classes: ' + (error.message || 'Unknown error'));
     advisoryClasses.value = [];
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -355,24 +552,28 @@ const fetchAdvisoryClasses = async () => {
 const fetchMeetings = async () => {
   try {
     // In a real implementation, this would fetch meetings from an API
-    // For now, we'll use mock data
-    meetings.value = [
-      {
-        title: 'Faculty Meeting',
-        date: 'June 15, 2023',
-        time: '10:00 AM - 11:30 AM',
-        description: 'Discussion about upcoming SSP activities and student progress.'
-      },
-      {
-        title: 'Student Consultation',
-        date: 'June 16, 2023',
-        time: '2:00 PM - 2:30 PM',
-        description: 'One-on-one meeting with Maria Santos regarding her academic progress.'
-      }
-    ];
+    // For now, we'll use an empty array instead of mock data
+    meetings.value = [];
+    
+    // Uncomment and implement the below code when the API is available
+    /*
+    const response = await api.get('/advisers/meetings');
+    if (response && Array.isArray(response.data)) {
+      meetings.value = response.data.map(meeting => ({
+        title: meeting.title,
+        date: new Date(meeting.date).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        time: meeting.startTime + ' - ' + meeting.endTime,
+        description: meeting.description
+      }));
+    }
+    */
   } catch (error) {
     console.error('Error fetching meetings:', error);
-    notificationService.showError('Failed to load meetings schedule');
+    notificationService.showError('Failed to load meetings schedule: ' + (error.message || 'Unknown error'));
     meetings.value = [];
   }
 };
@@ -432,8 +633,10 @@ const changeUserPassword = async () => {
     // Clear the password change required flag in the store
     if (authStore.passwordChangeRequired) {
       authStore.clearPasswordChangeRequired();
+      showPasswordForm.value = false;
       notificationService.showSuccess('Password changed successfully. You can now access all features.');
     } else {
+      showPasswordForm.value = false;
       notificationService.showSuccess('Password changed successfully');
     }
   } catch (error) {
@@ -450,6 +653,57 @@ const changeUserPassword = async () => {
     }
   } finally {
     changePasswordLoading.value = false;
+  }
+};
+
+// Toggle password form
+const togglePasswordForm = () => {
+  showPasswordForm.value = !showPasswordForm.value;
+};
+
+// Toggle profile edit
+const toggleProfileEdit = () => {
+  editingProfile.value = !editingProfile.value;
+  if (editingProfile.value) {
+    editProfile.value = {
+      firstName: profile.value.firstName,
+      lastName: profile.value.lastName,
+      middleName: profile.value.middleName,
+      salutation: profile.value.salutation,
+      contactNumber: profile.value.contactNumber
+    };
+  }
+};
+
+// Update profile
+const updateProfile = async () => {
+  try {
+    profileLoading.value = true;
+    
+    // Use userService to update profile
+    await userService.updateProfile({
+      firstName: editProfile.value.firstName,
+      lastName: editProfile.value.lastName,
+      middleName: editProfile.value.middleName,
+      salutation: editProfile.value.salutation,
+      contactNumber: editProfile.value.contactNumber
+    });
+    
+    // Update profile in local state
+    profile.value = {
+      firstName: editProfile.value.firstName,
+      lastName: editProfile.value.lastName,
+      middleName: editProfile.value.middleName,
+      salutation: editProfile.value.salutation,
+      contactNumber: editProfile.value.contactNumber
+    };
+    
+    notificationService.showSuccess('Profile updated successfully');
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    notificationService.showError('Failed to update profile. Please try again.');
+  } finally {
+    profileLoading.value = false;
   }
 };
 </script> 

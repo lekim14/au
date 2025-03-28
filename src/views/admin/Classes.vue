@@ -26,9 +26,7 @@
             @change="classes = filteredClasses"
           >
             <option value="">All Year Levels</option>
-            <option value="2nd">2nd Year</option>
-            <option value="3rd">3rd Year</option>
-            <option value="4th">4th Year</option>
+            <option v-for="option in yearLevelOptions" :key="option" :value="option">{{ option }}</option>
           </select>
         </div>
         <div>
@@ -39,10 +37,7 @@
             @change="classes = filteredClasses"
           >
             <option value="">All Majors</option>
-            <option value="Business Informatics">Business Informatics</option>
-            <option value="System Development">System Development</option>
-            <option value="Digital Arts">Digital Arts</option>
-            <option value="Computer Security">Computer Security</option>
+            <option v-for="option in majorOptions" :key="option" :value="option">{{ option }}</option>
           </select>
         </div>
         <div>
@@ -109,11 +104,11 @@
             </td>
             <td class="px-6 py-4">
               <div class="text-sm text-gray-900">{{ classItem.daySchedule || 'Not scheduled' }}</div>
-              <div class="text-sm text-gray-500">{{ classItem.timeSchedule || 'No time set' }}</div>
+              <div class="text-sm text-gray-500">{{ getTimeSchedule(classItem) }}</div>
               <div class="text-sm text-gray-500">Room: {{ classItem.room || 'TBA' }}</div>
             </td>
             <td class="px-6 py-4 text-sm text-gray-900">
-              {{ classItem.subject ? classItem.subject.sspCode : (classItem.sspSubject ? classItem.sspSubject.sspCode : 'Not assigned') }}
+              {{ getSubjectName(classItem) }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span 
@@ -177,9 +172,7 @@
               @change="handleYearLevelChange"
             >
               <option value="">Select Year Level</option>
-              <option value="2nd">2nd Year</option>
-              <option value="3rd">3rd Year</option>
-              <option value="4th">4th Year</option>
+              <option v-for="option in yearLevelOptions" :key="option" :value="option">{{ option }}</option>
             </select>
             <p v-if="errors.yearLevel" class="mt-1 text-sm text-red-500">{{ errors.yearLevel }}</p>
           </div>
@@ -205,56 +198,9 @@
               :class="{ 'border-red-500': errors.major }"
             >
               <option value="">Select Major</option>
-              <option value="Business Informatics">Business Informatics</option>
-              <option value="System Development">System Development</option>
-              <option value="Digital Arts">Digital Arts</option>
-              <option value="Computer Security">Computer Security</option>
+              <option v-for="option in majorOptions" :key="option" :value="option">{{ option }}</option>
             </select>
             <p v-if="errors.major" class="mt-1 text-sm text-red-500">{{ errors.major }}</p>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Day Schedule *</label>
-            <select
-              v-model="newClass.daySchedule"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-              :class="{ 'border-red-500': errors.daySchedule }"
-            >
-              <option value="">Select Day</option>
-              <option value="Monday">Monday</option>
-              <option value="Tuesday">Tuesday</option>
-              <option value="Wednesday">Wednesday</option>
-              <option value="Thursday">Thursday</option>
-              <option value="Friday">Friday</option>
-              <option value="Saturday">Saturday</option>
-            </select>
-            <p v-if="errors.daySchedule" class="mt-1 text-sm text-red-500">{{ errors.daySchedule }}</p>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
-            <select
-              v-model="newClass.startTime"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-              :class="{ 'border-red-500': errors.startTime }"
-            >
-              <option value="">Select Start Time</option>
-              <option v-for="time in timeOptions" :key="time" :value="time">{{ time }}</option>
-            </select>
-            <p v-if="errors.startTime" class="mt-1 text-sm text-red-500">{{ errors.startTime }}</p>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">End Time *</label>
-            <select
-              v-model="newClass.endTime"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-              :class="{ 'border-red-500': errors.endTime }"
-            >
-              <option value="">Select End Time</option>
-              <option v-for="time in timeOptions" :key="time" :value="time">{{ time }}</option>
-            </select>
-            <p v-if="errors.endTime" class="mt-1 text-sm text-red-500">{{ errors.endTime }}</p>
           </div>
           
           <div>
@@ -270,18 +216,45 @@
           </div>
           
           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Day Schedule *</label>
+            <select
+              v-model="newClass.daySchedule"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              :class="{ 'border-red-500': errors.daySchedule }"
+            >
+              <option value="">Select Day</option>
+              <option v-for="day in days" :key="day" :value="day">{{ day }}</option>
+            </select>
+            <p v-if="errors.daySchedule" class="mt-1 text-sm text-red-500">{{ errors.daySchedule }}</p>
+          </div>
+          
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">SSP Subject *</label>
             <select
               v-model="newClass.subjectId"
               class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
               :class="{ 'border-red-500': errors.subjectId }"
+              @change="handleSubjectChange"
             >
               <option value="">Select Subject</option>
               <option v-for="subject in filteredSubjects" :key="subject._id" :value="subject._id">
-                {{ subject.sspCode }} - {{ subject.name }} ({{ subject.yearLevel }} Year)
+                {{ subject.sspCode }} - {{ subject.name || subject.sspCode }} ({{ subject.hours }} hr)
               </option>
             </select>
             <p v-if="errors.subjectId" class="mt-1 text-sm text-red-500">{{ errors.subjectId }}</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Time Schedule *</label>
+            <select
+              v-model="newClass.timeSchedule"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              :class="{ 'border-red-500': errors.timeSchedule }"
+            >
+              <option value="">Select Time Schedule</option>
+              <option v-for="time in timeScheduleOptions" :key="time" :value="time">{{ time }}</option>
+            </select>
+            <p v-if="errors.timeSchedule" class="mt-1 text-sm text-red-500">{{ errors.timeSchedule }}</p>
           </div>
         </div>
         
@@ -329,6 +302,30 @@
               <td class="px-4 py-2">{{ selectedClass?.major }}</td>
             </tr>
             <tr>
+              <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">SSP Subject</td>
+              <td class="px-4 py-2">
+                {{ getSubjectName(selectedClass) }}
+              </td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">School Year</td>
+              <td class="px-4 py-2">
+                {{ selectedClass?.sspSubject?.schoolYear || '2024 - 2025' }}
+              </td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">Semester</td>
+              <td class="px-4 py-2">
+                {{ selectedClass?.sspSubject?.semester || 'Not Set' }}
+              </td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">Hours</td>
+              <td class="px-4 py-2">
+                {{ selectedClass?.hours || selectedClass?.sspSubject?.hours || 1 }} hour{{ (selectedClass?.hours > 1 || selectedClass?.sspSubject?.hours > 1) ? 's' : '' }}
+              </td>
+            </tr>
+            <tr>
               <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">Day Schedule</td>
               <td class="px-4 py-2">{{ selectedClass?.daySchedule }}</td>
             </tr>
@@ -339,18 +336,6 @@
             <tr>
               <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">Room</td>
               <td class="px-4 py-2">{{ selectedClass?.room }}</td>
-            </tr>
-            <tr>
-              <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">SSP Subject</td>
-              <td class="px-4 py-2">{{ selectedClass?.subject?.sspCode || selectedClass?.sspSubject?.sspCode || 'Not Assigned' }}</td>
-            </tr>
-            <tr>
-              <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">Created</td>
-              <td class="px-4 py-2">{{ new Date(selectedClass?.createdAt).toLocaleString() }}</td>
-            </tr>
-            <tr>
-              <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">Updated</td>
-              <td class="px-4 py-2">{{ new Date(selectedClass?.updatedAt).toLocaleString() }}</td>
             </tr>
           </table>
         </div>
@@ -370,7 +355,7 @@
             Close
           </button>
           <button
-            @click="editClass(selectedClass); showDetailsModal = false;"
+            @click="() => { console.log('Editing class from details view:', selectedClass); editClass(selectedClass); showDetailsModal = false; }"
             class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           >
             Edit Class
@@ -384,7 +369,7 @@
       <div class="bg-white rounded-lg shadow-lg w-full max-w-lg mx-auto p-6 z-50">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-semibold">Edit Class</h2>
-          <button @click="showEditModal = false" class="text-gray-500 hover:text-gray-700">
+          <button @click="() => { console.log('Closing edit modal'); showEditModal = false; }" class="text-gray-500 hover:text-gray-700">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -401,9 +386,7 @@
               @change="handleEditYearLevelChange"
             >
               <option value="">Select Year Level</option>
-              <option value="2nd">2nd Year</option>
-              <option value="3rd">3rd Year</option>
-              <option value="4th">4th Year</option>
+              <option v-for="option in yearLevelOptions" :key="option" :value="option">{{ option }}</option>
             </select>
             <p v-if="errors.yearLevel" class="mt-1 text-sm text-red-500">{{ errors.yearLevel }}</p>
           </div>
@@ -429,56 +412,9 @@
               :class="{ 'border-red-500': errors.major }"
             >
               <option value="">Select Major</option>
-              <option value="Business Informatics">Business Informatics</option>
-              <option value="System Development">System Development</option>
-              <option value="Digital Arts">Digital Arts</option>
-              <option value="Computer Security">Computer Security</option>
+              <option v-for="option in majorOptions" :key="option" :value="option">{{ option }}</option>
             </select>
             <p v-if="errors.major" class="mt-1 text-sm text-red-500">{{ errors.major }}</p>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Day Schedule *</label>
-            <select
-              v-model="editedClass.daySchedule"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-              :class="{ 'border-red-500': errors.daySchedule }"
-            >
-              <option value="">Select Day</option>
-              <option value="Monday">Monday</option>
-              <option value="Tuesday">Tuesday</option>
-              <option value="Wednesday">Wednesday</option>
-              <option value="Thursday">Thursday</option>
-              <option value="Friday">Friday</option>
-              <option value="Saturday">Saturday</option>
-            </select>
-            <p v-if="errors.daySchedule" class="mt-1 text-sm text-red-500">{{ errors.daySchedule }}</p>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
-            <select
-              v-model="editedClass.startTime"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-              :class="{ 'border-red-500': errors.startTime }"
-            >
-              <option value="">Select Start Time</option>
-              <option v-for="time in timeOptions" :key="time" :value="time">{{ time }}</option>
-            </select>
-            <p v-if="errors.startTime" class="mt-1 text-sm text-red-500">{{ errors.startTime }}</p>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">End Time *</label>
-            <select
-              v-model="editedClass.endTime"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-              :class="{ 'border-red-500': errors.endTime }"
-            >
-              <option value="">Select End Time</option>
-              <option v-for="time in timeOptions" :key="time" :value="time">{{ time }}</option>
-            </select>
-            <p v-if="errors.endTime" class="mt-1 text-sm text-red-500">{{ errors.endTime }}</p>
           </div>
           
           <div>
@@ -494,21 +430,6 @@
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">SSP Subject *</label>
-            <select
-              v-model="editedClass.subjectId"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-              :class="{ 'border-red-500': errors.subjectId }"
-            >
-              <option value="">Select Subject</option>
-              <option v-for="subject in editFilteredSubjects" :key="subject._id" :value="subject._id">
-                {{ subject.sspCode }} - {{ subject.name }} ({{ subject.yearLevel }} Year)
-              </option>
-            </select>
-            <p v-if="errors.subjectId" class="mt-1 text-sm text-red-500">{{ errors.subjectId }}</p>
-          </div>
-          
-          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
             <select
               v-model="editedClass.status"
@@ -519,6 +440,47 @@
               <option value="inactive">Inactive</option>
             </select>
             <p v-if="errors.status" class="mt-1 text-sm text-red-500">{{ errors.status }}</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Day Schedule *</label>
+            <select
+              v-model="editedClass.daySchedule"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              :class="{ 'border-red-500': errors.daySchedule }"
+            >
+              <option value="">Select Day</option>
+              <option v-for="day in days" :key="day" :value="day">{{ day }}</option>
+            </select>
+            <p v-if="errors.daySchedule" class="mt-1 text-sm text-red-500">{{ errors.daySchedule }}</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">SSP Subject *</label>
+            <select
+              v-model="editedClass.subjectId"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              :class="{ 'border-red-500': errors.subjectId }"
+            >
+              <option value="">Select Subject</option>
+              <option v-for="subject in editFilteredSubjects" :key="subject._id" :value="subject._id">
+                {{ subject.sspCode }} - {{ subject.name || subject.sspCode }} ({{ subject.hours }} hr)
+              </option>
+            </select>
+            <p v-if="errors.subjectId" class="mt-1 text-sm text-red-500">{{ errors.subjectId }}</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Time Schedule *</label>
+            <select
+              v-model="editedClass.timeSchedule"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              :class="{ 'border-red-500': errors.timeSchedule }"
+            >
+              <option value="">Select Time Schedule</option>
+              <option v-for="time in editTimeScheduleOptions" :key="time" :value="time">{{ time }}</option>
+            </select>
+            <p v-if="errors.timeSchedule" class="mt-1 text-sm text-red-500">{{ errors.timeSchedule }}</p>
           </div>
         </div>
         
@@ -548,11 +510,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch, nextTick } from 'vue'
 import { classService } from '../../services/classService'
 import { subjectService } from '../../services/subjectService'
 import { notificationService } from '../../services/notificationService'
+import { systemOptionsService } from '../../services/systemOptionsService'
 import ClassDetailsView from '../../components/admin/ClassDetailsView.vue'
+import api from '../../services/api'
 
 // State
 const loading = ref(true)
@@ -572,8 +536,7 @@ const editedClass = ref({
   daySchedule: '',
   room: '',
   status: 'active',
-  startTime: '',
-  endTime: '',
+  timeSchedule: '',
   subjectId: ''
 })
 const showEditModal = ref(false)
@@ -587,14 +550,122 @@ const timeOptions = [
   '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM'
 ]
 
+// Day options
+const days = ref(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])
+
+// Year level options
+const yearLevelOptions = ref(['2nd', '3rd', '4th'])
+
+// Major options
+const majorOptions = ref(['Business Informatics', 'System Development', 'Digital Arts', 'Computer Security'])
+
+// Time schedule options based on selected subject's hours
+const timeScheduleOptions = computed(() => {
+  const baseOptions = [
+    '7:00 AM - 8:00 AM', '8:00 AM - 9:00 AM', '9:00 AM - 10:00 AM', 
+    '10:00 AM - 11:00 AM', '11:00 AM - 12:00 PM', '12:00 PM - 1:00 PM',
+    '1:00 PM - 2:00 PM', '2:00 PM - 3:00 PM', '3:00 PM - 4:00 PM',
+    '4:00 PM - 5:00 PM', '5:00 PM - 6:00 PM', '6:00 PM - 7:00 PM',
+    '7:00 PM - 8:00 PM', '8:00 PM - 9:00 PM'
+  ];
+  
+  // Get the hours from the selected subject
+  const hours = selectedSubject.value?.hours || 1;
+  
+  if (hours === 1) {
+    return baseOptions;
+  }
+  
+  // Generate options based on hours
+  return [
+    '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', 
+    '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', 
+    '5:00 PM', '6:00 PM', '7:00 PM'
+  ].map(startTime => {
+    const endTime = calculateEndTime(startTime, hours);
+    return `${startTime} - ${endTime}`;
+  });
+})
+
+// Time schedule options for edit form based on selected subject
+const editTimeScheduleOptions = computed(() => {
+  const baseOptions = [
+    '7:00 AM - 8:00 AM', '8:00 AM - 9:00 AM', '9:00 AM - 10:00 AM', 
+    '10:00 AM - 11:00 AM', '11:00 AM - 12:00 PM', '12:00 PM - 1:00 PM',
+    '1:00 PM - 2:00 PM', '2:00 PM - 3:00 PM', '3:00 PM - 4:00 PM',
+    '4:00 PM - 5:00 PM', '5:00 PM - 6:00 PM', '6:00 PM - 7:00 PM',
+    '7:00 PM - 8:00 PM', '8:00 PM - 9:00 PM'
+  ];
+  
+  if (!selectedEditSubject.value || !selectedEditSubject.value.hours) {
+    return baseOptions;
+  }
+  
+  // Get the hours from the selected edit subject
+  const hours = selectedEditSubject.value.hours || 1;
+  
+  if (hours === 1) {
+    return baseOptions;
+  }
+  
+  // Generate options based on hours
+  return [
+    '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', 
+    '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', 
+    '5:00 PM', '6:00 PM', '7:00 PM'
+  ].map(startTime => {
+    const endTime = calculateEndTime(startTime, hours);
+    return `${startTime} - ${endTime}`;
+  });
+})
+
+// Calculate end time based on start time and hours
+function calculateEndTime(startTime, hours) {
+  if (!startTime || !hours) return '';
+  
+  // Convert hours to number if it's a string
+  const hoursNum = typeof hours === 'string' ? parseInt(hours, 10) : hours;
+  
+  // Parse the start time
+  const [timeStr, period] = startTime.split(' ');
+  const [hourStr, minuteStr = '00'] = timeStr.split(':');
+  
+  let hour = parseInt(hourStr, 10);
+  const minute = parseInt(minuteStr, 10);
+  
+  // Convert to 24-hour format for calculation
+  if (period === 'PM' && hour < 12) {
+    hour += 12;
+  } else if (period === 'AM' && hour === 12) {
+    hour = 0;
+  }
+  
+  // Add the hours from the subject
+  hour += hoursNum;
+  
+  // Convert back to 12-hour format
+  let newPeriod = period;
+  if (hour >= 12) {
+    newPeriod = 'PM';
+    if (hour > 12) {
+      hour -= 12;
+    }
+  } else if (hour === 0) {
+    hour = 12;
+    newPeriod = 'AM';
+  }
+  
+  // Format the new time
+  return `${hour}:${minuteStr < 10 && minuteStr !== '00' ? '0' + minuteStr : minuteStr} ${newPeriod}`;
+}
+
 // Form state
 const newClass = reactive({
   yearLevel: '',
   section: '',
   major: '',
   daySchedule: '',
-  startTime: '',
-  endTime: '',
+  timeSchedule: '',
   room: '',
   subjectId: '',
   status: 'active'
@@ -619,6 +690,10 @@ const errors = reactive({
   subjectId: '',
   status: ''
 })
+
+// Add reactive variables for selected subjects only
+const selectedSubject = ref(null)
+const selectedEditSubject = ref(null)
 
 // Computed properties
 const filteredClasses = computed(() => {
@@ -649,13 +724,23 @@ const filteredSubjects = computed(() => {
 // Filter subjects for edit modal based on selected year level
 const editFilteredSubjects = computed(() => {
   if (!editedClass.value.yearLevel) {
-    return subjects.value
+    return subjects.value || [];
   }
-  return subjects.value.filter(subject => subject.yearLevel === editedClass.value.yearLevel)
+  return (subjects.value || []).filter(subject => subject.yearLevel === editedClass.value.yearLevel);
 })
 
 // Section options based on year level
 const availableSections = computed(() => {
+  if (!newClass.yearLevel) {
+    return []
+  }
+  
+  // Use system options data directly if available
+  if (systemOptionsData.value?.class?.sections?.[newClass.yearLevel]) {
+    return systemOptionsData.value.class.sections[newClass.yearLevel]
+  }
+  
+  // Fallback to default sections if system options aren't available
   if (newClass.yearLevel === '2nd') {
     return ['South-1', 'South-2', 'South-3', 'South-4', 'South-5']
   } else if (newClass.yearLevel === '3rd') {
@@ -668,6 +753,16 @@ const availableSections = computed(() => {
 
 // Section options based on year level for edit modal
 const editAvailableSections = computed(() => {
+  if (!editedClass.value.yearLevel) {
+    return []
+  }
+  
+  // Use system options data directly if available
+  if (systemOptionsData.value?.class?.sections?.[editedClass.value.yearLevel]) {
+    return systemOptionsData.value.class.sections[editedClass.value.yearLevel]
+  }
+  
+  // Fallback to default sections if system options aren't available
   if (editedClass.value.yearLevel === '2nd') {
     return ['South-1', 'South-2', 'South-3', 'South-4', 'South-5']
   } else if (editedClass.value.yearLevel === '3rd') {
@@ -678,11 +773,74 @@ const editAvailableSections = computed(() => {
   return []
 })
 
+// Add systemOptions ref to store the fetched options
+const systemOptionsData = ref(null)
+
+// Watch for system options changes
+watch(systemOptionsData, (newVal) => {
+  if (newVal) {
+    console.log('System options data changed, updating UI components')
+    
+    // Force re-evaluation of computed properties
+    if (showAddModal.value || showEditModal.value) {
+      // If a modal is open, this will ensure the dropdowns are updated with new values
+      const tempYearLevel = newClass.yearLevel
+      newClass.yearLevel = ''
+      // Use nextTick to ensure the DOM updates
+      nextTick(() => {
+        newClass.yearLevel = tempYearLevel
+      })
+    }
+  }
+}, { deep: true })
+
 // Fetch data on mount
 onMounted(async () => {
+  await loadSystemOptions()
   await fetchClasses()
   await fetchSubjects()
 })
+
+// Load system options from API
+async function loadSystemOptions() {
+  try {
+    // Fetch system options from API
+    const systemOptions = await systemOptionsService.getAll()
+    
+    // Store the options data for use in computed properties
+    systemOptionsData.value = systemOptions
+    
+    // Update year level options
+    if (systemOptions?.class?.yearLevels && systemOptions.class.yearLevels.length > 0) {
+      yearLevelOptions.value = systemOptions.class.yearLevels
+      console.log('Setting year level options from system config:', yearLevelOptions.value)
+    }
+    
+    // Update major options
+    if (systemOptions?.class?.majors && systemOptions.class.majors.length > 0) {
+      majorOptions.value = systemOptions.class.majors
+      console.log('Setting major options from system config:', majorOptions.value)
+    }
+    
+    // Update default sessions
+    if (systemOptions?.class?.defaultSessions && systemOptions.class.defaultSessions.length > 0) {
+      defaultSessions.value = systemOptions.class.defaultSessions
+      console.log('Setting default sessions from system config:', defaultSessions.value)
+    }
+    
+    console.log('System options loaded successfully')
+  } catch (error) {
+    console.error('Error loading system options:', error)
+    // Continue with defaults
+    notificationService.showWarning('Using default system options. Settings not loaded from server.')
+  }
+}
+
+// Add defaultSessions ref
+const defaultSessions = ref([
+  { title: 'INTRODUCTION', count: 0 },
+  { title: 'ORIENTATION', count: 0 }
+])
 
 // Methods
 async function fetchClasses() {
@@ -732,6 +890,9 @@ async function openAddModal() {
     errors[key] = ''
   })
   
+  // Reload system options to ensure we have the latest
+  await loadSystemOptions()
+  
   // Fetch subjects if not already loaded
   if (subjects.value.length === 0) {
     await fetchSubjects()
@@ -779,13 +940,8 @@ function validateForm() {
     isValid = false
   }
   
-  if (!newClass.startTime) {
-    errors.startTime = 'Start time is required'
-    isValid = false
-  }
-  
-  if (!newClass.endTime) {
-    errors.endTime = 'End time is required'
+  if (!newClass.timeSchedule) {
+    errors.timeSchedule = 'Time schedule is required'
     isValid = false
   }
   
@@ -804,201 +960,345 @@ function validateForm() {
 
 async function addClass() {
   if (!validateForm()) {
-    return
+    return;
   }
   
   try {
-    // Construct timeSchedule from start and end times
-    const classData = {
-      ...newClass,
-      timeSchedule: `${newClass.startTime} - ${newClass.endTime}`,
-      sspSubjectId: newClass.subjectId // Rename to match the backend expected parameter
+    // Find the selected subject for hours value
+    const subject = subjects.value.find(s => s._id === newClass.subjectId);
+    if (!subject) {
+      notificationService.showError('Selected subject not found. Please try again.');
+      return;
     }
     
-    // Remove the individual time fields before sending
-    delete classData.startTime
-    delete classData.endTime
-    delete classData.subjectId // Remove this as we've added sspSubjectId
+    // Debug logging
+    console.log('Selected subject:', subject);
     
-    const response = await classService.create(classData)
-    allClasses.value.push(response)
-    classes.value = filteredClasses.value
-    notificationService.showSuccess('Class added successfully')
-    closeAddModal()
+    // Make sure hours is a number, not a string
+    const hours = typeof subject.hours === 'string' 
+      ? parseInt(subject.hours, 10) 
+      : (subject.hours || 1);
+    
+    // Construct the class data with proper field names and types
+    const classData = {
+      yearLevel: newClass.yearLevel,
+      section: newClass.section,
+      major: newClass.major,
+      daySchedule: newClass.daySchedule,
+      timeSchedule: newClass.timeSchedule,
+      room: newClass.room,
+      status: 'active',
+      sspSubjectId: newClass.subjectId, // Changed from sspSubject to sspSubjectId to match server expectation
+      hours: hours
+    };
+    
+    // Log what we're sending
+    console.log('Sending class data to server:', classData);
+    
+    const response = await classService.create(classData);
+    console.log('Class created successfully:', response);
+    
+    // Automatically add to advisory classes collection without adviser
+    try {
+      const advisoryResponse = await api.post('/advisers/advisory/classes', {
+        class: response._id
+      });
+      console.log('Created advisory class entry without adviser:', advisoryResponse.data);
+    } catch (advisoryError) {
+      console.error('Error creating advisory class entry:', advisoryError);
+      // Continue anyway since the class was created successfully
+      notificationService.showWarning('Class created but could not add to advisory classes. Please add it manually.');
+    }
+    
+    allClasses.value.push(response);
+    classes.value = filteredClasses.value;
+    notificationService.showSuccess('Class added successfully');
+    closeAddModal();
+    
+    // Refresh data to ensure the new class appears in the list
+    await fetchClasses();
   } catch (error) {
-    console.error('Error adding class:', error)
-    notificationService.showError('Failed to add class. Please try again later.')
+    console.error('Error adding class:', error);
+    
+    // Show more detailed error information
+    if (error.response && error.response.data) {
+      console.error('Server error details:', error.response.data);
+      notificationService.showError(error.response.data.message || 'Failed to add class. Please check your inputs.');
+    } else {
+      notificationService.showError('Failed to add class. Please try again later.');
+    }
   }
 }
 
 function viewDetails(classItem) {
-  // Save selected class for details view
-  selectedClass.value = classItem
-  showDetailsModal.value = true
+  console.log('View details for class:', classItem);
+  
+  // Set the selected class
+  selectedClass.value = classItem;
+  
+  // If the class has a subject reference but not the full subject object, fetch it
+  if (classItem.sspSubjectId && !classItem.sspSubject) {
+    subjectService.getById(classItem.sspSubjectId)
+      .then(subject => {
+        // Create a new object to ensure reactivity
+        selectedClass.value = {
+          ...selectedClass.value,
+          sspSubject: subject
+        };
+      })
+      .catch(error => {
+        console.error('Error fetching subject details:', error);
+      });
+  }
+  
+  // Show the details modal
+  showDetailsModal.value = true;
 }
 
 function editClass(classItem) {
   console.log('Opening edit modal for class:', classItem);
+  
+  if (!classItem) {
+    notificationService.showError('Invalid class data');
+    return;
+  }
   
   // Reset errors first
   Object.keys(errors).forEach(key => {
     errors[key] = '';
   });
 
+  // Store selected class
+  selectedClass.value = classItem;
+
   try {
-    // Create a copy of the class item to edit (using ref's value property)
-    editedClass.value = {
-      _id: classItem._id || '',
-      yearLevel: classItem.yearLevel || '',
-      section: classItem.section || '',
-      major: classItem.major || '',
-      daySchedule: classItem.daySchedule || '',
-      room: classItem.room || '',
-      status: classItem.status || 'active',
-      startTime: '',
-      endTime: '',
-      subjectId: ''
-    };
-
-    // Try to find the subject ID from all possible sources
-    if (classItem.subject?._id) {
-      editedClass.value.subjectId = classItem.subject._id;
-    } else if (classItem.sspSubject?._id) {
-      editedClass.value.subjectId = classItem.sspSubject._id;
-    } else if (classItem.subjectId) {
-      editedClass.value.subjectId = classItem.subjectId;
-    } else if (classItem.sspSubjectId) {
-      editedClass.value.subjectId = classItem.sspSubjectId;
-    }
-    
-    // Parse time schedule if available
-    if (classItem.timeSchedule && typeof classItem.timeSchedule === 'string') {
-      const parts = classItem.timeSchedule.split('-');
-      if (parts.length === 2) {
-        editedClass.value.startTime = parts[0].trim();
-        editedClass.value.endTime = parts[1].trim();
-      } else {
-        // Try another format
-        const altParts = classItem.timeSchedule.split(' - ');
-        if (altParts.length === 2) {
-          editedClass.value.startTime = altParts[0].trim();
-          editedClass.value.endTime = altParts[1].trim();
+    // Reload system options first to ensure we have the latest
+    loadSystemOptions()
+      .then(() => {
+        // Fetch subjects if they're not loaded
+        if (!subjects.value || subjects.value.length === 0) {
+          loadingSubjects.value = true;
+          fetchSubjects()
+            .then(() => {
+              loadingSubjects.value = false;
+              setupEditClassForm(classItem);
+            })
+            .catch(error => {
+              loadingSubjects.value = false;
+              console.error('Error fetching subjects:', error);
+              notificationService.showError('Failed to load subjects');
+            });
+        } else {
+          setupEditClassForm(classItem);
         }
-      }
-    }
-
-    console.log('Setting up editedClass with data:', editedClass.value);
-    
-    // Save reference to current class
-    currentClass.value = JSON.parse(JSON.stringify(classItem));
-    
-    // Open the modal
-    showEditModal.value = true;
+      })
+      .catch(error => {
+        console.error('Error loading system options:', error);
+        // Continue anyway with setup
+        if (!subjects.value || subjects.value.length === 0) {
+          loadingSubjects.value = true;
+          fetchSubjects()
+            .then(() => {
+              loadingSubjects.value = false;
+              setupEditClassForm(classItem);
+            })
+            .catch(subError => {
+              loadingSubjects.value = false;
+              console.error('Error fetching subjects:', subError);
+              notificationService.showError('Failed to load subjects');
+            });
+        } else {
+          setupEditClassForm(classItem);
+        }
+      });
   } catch (error) {
     console.error('Error opening edit modal:', error);
     notificationService.showError('Error opening edit modal: ' + error.message);
   }
 }
 
+function setupEditClassForm(classItem) {
+  console.log('Setting up edit form with class:', classItem);
+  
+  // Initialize editedClass with the class data
+  editedClass.value = {
+    _id: classItem._id || '',
+    yearLevel: classItem.yearLevel || '',
+    section: classItem.section || '',
+    major: classItem.major || '',
+    daySchedule: classItem.daySchedule || '',
+    room: classItem.room || '',
+    status: classItem.status || 'active',
+    timeSchedule: classItem.timeSchedule || '',
+    subjectId: ''
+  };
+  
+  // Save reference to current class
+  currentClass.value = JSON.parse(JSON.stringify(classItem));
+  
+  // Try to find the subject ID from all possible sources
+  if (classItem.subject && classItem.subject._id) {
+    console.log('Using subject._id:', classItem.subject._id);
+    editedClass.value.subjectId = classItem.subject._id;
+  } else if (classItem.sspSubject && classItem.sspSubject._id) {
+    console.log('Using sspSubject._id:', classItem.sspSubject._id);
+    editedClass.value.subjectId = classItem.sspSubject._id;
+  } else if (classItem.subjectId) {
+    console.log('Using classItem.subjectId:', classItem.subjectId);
+    editedClass.value.subjectId = classItem.subjectId;
+  } else if (classItem.sspSubjectId) {
+    console.log('Using classItem.sspSubjectId:', classItem.sspSubjectId);
+    editedClass.value.subjectId = classItem.sspSubjectId;
+  } else {
+    console.log('No subject ID found in class item');
+  }
+  
+  console.log('Setting up editedClass with data:', editedClass.value);
+  
+  // Find the selected subject for hours
+  if (editedClass.value.subjectId && subjects.value && subjects.value.length > 0) {
+    selectedEditSubject.value = subjects.value.find(subject => 
+      subject._id === editedClass.value.subjectId
+    ) || null;
+    console.log('Selected edit subject:', selectedEditSubject.value);
+  } else {
+    selectedEditSubject.value = null;
+    console.log('No selected edit subject');
+  }
+  
+  // Directly set the modal to visible
+  showEditModal.value = true;
+  console.log('Edit modal should now be visible');
+}
+
 async function updateClass() {
   try {
     // Validate form fields
     if (!validateEditForm()) {
-      return
+      return;
     }
     
-    // Create time schedule from start and end times
-    if (editedClass.value.startTime && editedClass.value.endTime) {
-      const timeSchedule = `${editedClass.value.startTime} - ${editedClass.value.endTime}`
+    // Find the selected subject for hours value
+    const subject = subjects.value.find(s => s._id === editedClass.value.subjectId);
+    if (!subject) {
+      notificationService.showError('Selected subject not found. Please try again.');
+      return;
+    }
+    
+    // Debug logging
+    console.log('Selected subject for update:', subject);
+    
+    // Make sure hours is a number, not a string
+    const hours = typeof subject.hours === 'string' 
+      ? parseInt(subject.hours, 10) 
+      : (subject.hours || 1);
+    
+    // Prepare the class data with proper field names and types
+    const classData = {
+      yearLevel: editedClass.value.yearLevel,
+      section: editedClass.value.section,
+      major: editedClass.value.major,
+      daySchedule: editedClass.value.daySchedule,
+      room: editedClass.value.room,
+      status: editedClass.value.status || 'active',
+      timeSchedule: editedClass.value.timeSchedule,
+      sspSubjectId: editedClass.value.subjectId, // Changed from sspSubject to sspSubjectId to match server expectation
+      hours: hours
+    };
+    
+    // Log what we're sending
+    console.log('Updating class with data:', classData);
+    
+    const response = await classService.update(editedClass.value._id, classData);
+    
+    // Update the class list
+    const index = allClasses.value.findIndex(c => c._id === editedClass.value._id);
+    if (index !== -1) {
+      allClasses.value[index] = { ...allClasses.value[index], ...response };
       
-      // Prepare the class data
-      const classData = {
-        yearLevel: editedClass.value.yearLevel,
-        section: editedClass.value.section,
-        major: editedClass.value.major,
-        daySchedule: editedClass.value.daySchedule,
-        room: editedClass.value.room,
-        status: editedClass.value.status,
-        timeSchedule: timeSchedule,
-        sspSubjectId: editedClass.value.subjectId
-      }
-      
-      const response = await classService.update(editedClass.value._id, classData)
-      
-      // Update the class list
-      const index = allClasses.value.findIndex(c => c._id === editedClass.value._id)
-      if (index !== -1) {
-        allClasses.value[index] = { ...allClasses.value[index], ...response }
-        
-        // Apply filtering rules - if status is inactive, it shouldn't show in active list
-        classes.value = filteredClasses.value
-      }
-      
-      notificationService.showSuccess('Class updated successfully')
-      showEditModal.value = false
-      
-      // If status changed to inactive, refresh class list to remove it from view
-      if (editedClass.value.status === 'inactive') {
-        await fetchClasses()
-      }
-    } else {
-      notificationService.showError('Please select both start and end times')
+      // Apply filtering rules - if status is inactive, it shouldn't show in active list
+      classes.value = filteredClasses.value;
+    }
+    
+    notificationService.showSuccess('Class updated successfully');
+    showEditModal.value = false;
+    
+    // If status changed to inactive, refresh class list to remove it from view
+    if (editedClass.value.status === 'inactive') {
+      await fetchClasses();
     }
   } catch (error) {
-    console.error('Error updating class:', error)
-    notificationService.showError('Failed to update class. Please try again later.')
+    console.error('Error updating class:', error);
+    
+    // Show more detailed error information
+    if (error.response && error.response.data) {
+      console.error('Server error details:', error.response.data);
+      notificationService.showError(error.response.data.message || 'Failed to update class. Please check your inputs.');
+    } else {
+      notificationService.showError('Failed to update class. Please try again later.');
+    }
   }
 }
 
 function validateEditForm() {
-  let isValid = true
+  console.log('Validating edit form with data:', editedClass.value);
+  let isValid = true;
   
   // Reset errors
   Object.keys(errors).forEach(key => {
-    errors[key] = ''
-  })
+    errors[key] = '';
+  });
   
   if (!editedClass.value.yearLevel) {
-    errors.yearLevel = 'Year level is required'
-    isValid = false
+    errors.yearLevel = 'Year level is required';
+    isValid = false;
+    console.log('Year level validation failed');
   }
   
   if (!editedClass.value.section) {
-    errors.section = 'Section is required'
-    isValid = false
+    errors.section = 'Section is required';
+    isValid = false;
+    console.log('Section validation failed');
   }
   
   if (!editedClass.value.major) {
-    errors.major = 'Major is required'
-    isValid = false
+    errors.major = 'Major is required';
+    isValid = false;
+    console.log('Major validation failed');
   }
   
   if (!editedClass.value.daySchedule) {
-    errors.daySchedule = 'Day schedule is required'
-    isValid = false
+    errors.daySchedule = 'Day schedule is required';
+    isValid = false;
+    console.log('Day schedule validation failed');
   }
   
-  if (!editedClass.value.startTime) {
-    errors.startTime = 'Start time is required'
-    isValid = false
-  }
-  
-  if (!editedClass.value.endTime) {
-    errors.endTime = 'End time is required'
-    isValid = false
+  if (!editedClass.value.timeSchedule) {
+    errors.timeSchedule = 'Time schedule is required';
+    isValid = false;
+    console.log('Time schedule validation failed');
   }
   
   if (!editedClass.value.room) {
-    errors.room = 'Room is required'
-    isValid = false
+    errors.room = 'Room is required';
+    isValid = false;
+    console.log('Room validation failed');
   }
   
   if (!editedClass.value.subjectId) {
-    errors.subjectId = 'Subject is required'
-    isValid = false
+    errors.subjectId = 'Subject is required';
+    isValid = false;
+    console.log('Subject validation failed');
   }
   
-  return isValid
+  if (!editedClass.value.status) {
+    errors.status = 'Status is required';
+    isValid = false;
+    console.log('Status validation failed');
+  }
+  
+  console.log('Form validation result:', isValid, 'Errors:', errors);
+  return isValid;
 }
 
 async function deleteClass() {
@@ -1024,24 +1324,57 @@ async function deleteClass() {
   }
 }
 
-// When year level changes, reset subject selection if it doesn't match the year level
-function handleYearLevelChange() {
-  if (newClass.subjectId) {
-    const selectedSubject = subjects.value.find(s => s._id === newClass.subjectId)
-    if (selectedSubject && selectedSubject.yearLevel !== newClass.yearLevel) {
-      newClass.subjectId = ''
+// Handle subject selection
+function handleSubjectChange() {
+  // Find the selected subject
+  selectedSubject.value = subjects.value.find(subject => subject._id === newClass.subjectId);
+  
+  // Reset timeSchedule when subject changes
+  newClass.timeSchedule = '';
+}
+
+function handleEditYearLevelChange() {
+  // Reset section when year level changes
+  editedClass.value.section = ''
+  
+  // Filter subjects based on selected year level
+  if (editedClass.value.subjectId) {
+    const subject = subjects.value.find(subject => subject._id === editedClass.value.subjectId)
+    if (subject && subject.yearLevel !== editedClass.value.yearLevel) {
+      editedClass.value.subjectId = ''
+      selectedEditSubject.value = null
+    } else {
+      selectedEditSubject.value = subject
     }
   }
 }
 
-// Same function for edit modal
-function handleEditYearLevelChange() {
-  if (editedClass.value.subjectId) {
-    const selectedSubject = subjects.value.find(s => s._id === editedClass.value.subjectId)
-    if (selectedSubject && selectedSubject.yearLevel !== editedClass.value.yearLevel) {
-      editedClass.value.subjectId = ''
-    }
+function getSubjectName(classItem) {
+  if (!classItem) return 'Not Assigned';
+  
+  let subjectName = 'Not Assigned';
+  let subjectCode = '';
+  
+  if (classItem.subject) {
+    subjectName = classItem.subject.name || classItem.subject.sspCode;
+    subjectCode = classItem.subject.sspCode;
+  } else if (classItem.sspSubject) {
+    subjectName = classItem.sspSubject.name || classItem.sspSubject.sspCode;
+    subjectCode = classItem.sspSubject.sspCode;
   }
+  
+  if (subjectCode) {
+    return `${subjectCode}: ${subjectName}`;
+  }
+  
+  return subjectName;
+}
+
+// Function to show the time schedule
+function getTimeSchedule(classItem) {
+  if (!classItem || !classItem.timeSchedule) return 'Not scheduled';
+  const hours = classItem.hours || (classItem.sspSubject?.hours || 1);
+  return `${classItem.timeSchedule}`;
 }
 
 // Handle view student from ClassDetailsView component
@@ -1054,5 +1387,19 @@ function handleViewStudent(student) {
 function handleViewError(errorMessage) {
   console.error('Error from ClassDetailsView:', errorMessage);
   notificationService.showError(errorMessage);
+}
+
+// When year level changes, reset subject selection if it doesn't match the year level
+function handleYearLevelChange() {
+  // Reset section when year level changes
+  newClass.section = ''
+  
+  // Reset subject if it doesn't match the year level
+  if (newClass.subjectId) {
+    const subject = subjects.value.find(s => s._id === newClass.subjectId)
+    if (subject && subject.yearLevel !== newClass.yearLevel) {
+      newClass.subjectId = ''
+    }
+  }
 }
 </script> 

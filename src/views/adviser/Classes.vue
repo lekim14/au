@@ -87,7 +87,19 @@
             <div class="flex justify-between">
               <span class="text-sm text-gray-600">SSP Subject:</span>
               <span class="text-sm font-medium">
-                {{ selectedClass.sspSubject.sspCode }}: {{ selectedClass.sspSubject.name }}
+                {{ selectedClass.sspSubject.sspCode }}
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-600">Semester:</span>
+              <span class="text-sm font-medium">
+                {{ selectedClass.sspSubject.semester }}
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-600">School Year:</span>
+              <span class="text-sm font-medium">
+                {{ selectedClass.sspSubject.schoolYear || '2024 - 2025' }}
               </span>
             </div>
             <div class="flex justify-between">
@@ -139,100 +151,70 @@
           <p class="text-gray-500">No SSP sessions found for this class</p>
         </div>
         
-        <div v-else class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10 border-r">
-                  Student
-                </th>
-                <th 
-                  v-for="session in sessionMatrix.sessions" 
-                  :key="session._id" 
-                  scope="col" 
-                  class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                >
-                  <div>Day {{ session.day }}</div>
-                  <div class="text-xxs normal-case truncate max-w-[120px]" :title="session.title">
-                    {{ session.title }}
-                  </div>
-                </th>
-                <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Overall
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="student in sessionMatrix.students" :key="student.id">
-                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10 border-r">
-                  {{ student.name }}
-                  <div class="text-xs text-gray-500">{{ student.idNumber }}</div>
-                </td>
-                <td 
-                  v-for="session in sessionMatrix.sessions" 
-                  :key="session._id" 
-                  class="px-3 py-3 text-center"
-                >
-                  <div 
-                    v-if="student.sessions[session._id]"
-                    class="relative inline-block"
+        <div v-else class="relative">
+          <div class="overflow-x-auto max-h-[600px]" style="box-shadow: inset -5px 0 5px -5px rgba(0,0,0,0.1);">
+            <table class="min-w-full divide-y divide-gray-200 table-fixed">
+              <thead class="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-20 border-r w-44 shadow-sm">
+                    Student
+                  </th>
+                  <th 
+                    v-for="session in sessionMatrix.sessions" 
+                    :key="session._id" 
+                    scope="col" 
+                    class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-20"
                   >
-                    <input 
-                      type="checkbox" 
-                      :checked="student.sessions[session._id].completed" 
-                      @change="toggleSessionCompletion(student.id, session._id, $event.target.checked)"
-                      class="h-5 w-5 cursor-pointer appearance-none rounded border-2 border-gray-300 checked:border-primary checked:bg-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <svg 
-                      v-if="student.sessions[session._id].completed"
-                      class="absolute inset-0 h-5 w-5 text-white pointer-events-none" 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      stroke-width="3" 
-                      stroke-linecap="round" 
-                      stroke-linejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </div>
-                  <div v-else class="text-xs text-gray-400">N/A</div>
-                </td>
-                <td class="px-4 py-3 text-center">
-                  <div class="inline-flex items-center space-x-1">
-                    <span 
-                      class="px-2 py-1 text-xs rounded-full font-medium"
-                      :class="getComplianceClass(getStudentCompliancePercentage(student))"
-                    >
-                      {{ getStudentCompliancePercentage(student) }}%
-                    </span>
-                  </div>
-                </td>
-              </tr>
-              <!-- Summary row -->
-              <tr class="bg-gray-50 font-medium">
-                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-gray-50 z-10 border-r">
-                  Session Completion
-                </td>
-                <td 
-                  v-for="session in sessionMatrix.sessions" 
-                  :key="session._id" 
-                  class="px-3 py-3 text-center text-sm"
-                >
-                  {{ getSessionCompletionPercentage(session._id) }}%
-                </td>
-                <td class="px-4 py-3 text-center text-sm">
-                  <span 
-                    class="px-2 py-1 text-xs rounded-full font-medium"
-                    :class="getComplianceClass(overallCompliancePercentage)"
+                    <div>{{ session.day === 0 ? 'Day 0' : `Day ${session.day}` }}</div>
+                    <div class="text-xxs normal-case truncate max-w-[80px]" :title="session.title">
+                      {{ session.title }}
+                    </div>
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20 sticky right-0 bg-gray-50 z-10 shadow-sm">
+                    Overall
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr v-for="student in sessionMatrix.students" :key="student.id">
+                  <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10 border-r shadow-sm">
+                    {{ student.name }}
+                    <div class="text-xs text-gray-500">{{ student.idNumber }}</div>
+                  </td>
+                  <td 
+                    v-for="session in sessionMatrix.sessions" 
+                    :key="session._id" 
+                    class="px-1 py-2 text-center"
                   >
-                    {{ overallCompliancePercentage }}%
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                    <div 
+                      v-if="student.sessions[session._id]"
+                      class="relative inline-block"
+                    >
+                      <label class="inline-flex items-center">
+                        <input 
+                          type="checkbox" 
+                          :checked="student.sessions[session._id].completed"
+                          @change="toggleSessionCompletion(student.id, session._id, $event.target.checked)"
+                          class="form-checkbox h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
+                        />
+                      </label>
+                    </div>
+                    <div v-else class="text-xs text-gray-400">N/A</div>
+                  </td>
+                  <td class="px-4 py-3 text-center sticky right-0 bg-white z-10 shadow-sm">
+                    <div class="inline-flex items-center space-x-1">
+                      <span 
+                        class="px-2 py-1 text-xs rounded-full font-medium"
+                        :class="getComplianceClass(getStudentCompliancePercentage(student))"
+                      >
+                        {{ getStudentCompliancePercentage(student) }}%
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       
@@ -254,51 +236,6 @@
         </button>
       </div>
     </div>
-    
-    <!-- Student List -->
-    <div v-if="selectedClass && selectedClass.students && selectedClass.students.length > 0" class="bg-white rounded-lg shadow p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold">Students</h3>
-      </div>
-      
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Number</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SSP Compliance</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="student in selectedClass.students" :key="student._id" class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">
-                  {{ student.user?.firstName || 'Unknown' }} {{ student.user?.lastName || '' }}
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{ student.user?.idNumber || 'N/A' }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{ student.user?.email || 'N/A' }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span 
-                  v-if="getStudentById(student._id)"
-                  class="px-2 py-1 text-xs rounded-full font-medium"
-                  :class="getComplianceClass(getStudentCompliancePercentage(getStudentById(student._id)))"
-                >
-                  {{ getStudentCompliancePercentage(getStudentById(student._id)) }}%
-                </span>
-                <span v-else class="text-sm text-gray-500">No data</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -308,6 +245,7 @@ import { classService } from '../../services/classService';
 import { sessionService } from '../../services/sessionService';
 import { notificationService } from '../../services/notificationService';
 import { useAuthStore } from '../../stores/authStore';
+import api from '../../services/api';
 
 // State
 const loading = ref(true);
@@ -366,9 +304,53 @@ onMounted(async () => {
 // Functions
 async function fetchAdvisoryClasses() {
   try {
+    console.log('Fetching advisory classes for adviser');
     const response = await classService.getAdvisoryClasses();
     if (response && response.data) {
-      classes.value = response.data;
+      // Check if we have a valid response with class data
+      if (!Array.isArray(response.data)) {
+        console.error('Invalid response structure:', response.data);
+        notificationService.showError('Failed to load advisory classes: Invalid data structure');
+        return;
+      }
+      
+      // Filter out any invalid class entries
+      classes.value = response.data.filter(c => c && c._id);
+      console.log(`Loaded ${classes.value.length} advisory classes`);
+      
+      // Process class data to handle advisory class structure
+      for (let i = 0; i < classes.value.length; i++) {
+        const classItem = classes.value[i];
+        
+        // If the class data is nested in 'class' property, extract it
+        if (classItem.class && typeof classItem.class === 'object') {
+          // Extract class details from nested structure
+          const classData = classItem.class;
+          classItem._id = classData._id || classItem._id;
+          classItem.yearLevel = classData.yearLevel || classItem.yearLevel;
+          classItem.section = classData.section || classItem.section;
+          classItem.major = classData.major || classItem.major;
+          classItem.daySchedule = classData.daySchedule || classItem.daySchedule;
+          classItem.timeSchedule = classData.timeSchedule || classItem.timeSchedule;
+          classItem.room = classData.room || classItem.room;
+          classItem.students = classData.students || classItem.students || [];
+          classItem.sspSubject = classData.sspSubject || classItem.sspSubject || { sspCode: 'Unknown' };
+        }
+        
+        // If students array is missing or empty, try to fetch them separately
+        if (!classItem.students || classItem.students.length === 0) {
+          try {
+            console.log(`No students found in class ${classItem._id}, fetching them separately`);
+            const classDetail = await api.get(`/advisers/class/${classItem._id}/students`);
+            if (classDetail.data && Array.isArray(classDetail.data)) {
+              classItem.students = classDetail.data;
+              console.log(`Loaded ${classItem.students.length} students for class ${classItem._id}`);
+            }
+          } catch (error) {
+            console.error(`Error fetching students for class ${classItem._id}:`, error);
+          }
+        }
+      }
     } else {
       notificationService.showError('Failed to load advisory classes');
     }
@@ -383,6 +365,28 @@ async function selectClass(classItem) {
   matrixLoading.value = true;
   
   try {
+    // If no students are loaded yet, try to fetch them from the advisory endpoint first
+    if (!classItem.students || classItem.students.length === 0) {
+      try {
+        console.log(`Fetching students for class ${classItem._id} from advisory endpoint`);
+        const advisoryDetail = await api.get(`/advisers/class/${classItem._id}/students`);
+        if (advisoryDetail.data && Array.isArray(advisoryDetail.data)) {
+          selectedClass.value.students = advisoryDetail.data;
+          console.log(`Loaded ${selectedClass.value.students.length} students from advisory endpoint`);
+        } else {
+          // Fallback to regular class endpoint if advisory endpoint fails
+          console.log(`No students found in advisory endpoint, trying regular class endpoint`);
+          const classDetail = await api.get(`/classes/${classItem._id}`);
+          if (classDetail.data && classDetail.data.students) {
+            selectedClass.value.students = classDetail.data.students;
+            console.log(`Loaded ${selectedClass.value.students.length} students from class endpoint`);
+          }
+        }
+      } catch (error) {
+        console.error(`Error fetching students for class ${classItem._id}:`, error);
+      }
+    }
+    
     // Clear any pending changes
     pendingChanges.value.clear();
     
@@ -401,8 +405,37 @@ async function selectClass(classItem) {
     // Fetch the session matrix for this class
     const matrixResponse = await sessionService.getSessionMatrix(classItem._id);
     if (matrixResponse && matrixResponse.data) {
+      // Make sure we have the sessions sorted by day number
+      if (matrixResponse.data.sessions && Array.isArray(matrixResponse.data.sessions)) {
+        // Check if day 17 is missing and add it if needed
+        const days = matrixResponse.data.sessions.map(s => s.day);
+        console.log("Original session days:", days);
+        
+        // Ensure all students have all sessions including day 17
+        await ensureAllSessionsExist(classItem._id);
+        
+        // Sort sessions by day number (ascending)
+        matrixResponse.data.sessions.sort((a, b) => {
+          // Handle day 0 (should come first)
+          if (a.day === 0) return -1;
+          if (b.day === 0) return 1;
+          return a.day - b.day;
+        });
+      }
+      
       sessionMatrix.value = matrixResponse.data;
       console.log(`Matrix loaded with ${sessionMatrix.value.sessions?.length || 0} sessions and ${sessionMatrix.value.students?.length || 0} students`);
+      
+      // Debug: Log all session days to verify we have all days
+      if (sessionMatrix.value.sessions && sessionMatrix.value.sessions.length > 0) {
+        const days = sessionMatrix.value.sessions.map(s => s.day).sort((a, b) => a - b);
+        console.log("Session days available:", days);
+        
+        // Check if day 17 is missing
+        if (!days.includes(17)) {
+          console.warn("Day 17 is missing from sessions. Please check session configuration.");
+        }
+      }
       
       // Show warning if matrix is incomplete
       if (!sessionMatrix.value.sessions || sessionMatrix.value.sessions.length === 0) {
@@ -421,11 +454,7 @@ async function selectClass(classItem) {
     }
   } catch (error) {
     console.error('Error loading session matrix:', error);
-    notificationService.showError('Failed to load session data: ' + (error.message || 'Unknown error'));
-    sessionMatrix.value = {
-      sessions: [],
-      students: []
-    };
+    notificationService.showError('Failed to load session matrix');
   } finally {
     matrixLoading.value = false;
   }
@@ -470,150 +499,179 @@ async function initializeSessionsForStudents(classItem) {
   console.log("All students' sessions initialized successfully");
 }
 
-function toggleSessionCompletion(studentId, sessionId, completed) {
-  // Find the student in the matrix
-  const student = sessionMatrix.value.students.find(s => s.id === studentId);
-  if (!student || !student.sessions[sessionId]) return;
-  
-  // Store the original value to be able to revert if needed
-  const originalValue = student.sessions[sessionId].completed;
-  
-  // Update the session completion status in the UI
-  student.sessions[sessionId].completed = completed;
-  
-  // Track this change in the pendingChanges map
-  const changeKey = `${studentId}:${sessionId}`;
-  
-  if (completed === originalValue) {
-    // If reverting to original value, remove from pending changes
-    pendingChanges.value.delete(changeKey);
-  } else {
-    // Otherwise, add to pending changes
+// Toggle session completion status
+async function toggleSessionCompletion(studentId, sessionId, completed) {
+  try {
+    console.log(`Updating session status: Student ${studentId}, Session ${sessionId}, Completed: ${completed}`);
+    
+    // Find the student in the matrix
+    const student = sessionMatrix.value.students.find(s => s.id === studentId);
+    if (!student || !student.sessions[sessionId]) {
+      console.error('Student or session not found in matrix');
+      return;
+    }
+    
+    // Get the session completion record ID
+    const sessionCompletionId = student.sessions[sessionId].id;
+    if (!sessionCompletionId) {
+      console.error('Session completion ID not found');
+      return;
+    }
+    
+    // Update the local state immediately for better UX
+    student.sessions[sessionId].completed = completed;
+    
+    // Add to pending changes
+    const changeKey = `${studentId}_${sessionId}`;
     pendingChanges.value.set(changeKey, {
-      sessionId: student.sessions[sessionId].id,
-      completed
+      sessionId: sessionCompletionId,
+      completed: completed
     });
+    
+    try {
+      // Call the direct API endpoint for immediate update
+      console.log(`Calling API to update session ${sessionCompletionId} with status ${completed}`);
+      const response = await sessionService.updateSessionStatus(sessionCompletionId, completed);
+      console.log('Session update response:', response);
+      
+      // Show success notification
+      notificationService.showSuccess(
+        `Session marked as ${completed ? 'completed' : 'pending'} for student`
+      );
+      
+      // Remove from pending changes since update was successful
+      pendingChanges.value.delete(changeKey);
+    } catch (apiError) {
+      console.error('API error toggling session completion:', apiError);
+      // Keep in pending changes to retry later with bulk save
+      notificationService.showWarning('Session status will be updated when you save changes');
+    }
+  } catch (error) {
+    console.error('Error toggling session completion:', error);
+    notificationService.showError('Failed to update session status. Please try again.');
+    
+    // Revert the local state if the operation fails
+    const student = sessionMatrix.value.students.find(s => s.id === studentId);
+    if (student && student.sessions[sessionId]) {
+      student.sessions[sessionId].completed = !completed;
+    }
   }
 }
 
 async function saveChanges() {
-  if (!selectedClass.value || pendingChanges.value.size === 0) {
-    console.warn("No changes to save or no class selected");
-    return;
-  }
+  if (pendingChanges.value.size === 0) return;
   
   saving.value = true;
   
   try {
-    // Convert the map to an array of updates
+    // Convert the Map to an array of updates
     const updates = Array.from(pendingChanges.value.values());
-    console.log(`Saving ${updates.length} session updates`);
+    console.log(`Saving ${updates.length} changes for class ${selectedClass.value._id}`);
     
-    // Send the bulk update request
+    // Send the updates to the server
     const response = await sessionService.bulkUpdateSessions(selectedClass.value._id, updates);
     
     if (response && response.data && response.data.success) {
-      console.log("Session updates saved successfully");
-      
-      // Clear pending changes
+      notificationService.showSuccess(`Successfully updated ${response.data.updatedCount} session statuses`);
       pendingChanges.value.clear();
       
-      notificationService.showSuccess('Session compliance updated successfully');
-      
-      // Refresh the matrix data after save
-      await refreshMatrixData();
+      // Refresh the session matrix to show the latest data
+      await selectClass(selectedClass.value);
     } else {
-      console.error("Unexpected response from bulk update:", response);
-      notificationService.showError('Unexpected response from server');
+      throw new Error('Failed to update session statuses');
     }
   } catch (error) {
     console.error('Error saving session changes:', error);
-    notificationService.showError('Failed to save session changes: ' + (error.message || 'Unknown error'));
+    notificationService.showError('Failed to save changes: ' + (error.message || 'Unknown error'));
   } finally {
     saving.value = false;
   }
 }
 
-async function refreshMatrixData() {
+function getStudentCompliancePercentage(student) {
+  if (!student || !student.sessions) return 0;
+  
+  const sessionEntries = Object.values(student.sessions);
+  if (sessionEntries.length === 0) return 0;
+  
+  const completedCount = sessionEntries.filter(session => session.completed).length;
+  return Math.round((completedCount / sessionEntries.length) * 100);
+}
+
+function getSessionCompletionPercentage(sessionId) {
+  if (!sessionMatrix.value.students || sessionMatrix.value.students.length === 0) return 0;
+  
+  const totalStudents = sessionMatrix.value.students.length;
+  if (totalStudents === 0) return 0;
+  
+  const completedCount = sessionMatrix.value.students.reduce((count, student) => {
+    return count + (student.sessions[sessionId]?.completed ? 1 : 0);
+  }, 0);
+  
+  return Math.round((completedCount / totalStudents) * 100);
+}
+
+function getComplianceClass(percentage) {
+  if (percentage >= 90) return 'bg-green-100 text-green-800';
+  if (percentage >= 70) return 'bg-blue-100 text-blue-800';
+  if (percentage >= 40) return 'bg-yellow-100 text-yellow-800';
+  return 'bg-red-100 text-red-800';
+}
+
+// Add this function to format session status for display
+function getSessionStatusBadge(completed) {
+  return completed 
+    ? '<span class="px-2 py-1 text-xs rounded-full font-medium bg-green-100 text-green-800">Submitted</span>' 
+    : '<span class="px-2 py-1 text-xs rounded-full font-medium bg-yellow-100 text-yellow-800">Pending</span>';
+}
+
+// Add this function to get student name with proper formatting
+function getStudentFullName(student) {
+  if (!student || !student.user) return 'Unknown Student';
+  return `${student.user.firstName || ''} ${student.user.lastName || ''}`.trim() || 'Unknown';
+}
+
+// Add this function to refresh the session matrix
+async function refreshSessionMatrix() {
   if (!selectedClass.value) return;
   
   matrixLoading.value = true;
-  
   try {
-    console.log(`Refreshing matrix data for class ${selectedClass.value._id}`);
-    const matrixResponse = await sessionService.getSessionMatrix(selectedClass.value._id);
+    // Clear any pending changes
+    pendingChanges.value.clear();
     
+    // Re-validate session data
+    await sessionService.validateClassSessions(selectedClass.value._id);
+    
+    // Fetch the updated session matrix
+    const matrixResponse = await sessionService.getSessionMatrix(selectedClass.value._id);
     if (matrixResponse && matrixResponse.data) {
       sessionMatrix.value = matrixResponse.data;
-      console.log("Matrix data refreshed successfully");
+      notificationService.showSuccess('Session data refreshed');
     } else {
-      console.warn("No matrix data returned from refresh");
+      throw new Error('Failed to refresh session data');
     }
   } catch (error) {
-    console.error("Error refreshing matrix data:", error);
-    notificationService.showError("Failed to refresh session data");
+    console.error('Error refreshing session matrix:', error);
+    notificationService.showError('Failed to refresh session data: ' + (error.message || 'Unknown error'));
   } finally {
     matrixLoading.value = false;
   }
 }
 
-function getStudentCompliancePercentage(student) {
-  if (!student || !student.sessions || !sessionMatrix.value.sessions || 
-      !sessionMatrix.value.sessions.length) {
-    return 0;
-  }
-  
-  // Count completed sessions for this student
-  let completed = 0;
-  let total = 0;
-  
-  sessionMatrix.value.sessions.forEach(session => {
-    if (student.sessions[session._id]) {
-      total++;
-      if (student.sessions[session._id].completed) {
-        completed++;
-      }
-    }
-  });
-  
-  // Calculate and return percentage
-  return total > 0 ? Math.round((completed / total) * 100) : 0;
+function getStudentById(studentId) {
+  return sessionMatrix.value.students.find(student => student.id === studentId);
 }
 
-function getSessionCompletionPercentage(sessionId) {
-  if (!sessionMatrix.value.students || !sessionMatrix.value.students.length) {
-    return 0;
+// Add this new function to ensure all sessions exist for all students
+async function ensureAllSessionsExist(classId) {
+  try {
+    console.log(`Ensuring all sessions exist for class ${classId}`);
+    await api.post(`/sessions/class/${classId}/ensure-all-days`);
+    console.log('Sessions validation completed');
+  } catch (error) {
+    console.error('Error ensuring all sessions exist:', error);
   }
-  
-  // Count students who have completed this session
-  let completed = 0;
-  let total = 0;
-  
-  sessionMatrix.value.students.forEach(student => {
-    if (student.sessions[sessionId]) {
-      total++;
-      if (student.sessions[sessionId].completed) {
-        completed++;
-      }
-    }
-  });
-  
-  // Calculate and return percentage
-  return total > 0 ? Math.round((completed / total) * 100) : 0;
-}
-
-function getComplianceClass(percentage) {
-  if (percentage >= 80) {
-    return 'bg-green-100 text-green-800';
-  } else if (percentage >= 50) {
-    return 'bg-yellow-100 text-yellow-800';
-  } else {
-    return 'bg-red-100 text-red-800';
-  }
-}
-
-function getStudentById(id) {
-  return sessionMatrix.value.students.find(s => s.id === id);
 }
 </script>
 

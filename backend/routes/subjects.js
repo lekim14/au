@@ -1,33 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const Subject = require('../models/Subject');
-const SystemOption = require('../models/SystemOption');
-const auth = require('../middleware/auth');
-
-// Get the admin authorization middleware
-let adminAuth;
-try {
-  // Try to use the new roles middleware first
-  const roles = require('../middleware/roles');
-  adminAuth = roles.isAdmin;
-} catch (error) {
-  // Fall back to the old auth middleware if roles.js doesn't exist
-  adminAuth = auth.authorizeAdmin;
-}
+const { authenticate, authorizeAdmin } = require('../middleware/auth');
 
 // Get all subjects
-router.get('/', async (req, res) => {
+router.get('/', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const subjects = await Subject.find({});
+    const subjects = await Subject.find();
     res.json(subjects);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+  } catch (error) {
+    console.error('Get subjects error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
 // Get subject by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticate, authorizeAdmin, async (req, res) => {
   try {
     const subject = await Subject.findById(req.params.id);
     
@@ -36,161 +24,178 @@ router.get('/:id', async (req, res) => {
     }
     
     res.json(subject);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+  } catch (error) {
+    console.error('Get subject error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Create a new subject
-router.post('/', auth.authenticate, adminAuth, async (req, res) => {
+// Create new subject
+router.post('/', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    // Get subject data from request body
-    const { sspCode, name, yearLevel, sessions, semester, hours, schoolYear } = req.body;
+    const { sspCode, name, yearLevel, sessions, description, semester, hours, schoolYear } = req.body;
     
-    // Check if subject already exists
+    // Check if subject with same code already exists
     const existingSubject = await Subject.findOne({ sspCode });
     if (existingSubject) {
-      return res.status(400).json({ message: 'Subject with this SSP Code already exists' });
+      return res.status(400).json({ message: 'Subject with this SSP code already exists' });
     }
     
-    // Get system options for default zero day session
-    let defaultZeroDayTitle = 'INTRODUCTION';
-    try {
-      const systemOptions = await SystemOption.findOne().sort({ updatedAt: -1 });
-      if (systemOptions && systemOptions.subject && systemOptions.subject.defaultZeroDayTitle) {
-        defaultZeroDayTitle = systemOptions.subject.defaultZeroDayTitle;
-      }
-    } catch (error) {
-      console.error('Error getting system options:', error);
-      // Continue with default
+    // Validate sessions count
+    if (sessions && sessions.length > 18) {
+      return res.status(400).json({ message: 'Maximum 18 sessions allowed per subject' });
     }
     
-    // Validate sessions
-    const processedSessions = [];
-    let hasZeroDay = false;
-    
-    if (sessions && sessions.length > 0) {
-      for (const session of sessions) {
-        processedSessions.push({
-          day: session.day,
-          title: session.title
-        });
-        
-        if (session.day === 0) {
-          hasZeroDay = true;
-        }
-      }
-    }
-    
-    // Always add day zero if not provided
-    if (!hasZeroDay) {
-      processedSessions.push({
-        day: 0,
-        title: defaultZeroDayTitle
-      });
-    }
-    
-    // Create new subject
-    const newSubject = new Subject({
+    // Create subject
+    const subject = new Subject({
       sspCode,
-      name,
+      name: name || sspCode, // Use sspCode as fallback for name
       yearLevel,
-      sessions: processedSessions,
+      description,
       semester,
-      hours,
-      schoolYear
+      schoolYear: schoolYear || '2024 - 2025', // Default to current school year
+      hours: hours || 1, // Default to 1 hour if not specified
+      sessions: sessions || []
     });
     
-    // Save subject to database
-    const savedSubject = await newSubject.save();
-    res.json(savedSubject);
-  } catch (err) {
-    console.error('Error creating subject:', err);
+    await subject.save();
     
-    if (err.name === 'ValidationError') {
-      return res.status(400).json({ message: err.message });
+    res.status(201).json(subject);
+  } catch (error) {
+    console.error('Create subject error:', error);
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(val => val.message);
+      return res.status(400).json({ message: messages.join(', ') });
     }
     
-    res.status(500).send('Server Error');
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Update a subject
-router.put('/:id', auth.authenticate, adminAuth, async (req, res) => {
+// Update subject
+router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { sspCode, name, yearLevel, sessions, semester, hours, schoolYear } = req.body;
+    const { sspCode, name, yearLevel, sessions, description, semester, hours, schoolYear } = req.body;
     
-    // Get system options for default zero day session
-    let defaultZeroDayTitle = 'INTRODUCTION';
-    try {
-      const systemOptions = await SystemOption.findOne().sort({ updatedAt: -1 });
-      if (systemOptions && systemOptions.subject && systemOptions.subject.defaultZeroDayTitle) {
-        defaultZeroDayTitle = systemOptions.subject.defaultZeroDayTitle;
-      }
-    } catch (error) {
-      console.error('Error getting system options:', error);
-      // Continue with default
-    }
-    
-    // Find subject by ID
     const subject = await Subject.findById(req.params.id);
     
     if (!subject) {
       return res.status(404).json({ message: 'Subject not found' });
     }
     
-    // Validate sessions
-    const processedSessions = [];
-    let hasZeroDay = false;
-    
-    if (sessions && sessions.length > 0) {
-      for (const session of sessions) {
-        processedSessions.push({
-          day: session.day,
-          title: session.title
-        });
-        
-        if (session.day === 0) {
-          hasZeroDay = true;
-        }
+    // Update fields
+    if (sspCode) {
+      // Check if another subject with this code exists
+      const existingSubject = await Subject.findOne({ sspCode, _id: { $ne: req.params.id } });
+      if (existingSubject) {
+        return res.status(400).json({ message: 'Another subject with this SSP code already exists' });
       }
+      subject.sspCode = sspCode;
     }
     
-    // Always add day zero if not provided
-    if (!hasZeroDay) {
-      processedSessions.push({
-        day: 0,
-        title: defaultZeroDayTitle
-      });
+    if (name) subject.name = name;
+    if (yearLevel) subject.yearLevel = yearLevel;
+    if (description) subject.description = description;
+    if (semester) subject.semester = semester;
+    if (hours) subject.hours = hours;
+    if (schoolYear) subject.schoolYear = schoolYear;
+    
+    if (sessions) {
+      if (sessions.length > 18) {
+        return res.status(400).json({ message: 'Maximum 18 sessions allowed per subject' });
+      }
+      subject.sessions = sessions;
     }
     
-    // Update subject
-    subject.sspCode = sspCode;
-    subject.name = name;
-    subject.yearLevel = yearLevel;
-    subject.sessions = processedSessions;
-    subject.semester = semester;
-    subject.hours = hours;
-    subject.schoolYear = schoolYear;
+    subject.updatedAt = Date.now();
+    await subject.save();
+    
+    // Return the updated subject
+    res.json(subject);
+  } catch (error) {
+    console.error('Update subject error:', error);
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(val => val.message);
+      return res.status(400).json({ message: messages.join(', ') });
+    }
+    
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Add session to subject
+router.post('/:id/sessions', authenticate, authorizeAdmin, async (req, res) => {
+  try {
+    const { title } = req.body;
+    
+    if (!title) {
+      return res.status(400).json({ message: 'Session title is required' });
+    }
+    
+    const subject = await Subject.findById(req.params.id);
+    
+    if (!subject) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+    
+    // Check if already at 18 sessions
+    if (subject.sessions.length >= 18) {
+      return res.status(400).json({ message: 'Maximum 18 sessions allowed per subject' });
+    }
+    
+    // Add new session
+    subject.sessions.push({ title });
     subject.updatedAt = Date.now();
     
-    // Save updated subject
-    const updatedSubject = await subject.save();
-    res.json(updatedSubject);
-  } catch (err) {
-    console.error('Error updating subject:', err);
+    await subject.save();
     
-    if (err.name === 'ValidationError') {
-      return res.status(400).json({ message: err.message });
-    }
-    
-    res.status(500).send('Server Error');
+    res.status(201).json({ message: 'Session added successfully' });
+  } catch (error) {
+    console.error('Add session error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Delete subject
-router.delete('/:id', auth.authenticate, adminAuth, async (req, res) => {
+// Update session status
+router.put('/:id/sessions/:sessionId', authenticate, authorizeAdmin, async (req, res) => {
+  try {
+    const { status, title } = req.body;
+    
+    const subject = await Subject.findById(req.params.id);
+    
+    if (!subject) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+    
+    // Find session
+    const sessionIndex = subject.sessions.findIndex(
+      session => session._id.toString() === req.params.sessionId
+    );
+    
+    if (sessionIndex === -1) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+    
+    // Update session
+    if (status) subject.sessions[sessionIndex].status = status;
+    if (title) subject.sessions[sessionIndex].title = title;
+    
+    subject.updatedAt = Date.now();
+    await subject.save();
+    
+    res.json({ message: 'Session updated successfully' });
+  } catch (error) {
+    console.error('Update session error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete session
+router.delete('/:id/sessions/:sessionId', authenticate, authorizeAdmin, async (req, res) => {
   try {
     const subject = await Subject.findById(req.params.id);
     
@@ -198,11 +203,24 @@ router.delete('/:id', auth.authenticate, adminAuth, async (req, res) => {
       return res.status(404).json({ message: 'Subject not found' });
     }
     
-    await subject.remove();
-    res.json({ message: 'Subject removed' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    // Find and remove session
+    const sessionIndex = subject.sessions.findIndex(
+      session => session._id.toString() === req.params.sessionId
+    );
+    
+    if (sessionIndex === -1) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+    
+    subject.sessions.splice(sessionIndex, 1);
+    subject.updatedAt = Date.now();
+    
+    await subject.save();
+    
+    res.json({ message: 'Session deleted successfully' });
+  } catch (error) {
+    console.error('Delete session error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

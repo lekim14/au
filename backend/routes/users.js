@@ -60,43 +60,41 @@ router.put('/profile', authenticate, async (req, res) => {
 });
 
 // Change password
-router.put('/change-password', authenticate, async (req, res) => {
+router.post('/change-password', authenticate, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     
-    // Validate input
+    // Validate inputs
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: 'Current password and new password are required' });
     }
     
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters long' });
+    }
+    
     // Find user
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Check current password
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    // Verify current password
+    const isMatch = await user.comparePassword(currentPassword);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Current password is incorrect' });
+      return res.status(401).json({ message: 'Current password is incorrect' });
     }
     
-    // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
+    // Update password
+    user.password = newPassword; // The User model will hash this
     user.updatedAt = new Date();
-    
-    // Clear the password change required flag
-    if (user.passwordChangeRequired) {
-      user.passwordChangeRequired = false;
-    }
     
     await user.save();
     
-    res.json({ message: 'Password changed successfully' });
+    res.json({ message: 'Password updated successfully' });
   } catch (error) {
-    console.error('Error changing password:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Change password error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

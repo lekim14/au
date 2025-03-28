@@ -1,9 +1,30 @@
 import api from './api';
+import { useAuthStore } from '../stores/authStore';
 
 export const advisoryClassService = {
   getAll: async () => {
-    const response = await api.get('/advisers/advisory/classes');
-    return response.data;
+    try {
+      console.log('Fetching all advisory classes');
+      
+      const authStore = useAuthStore();
+      const userId = authStore.user?.id || localStorage.getItem('userId');
+      
+      if (!userId) {
+        console.error('No user ID found. Auth state:', 
+          authStore.isAuthenticated ? 'Authenticated' : 'Not authenticated',
+          'User object:', authStore.user ? 'Present' : 'Missing');
+        
+        throw new Error('User not authenticated');
+      }
+      
+      console.log(`Authenticated as user ${userId}, fetching advisory classes`);
+      const response = await api.get('/advisers/my/classes');
+      console.log(`Retrieved ${response.data.length || 0} advisory classes`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching advisory classes:', error);
+      throw error;
+    }
   },
   getById: async (id) => {
     const response = await api.get(`/advisers/advisory/classes/${id}`);

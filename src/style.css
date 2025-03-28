@@ -1,6 +1,8 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
+:root {
   --color-background: #f8f9fa;
   --color-primary: #2196f3;
   --color-primary-light: #e3f2fd;
@@ -35,8 +37,6 @@
     @apply text-primary hover:text-primary-dark transition-colors;
   }
 }
-
-@reference "tailwindcss";
 
 @layer components {
   .btn {

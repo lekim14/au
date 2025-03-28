@@ -33,7 +33,12 @@ export const useAuthStore = defineStore('auth', {
         if (response.data && response.data.token) {
           this.token = response.data.token
           this.user = response.data.user
-          this.passwordChangeRequired = response.data.user.passwordChangeRequired || false
+          
+          // Check if user has ever changed their password (using localStorage)
+          const hasChangedPassword = localStorage.getItem('hasChangedPassword') === 'true'
+          
+          // Only set passwordChangeRequired if the user hasn't changed their password before
+          this.passwordChangeRequired = !hasChangedPassword && response.data.user.passwordChangeRequired === true
           
           // Save to localStorage
           localStorage.setItem('token', this.token)
@@ -70,7 +75,13 @@ export const useAuthStore = defineStore('auth', {
         const response = await api.get('/auth/me')
         if (response.data) {
           this.user = response.data
-          this.passwordChangeRequired = response.data.passwordChangeRequired || false
+          
+          // Check if user has ever changed their password (using localStorage)
+          const hasChangedPassword = localStorage.getItem('hasChangedPassword') === 'true'
+          
+          // Only set passwordChangeRequired if the user hasn't changed their password before
+          this.passwordChangeRequired = !hasChangedPassword && response.data.passwordChangeRequired === true
+          
           return true
         }
         return false
@@ -100,12 +111,16 @@ export const useAuthStore = defineStore('auth', {
     
     clearPasswordChangeRequired() {
       this.passwordChangeRequired = false
+      // Set a flag that the user has changed their password
+      localStorage.setItem('hasChangedPassword', 'true')
+      // Also clear the stored flag for safety
+      localStorage.removeItem('passwordChangeRequired')
     }
   },
   
   persist: {
     key: 'ssp-auth',
     storage: localStorage,
-    paths: ['token', 'hasShownWelcomeMessage', 'passwordChangeRequired']
+    paths: ['token', 'hasShownWelcomeMessage']
   }
 }) 

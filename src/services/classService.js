@@ -59,12 +59,20 @@ export const classService = {
       console.log('Fetching advisory classes for adviser');
       
       const authStore = useAuthStore();
-      if (!authStore.userId) {
+      const userId = authStore.user?.id || localStorage.getItem('userId');
+      
+      if (!userId) {
+        console.error('No user ID found. Auth state:', 
+          authStore.isAuthenticated ? 'Authenticated' : 'Not authenticated',
+          'User object:', authStore.user ? 'Present' : 'Missing');
+        
         throw new Error('User not authenticated');
       }
       
+      console.log(`Authenticated as user ${userId}, fetching advisory classes`);
+      
       // Fetch advisory classes using the authenticated user's info
-      const response = await api.get('/classes/advisory');
+      const response = await api.get(`/advisers/my/classes`);
       
       // Log detailed info about classes received
       if (response.data && Array.isArray(response.data)) {

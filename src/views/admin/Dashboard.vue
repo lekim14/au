@@ -47,7 +47,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path d="M12 14l9-5-9-5-9 5 9 5z" />
             <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998a12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
           </svg>
         </div>
         <div>
@@ -146,84 +146,83 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
-import { useRouter } from 'vue-router'
-import CompletionChart from '../../components/ui/CompletionChart.vue'
-import ConsultationChart from '../../components/ui/ConsultationChart.vue'
-import api from '../../services/api'
-import { studentService } from '../../services/studentService'
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
+import CompletionChart from '../../components/ui/CompletionChart.vue';
+import ConsultationChart from '../../components/ui/ConsultationChart.vue';
+import api from '../../services/api';
+import { studentService } from '../../services/studentService';
 
-const router = useRouter()
-const API_URL = 'http://localhost:5000/api'
-const loading = ref(true)
-const stats = ref({})
-const announcements = ref([])
+const router = useRouter();
+const API_URL = 'http://localhost:5000/api';
+const loading = ref(true);
+const stats = ref({});
+const announcements = ref([]);
 
 onMounted(async () => {
   try {
-    await fetchStats()
-    await fetchAnnouncements()
+    await fetchStats();
+    await fetchAnnouncements();
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-})
+});
 
 async function fetchStats() {
   try {
     // Get all data with error handling for each request
     try {
-      const adviserResponse = await api.get('/advisers')
-      stats.value.advisers = adviserResponse.data.length
-      console.log('Adviser count:', stats.value.advisers)
+      const adviserResponse = await api.get('/advisers');
+      stats.value.advisers = adviserResponse.data.length;
+      console.log('Adviser count:', stats.value.advisers);
     } catch (error) {
-      console.error('Error fetching advisers:', error)
-      stats.value.advisers = 0
+      console.error('Error fetching advisers:', error);
+      stats.value.advisers = 0;
     }
     
     try {
-      const classResponse = await api.get('/classes')
-      stats.value.classes = classResponse.data.length
-      console.log('Class count:', stats.value.classes)
+      const classResponse = await api.get('/classes');
+      stats.value.classes = classResponse.data.length;
+      console.log('Class count:', stats.value.classes);
     } catch (error) {
-      console.error('Error fetching classes:', error)
-      stats.value.classes = 0
+      console.error('Error fetching classes:', error);
+      stats.value.classes = 0;
     }
     
     try {
-      const subjectResponse = await api.get('/subjects')
-      stats.value.subjects = subjectResponse.data.length
-      console.log('Subject count:', stats.value.subjects)
+      const subjectResponse = await api.get('/subjects');
+      stats.value.subjects = subjectResponse.data.length;
+      console.log('Subject count:', stats.value.subjects);
     } catch (error) {
-      console.error('Error fetching subjects:', error)
-      stats.value.subjects = 0
+      console.error('Error fetching subjects:', error);
+      stats.value.subjects = 0;
     }
     
     try {
-      const studentResponse = await api.get('/students')
-      stats.value.students = studentResponse.data.length
-      console.log('Student count:', stats.value.students)
+      const studentResponse = await api.get('/students');
+      stats.value.students = studentResponse.data.length;
+      console.log('Student count:', stats.value.students);
     } catch (error) {
-      console.error('Error fetching students:', error)
-      stats.value.students = 0
+      console.error('Error fetching students:', error);
+      stats.value.students = 0;
     }
     
     try {
-      const pendingResponse = await studentService.getPendingRegistrations()
-      stats.value.pendingRegistrations = pendingResponse.length
-      console.log('Pending registrations:', stats.value.pendingRegistrations)
+      const pendingResponse = await studentService.getPendingRegistrations();
+      stats.value.pendingRegistrations = pendingResponse.length;
+      console.log('Pending registrations:', stats.value.pendingRegistrations);
     } catch (error) {
-      console.error('Error fetching pending registrations:', error)
-      stats.value.pendingRegistrations = 0
+      console.error('Error fetching pending registrations:', error);
+      stats.value.pendingRegistrations = 0;
     }
     
     // Set chart data to 0 - remove mock data
-    stats.value.odysseyCompletionRate = 0
-    stats.value.srmCompletionRate = 0
-    stats.value.consultations = 0
-
+    stats.value.odysseyCompletionRate = 0;
+    stats.value.srmCompletionRate = 0;
+    stats.value.consultations = 0;
   } catch (error) {
-    console.error('Error fetching stats:', error)
+    console.error('Error fetching stats:', error);
     // Initialize stats with zeros if there's an error
     stats.value = {
       advisers: 0,
@@ -234,17 +233,17 @@ async function fetchStats() {
       odysseyCompletionRate: 0,
       srmCompletionRate: 0,
       consultations: 0
-    }
+    };
   }
 }
 
 async function fetchAnnouncements() {
   try {
-    const response = await api.get('/announcements?limit=5')
-    announcements.value = response.data
+    const response = await api.get('/announcements?limit=5');
+    announcements.value = response.data;
   } catch (error) {
-    console.error('Failed to fetch announcements:', error)
-    announcements.value = []
+    console.error('Failed to fetch announcements:', error);
+    announcements.value = [];
   }
 }
 
@@ -253,29 +252,29 @@ function formatDate(dateString) {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
-  })
+  });
 }
 
 function truncateText(text, maxLength) {
-  if (!text) return ''
-  if (text.length <= maxLength) return text
-  return text.substring(0, maxLength) + '...'
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
 }
 
 function getBadgeClass(targetAudience) {
   switch (targetAudience) {
     case 'all':
-      return 'badge-info'
+      return 'badge-info';
     case 'advisers':
-      return 'badge-success'
+      return 'badge-success';
     case 'students':
-      return 'badge-warning'
+      return 'badge-warning';
     default:
-      return 'badge-info'
+      return 'badge-info';
   }
 }
 
 function goToPendingRegistrations() {
-  router.push('/admin/pending-registrations')
+  router.push('/admin/pending-registrations');
 }
-</script> 
+</script>

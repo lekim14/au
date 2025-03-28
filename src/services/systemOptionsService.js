@@ -1,6 +1,6 @@
 import api from './api'
 
-// Default options for UI display while loading
+// Default options
 const defaultOptions = {
   class: {
     yearLevels: ['2nd', '3rd', '4th'],
@@ -8,12 +8,7 @@ const defaultOptions = {
     defaultSessions: [
       { title: 'INTRODUCTION', count: 0 },
       { title: 'ORIENTATION', count: 0 }
-    ],
-    sections: {
-      '2nd': ['South-1', 'South-2', 'South-3', 'South-4', 'South-5'],
-      '3rd': ['South-1', 'South-2', 'South-3'],
-      '4th': ['South-1', 'South-2']
-    }
+    ]
   },
   subject: {
     schoolYear: '2025 - 2026',
@@ -32,7 +27,7 @@ export const systemOptionsService = {
    */
   async getAll() {
     try {
-      const response = await api.get('/api/system-options')
+      const response = await api.get('/system-options')
       return response.data
     } catch (error) {
       console.error('Error fetching system options:', error)
@@ -47,7 +42,7 @@ export const systemOptionsService = {
    */
   async update(options) {
     try {
-      const response = await api.post('/api/system-options', options)
+      const response = await api.post('/system-options', options)
       return response.data
     } catch (error) {
       console.error('Error updating system options:', error)
@@ -61,19 +56,11 @@ export const systemOptionsService = {
    */
   async resetToDefaults() {
     try {
-      const response = await api.post('/api/system-options/reset')
+      const response = await api.post('/system-options/reset')
       return response.data
     } catch (error) {
       console.error('Error resetting system options:', error)
       throw error
     }
-  },
-  
-  /**
-   * Get default options (used only for UI display while loading)
-   * @returns {Object} Default options
-   */
-  getDefaults() {
-    return { ...defaultOptions }
   }
 } 

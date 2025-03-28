@@ -39,6 +39,13 @@ const UserSchema = new mongoose.Schema({
     },
     trim: true
   },
+  contactNumber: {
+    type: String,
+    required: function() {
+      return this.role === 'adviser';
+    },
+    trim: true
+  },
   email: {
     type: String,
     required: true,

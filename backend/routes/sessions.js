@@ -211,10 +211,12 @@ router.get('/matrix/:classId', authenticate, authorizeAdviser, async (req, res) 
 });
 
 // Update session completion status
-router.put('/:sessionId', authenticate, authorizeAdviser, async (req, res) => {
+router.put('/:sessionId', authenticate, async (req, res) => {
   try {
     const { sessionId } = req.params;
     const { completed } = req.body;
+    
+    console.log(`Session update request for ${sessionId}: completed=${completed}, user=${req.user.id}`);
     
     if (typeof completed !== 'boolean') {
       return res.status(400).json({ message: 'Completed status must be a boolean' });
@@ -224,22 +226,30 @@ router.put('/:sessionId', authenticate, authorizeAdviser, async (req, res) => {
     const session = await SessionCompletion.findById(sessionId);
     
     if (!session) {
+      console.error(`Session ${sessionId} not found`);
       return res.status(404).json({ message: 'Session not found' });
     }
     
+    console.log(`Found session: Student=${session.student}, Class=${session.class}, Day=${session.sessionDay}, Title=${session.sessionTitle}`);
+    
+    // Set the completion status
     session.completed = completed;
     
     // If marked as completed, set completion date and marker
     if (completed) {
       session.completionDate = new Date();
       session.markedBy = req.user.id;
+      console.log(`Session marked as completed by ${req.user.id} at ${session.completionDate}`);
     } else {
       session.completionDate = null;
       session.markedBy = null;
+      console.log(`Session marked as incomplete by ${req.user.id}`);
     }
     
     session.updatedAt = new Date();
     await session.save();
+    
+    console.log(`Session ${sessionId} updated successfully`);
     
     res.json({ 
       message: `Session marked as ${completed ? 'completed' : 'incomplete'}`,
@@ -408,6 +418,129 @@ router.post('/validate/:classId', authenticate, authorizeAdviser, async (req, re
   } catch (error) {
     console.error('Session validation error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update session status
+router.post('/update-status', authenticate, authorizeAdviser, async (req, res) => {
+  try {
+    const { classId, studentId, sessionId, completed } = req.body;
+    
+    if (!classId || !studentId || !sessionId) {
+      return res.status(400).json({ message: 'Missing required parameters' });
+    }
+    
+    // Find the session completion record
+    const sessionCompletion = await SessionCompletion.findOne({
+      student: studentId,
+      session: sessionId,
+      class: classId
+    });
+    
+    if (!sessionCompletion) {
+      return res.status(404).json({ message: 'Session completion record not found' });
+    }
+    
+    // Update the completion status
+    sessionCompletion.completed = completed;
+    sessionCompletion.completionDate = completed ? new Date() : null;
+    
+    await sessionCompletion.save();
+    
+    res.json({ 
+      message: `Session marked as ${completed ? 'completed' : 'pending'}`,
+      session: sessionCompletion
+    });
+  } catch (error) {
+    console.error('Update session status error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// NEW ENDPOINT: Ensure all days exist for a class
+router.post('/class/:classId/ensure-all-days', authenticate, async (req, res) => {
+  try {
+    const { classId } = req.params;
+    
+    // Find the class
+    const classItem = await Class.findById(classId).populate('sspSubject');
+    if (!classItem) {
+      return res.status(404).json({ message: 'Class not found' });
+    }
+    
+    // Get all students in this class
+    const students = await Student.find({
+      class: classId,
+      status: 'active'
+    });
+    
+    if (!students || students.length === 0) {
+      return res.status(404).json({ message: 'No students found in this class' });
+    }
+    
+    console.log(`Ensuring all days exist for ${students.length} students in class ${classId}`);
+    
+    // Get all expected session days (0-17)
+    const expectedDays = Array.from({ length: 18 }, (_, i) => i); // 0 to 17
+    
+    let sessionsCreated = 0;
+    let studentsProcessed = 0;
+    
+    // Process each student
+    for (const student of students) {
+      // Get existing sessions for this student
+      const existingSessions = await SessionCompletion.find({
+        student: student._id,
+        class: classId
+      });
+      
+      // Get days that already have sessions
+      const existingDays = existingSessions.map(session => session.day);
+      
+      // Find missing days
+      const missingDays = expectedDays.filter(day => !existingDays.includes(day));
+      
+      if (missingDays.length > 0) {
+        console.log(`Creating ${missingDays.length} missing day sessions for student ${student._id}`);
+        
+        // Create sessions for missing days
+        for (const day of missingDays) {
+          // Create session title based on day
+          let title = `Day ${day}`;
+          if (day === 0) {
+            title = 'INTRODUCTION';
+          } else if (day === 1) {
+            title = 'ORIENTATION';
+          }
+          
+          // Create new session
+          const newSession = new SessionCompletion({
+            student: student._id,
+            class: classId,
+            day: day,
+            title: title,
+            completed: false,
+            sspSubject: classItem.sspSubject._id
+          });
+          
+          await newSession.save();
+          sessionsCreated++;
+        }
+      }
+      
+      studentsProcessed++;
+    }
+    
+    return res.json({
+      message: `Session days validated for all students`,
+      details: {
+        studentsProcessed,
+        sessionsCreated
+      }
+    });
+  } catch (error) {
+    console.error('Error ensuring all days exist:', error);
+    return res.status(500).json({ message: 'Server error' });
   }
 });
 

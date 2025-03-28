@@ -483,7 +483,7 @@ const editSessionTitles = ref(Array(18).fill(''))
 const showEditModal = ref(false)
 
 // Dynamic options
-const yearLevelOptions = ref(['2nd', '3rd', '4th'])
+const yearLevelOptions = ref(['1st', '2nd', '3rd', '4th'])
 const hoursOptions = ref([1, 2, 3])
 const defaultZeroDayTitle = ref('INTRODUCTION')
 
@@ -533,10 +533,10 @@ onMounted(async () => {
       console.log('Setting default zero day title from system config:', defaultZeroDayTitle.value)
     }
     
-    // Update year level options
-    if (systemOptions?.class?.yearLevels && systemOptions.class.yearLevels.length > 0) {
-      yearLevelOptions.value = systemOptions.class.yearLevels
-      console.log('Setting year level options from system config:', yearLevelOptions.value)
+    // Update year level options - now use subject-specific year levels
+    if (systemOptions?.subject?.yearLevels && systemOptions.subject.yearLevels.length > 0) {
+      yearLevelOptions.value = systemOptions.subject.yearLevels
+      console.log('Setting year level options from subject config:', yearLevelOptions.value)
     }
     
     // Update hours options
@@ -545,7 +545,7 @@ onMounted(async () => {
       console.log('Setting hours options from system config:', hoursOptions.value)
     }
     
-    console.log('System options loaded successfully (using localStorage fallback if API not available)')
+    console.log('System options loaded successfully')
   } catch (error) {
     console.error('Error loading system options:', error)
     // Continue with defaults
@@ -615,10 +615,11 @@ function openAddModal() {
   newSubject.semester = ''
   newSubject.hours = ''
   
-  // Reset session titles
-  sessionTitles.value = Array(18).fill('').map((_, i) => 
-    i === 0 ? defaultZeroDayTitle.value : ''
-  )
+  // Reset session titles to empty array first
+  sessionTitles.value = Array(18).fill('')
+  
+  // Set default title for day 0
+  sessionTitles.value[0] = defaultZeroDayTitle.value
   
   // Reset errors
   Object.keys(errors).forEach(key => {
@@ -690,31 +691,46 @@ async function addSubject() {
     // Create sessions array from the titles that have been entered
     const sessions = []
     
+    // Add non-empty sessions, but limit to total of 18 (including day 0)
+    let sessionCount = 0;
+    
     // Always add day zero with title from system options
-    sessions.push({
-      day: 0,
-      title: defaultZeroDayTitle.value
-    })
+    if (sessionTitles.value[0] && sessionTitles.value[0].trim()) {
+      sessions.push({
+        day: 0,
+        title: sessionTitles.value[0].trim()
+      })
+      sessionCount++;
+    }
     
-    sessionTitles.value.forEach((title, index) => {
-      if (title.trim()) {
+    // Add remaining sessions up to the maximum of 18 total
+    for (let index = 1; index < sessionTitles.value.length && sessionCount < 18; index++) {
+      const title = sessionTitles.value[index];
+      if (title && title.trim()) {
         sessions.push({
-          day: index + 1,  // Day is 1-indexed
+          day: index,  // Day is 1-indexed
           title: title.trim()
-        })
+        });
+        sessionCount++;
       }
-    })
+    }
     
-    // Set the sessions in the subject object
-    newSubject.sessions = sessions
-    
-    // Always set the name field using the SSP code
-    newSubject.name = newSubject.sspCode
+    // Create a copy of the subject with properly typed values
+    const subjectToCreate = {
+      sspCode: newSubject.sspCode,
+      name: newSubject.sspCode, // Always set name to match SSP code
+      yearLevel: newSubject.yearLevel,
+      semester: newSubject.semester,
+      // Convert hours from string to number
+      hours: parseInt(newSubject.hours, 10),
+      schoolYear: newSubject.schoolYear,
+      sessions: sessions
+    }
     
     // Log the data we're sending
-    console.log('Sending subject data:', JSON.stringify(newSubject))
+    console.log('Sending subject data:', JSON.stringify(subjectToCreate))
     
-    const response = await subjectService.create(newSubject)
+    const response = await subjectService.create(subjectToCreate)
     console.log('New subject created:', response)
     
     // Refresh the subject list to show the new entry
@@ -749,7 +765,7 @@ function viewSessions(subject) {
 function editSubject(subject) {
   setupEditForm(subject)
   
-  // Reset session titles array to proper length
+  // Reset session titles array to empty first
   editSessionTitles.value = Array(18).fill('')
   
   // Fill in existing session titles
@@ -760,12 +776,31 @@ function editSubject(subject) {
         editSessionTitles.value[session.day] = session.title || ''
       }
     })
-  } else {
-    // If no sessions exist yet, set default for day 0
+  } 
+  
+  // If day 0 is not set, use the default
+  if (!editSessionTitles.value[0]) {
     editSessionTitles.value[0] = defaultZeroDayTitle.value
   }
   
   showEditModal.value = true
+}
+
+function setupEditForm(subject) {
+  // Clone the subject to avoid directly modifying the original
+  editedSubject.value = {
+    _id: subject._id,
+    sspCode: subject.sspCode || '',
+    yearLevel: subject.yearLevel || '',
+    semester: subject.semester || '',
+    hours: subject.hours ? subject.hours.toString() : '1',
+    schoolYear: subject.schoolYear || newSubject.schoolYear
+  }
+  
+  // Reset errors
+  Object.keys(errors).forEach(key => {
+    errors[key] = ''
+  })
 }
 
 function closeEditModal() {
@@ -833,28 +868,38 @@ async function updateSubject() {
     // Update sessions array with the edited titles
     const updatedSessions = []
     
-    // Always include the day zero session with title from system options
-    updatedSessions.push({
-      day: 0,
-      title: defaultZeroDayTitle.value
-    })
+    // Add non-empty sessions, but limit to total of 18 (including day 0)
+    let sessionCount = 0;
     
-    editSessionTitles.value.forEach((title, index) => {
-      if (title.trim()) {
+    // Always include the day zero session with title from system options if it exists
+    if (editSessionTitles.value[0] && editSessionTitles.value[0].trim()) {
+      updatedSessions.push({
+        day: 0,
+        title: editSessionTitles.value[0].trim()
+      })
+      sessionCount++;
+    }
+    
+    // Add remaining sessions up to the maximum of 18 total
+    for (let index = 1; index < editSessionTitles.value.length && sessionCount < 18; index++) {
+      const title = editSessionTitles.value[index];
+      if (title && title.trim()) {
         updatedSessions.push({
-          day: index + 1,  // Day is 1-indexed
+          day: index,  // Day is 1-indexed
           title: title.trim()
-        })
+        });
+        sessionCount++;
       }
-    })
+    }
     
-    // Create the updated subject object
+    // Create the updated subject object with proper type conversion
     const subjectToUpdate = {
       _id: editedSubject.value._id,
       sspCode: editedSubject.value.sspCode,
       yearLevel: editedSubject.value.yearLevel,
       semester: editedSubject.value.semester,
-      hours: editedSubject.value.hours,
+      // Convert hours from string to number
+      hours: parseInt(editedSubject.value.hours, 10),
       schoolYear: editedSubject.value.schoolYear,
       sessions: updatedSessions,
       name: editedSubject.value.sspCode // Update name to match sspCode

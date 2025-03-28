@@ -195,6 +195,10 @@
               <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">Adviser</td>
               <td class="px-4 py-2">{{ getAdviserName(selectedAdvisoryClass?.adviser) }}</td>
             </tr>
+            <tr v-if="selectedAdvisoryClass?.adviser">
+              <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">Contact Number</td>
+              <td class="px-4 py-2">{{ selectedAdvisoryClass?.adviser?.contactNumber || 'Not provided' }}</td>
+            </tr>
           </table>
         </div>
         
@@ -431,9 +435,28 @@ onMounted(async () => {
 async function fetchAdvisoryClasses() {
   try {
     loading.value = true;
+    
+    // Get all advisory classes
     const response = await api.get('/advisers/advisory/classes');
-    advisoryClasses.value = response.data;
-    filteredClasses.value = response.data;
+    
+    // Get any additional classes from available classes endpoint (classes without advisers yet)
+    const availableResponse = await api.get('/advisers/advisory/available-classes');
+    
+    // Create temporary advisory class entries for any classes that aren't in an advisory class yet
+    const tempAdvisoryClasses = availableResponse.data.map(classItem => ({
+      _id: 'temp_' + classItem._id, // Temporary ID
+      class: classItem,
+      adviser: null,
+      status: 'active',
+      needsAdviser: true // Custom flag to indicate this needs an adviser
+    }));
+    
+    // Combine both sets
+    const allClasses = [...response.data, ...tempAdvisoryClasses];
+    
+    advisoryClasses.value = allClasses;
+    filterAdvisoryClasses(); // Apply current filters
+    console.log(`Loaded ${response.data.length} advisory classes and ${tempAdvisoryClasses.length} unassigned classes`);
   } catch (error) {
     console.error('Error fetching advisory classes:', error);
     notificationService.showError('Failed to load advisory classes. Please try again.');
@@ -461,12 +484,14 @@ async function fetchAdvisers() {
 }
 
 async function fetchClasses() {
-  if (classes.value.length > 0) return;
-  
   try {
     loadingClasses.value = true;
-    const response = await classService.getAll();
-    classes.value = response;
+    
+    // Get all classes directly using the available classes endpoint
+    const response = await api.get('/advisers/advisory/available-classes');
+    classes.value = response.data;
+    
+    console.log(`Loaded ${classes.value.length} available classes`);
   } catch (error) {
     console.error('Error fetching classes:', error);
     notificationService.showError('Failed to load classes. Please try again.');
@@ -498,12 +523,24 @@ function filterAdvisoryClasses() {
 }
 
 function getClassName(advisoryClass) {
-  const cls = advisoryClass.class || {};
-  return `${cls.yearLevel || ''} Year - ${cls.section || ''} (${cls.major || ''})`;
+  if (!advisoryClass || !advisoryClass.class) return 'Unknown Class';
+  
+  const classDetails = advisoryClass.class;
+  const yearLevel = classDetails.yearLevel || 'Unknown';
+  const section = classDetails.section || 'Unknown';
+  const major = classDetails.major || 'Unknown';
+  
+  return `${yearLevel} Year - ${section} (${major})`;
 }
 
 function getAdviserName(adviser = {}) {
-  return `${adviser.salutation || ''} ${adviser.firstName || ''} ${adviser.lastName || ''}`;
+  if (!adviser) return 'No Adviser Assigned';
+  
+  // Format the name with middle name and name extension
+  const middleInitial = adviser.middleName ? ` ${adviser.middleName.charAt(0)}.` : '';
+  const nameExt = adviser.nameExtension && adviser.nameExtension !== 'N/A' ? ` ${adviser.nameExtension}` : '';
+  
+  return `${adviser.salutation || ''} ${adviser.firstName || ''}${middleInitial} ${adviser.lastName || ''}${nameExt}`.trim() || 'No Adviser Assigned';
 }
 
 function getSubjectName(advisoryClass) {
@@ -568,10 +605,26 @@ async function addAdvisoryClass() {
   }
   
   try {
-    await api.post('/advisers/advisory/classes', {
-      adviser: newAdvisoryClass.adviserId,
-      class: newAdvisoryClass.classId
-    });
+    // Check if the selected class already exists in the advisory classes table
+    const classId = newAdvisoryClass.classId;
+    const existingEntry = advisoryClasses.value.find(
+      ac => ac.class?._id === classId && !ac._id.startsWith('temp_')
+    );
+    
+    if (existingEntry) {
+      // If it exists, update it with the adviser
+      await api.put(`/advisers/advisory/classes/${existingEntry._id}`, {
+        adviser: newAdvisoryClass.adviserId,
+        class: classId,
+        status: 'active'
+      });
+    } else {
+      // Otherwise create a new entry
+      await api.post('/advisers/advisory/classes', {
+        adviser: newAdvisoryClass.adviserId,
+        class: classId
+      });
+    }
     
     await fetchAdvisoryClasses();
     notificationService.showSuccess('Advisory class added successfully');
@@ -685,20 +738,28 @@ function editAdvisoryClass(advisoryClass) {
   errors.classId = '';
   errors.status = '';
   
-  // Fetch advisers and classes if not already loaded
+  // Set current advisory class data
+  selectedAdvisoryClass.value = { ...advisoryClass };
+  
+  // Check if this is a temporary unassigned class entry
+  const isTemp = advisoryClass._id && advisoryClass._id.startsWith('temp_');
+  
+  // Set edited advisory class fields
+  editedAdvisoryClass._id = isTemp ? '' : (advisoryClass._id || '');
+  editedAdvisoryClass.adviserId = advisoryClass.adviser?._id || '';
+  editedAdvisoryClass.classId = isTemp ? 
+    advisoryClass.class?._id : 
+    advisoryClass.class?._id || '';
+  editedAdvisoryClass.status = advisoryClass.status || 'active';
+  
+  console.log('Populated edit form with:', editedAdvisoryClass);
+  
+  // Clear classes array to force a reload
+  classes.value = [];
+  
+  // Fetch advisers and classes
   Promise.all([fetchAdvisers(), fetchClasses()]).then(() => {
-    // Set current advisory class data
-    selectedAdvisoryClass.value = { ...advisoryClass };
-    
-    // Set edited advisory class fields
-    editedAdvisoryClass._id = advisoryClass._id || '';
-    editedAdvisoryClass.adviserId = advisoryClass.adviser?._id || '';
-    editedAdvisoryClass.classId = advisoryClass.class?._id || '';
-    editedAdvisoryClass.status = advisoryClass.status || 'active';
-    
-    console.log('Populated edit form with:', editedAdvisoryClass);
-    
-    // Show the edit modal
+    // Open the modal after data is loaded
     showEditModal.value = true;
   }).catch(error => {
     console.error('Error preparing edit modal:', error);
@@ -742,11 +803,22 @@ async function updateAdvisoryClass() {
   }
   
   try {
-    await api.put(`/advisers/advisory/classes/${editedAdvisoryClass._id}`, {
-      adviser: editedAdvisoryClass.adviserId,
-      class: editedAdvisoryClass.classId,
-      status: editedAdvisoryClass.status
-    });
+    // Check if this is a new assignment (no ID means it was a temp record)
+    if (!editedAdvisoryClass._id) {
+      // Create a new advisory class record
+      await api.post('/advisers/advisory/classes', {
+        adviser: editedAdvisoryClass.adviserId,
+        class: editedAdvisoryClass.classId,
+        status: editedAdvisoryClass.status
+      });
+    } else {
+      // Update existing record
+      await api.put(`/advisers/advisory/classes/${editedAdvisoryClass._id}`, {
+        adviser: editedAdvisoryClass.adviserId,
+        class: editedAdvisoryClass.classId,
+        status: editedAdvisoryClass.status
+      });
+    }
     
     await fetchAdvisoryClasses();
     notificationService.showSuccess('Advisory class updated successfully');

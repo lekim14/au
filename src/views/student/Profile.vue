@@ -51,7 +51,7 @@
             </button>
           </div>
           
-          <form @submit.prevent="updatePassword" v-if="editMode.password" class="space-y-4">
+          <form @submit.prevent="changePassword" v-if="editMode.password" class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
               <input 
@@ -255,6 +255,60 @@
           </div>
         </div>
         
+        <!-- Class and SSP Information -->
+        <div class="bg-white rounded-lg shadow p-6 mt-6">
+          <h3 class="font-medium text-lg mb-4">Class & SSP Information</h3>
+          
+          <div v-if="student && student.class">
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h4 class="font-medium text-gray-800 mb-2">Class Details</h4>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <div class="text-sm text-gray-600">Year Level & Section:</div>
+                  <div class="font-medium">{{ student.class.yearLevel }} Year - {{ student.class.section }}</div>
+                </div>
+                <div>
+                  <div class="text-sm text-gray-600">Major:</div>
+                  <div class="font-medium">{{ student.class.major }}</div>
+                </div>
+                <div>
+                  <div class="text-sm text-gray-600">Schedule:</div>
+                  <div class="font-medium">{{ student.class.daySchedule }} / {{ student.class.timeSchedule }}</div>
+                </div>
+                <div>
+                  <div class="text-sm text-gray-600">Room:</div>
+                  <div class="font-medium">{{ student.class.room || 'Not assigned' }}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4">
+              <h4 class="font-medium text-gray-800 mb-2">SSP Subject</h4>
+              <div v-if="student.class.sspSubject">
+                <div class="mb-2">
+                  <div class="text-sm text-gray-600">Subject Code:</div>
+                  <div class="font-medium">{{ student.class.sspSubject.sspCode }}</div>
+                </div>
+                <div>
+                  <div class="text-sm text-gray-600">Subject Name:</div>
+                  <div class="font-medium">{{ student.class.sspSubject.name }}</div>
+                </div>
+                <div class="mt-2">
+                  <router-link to="/student/ssp" class="text-primary text-sm hover:underline">
+                    View SSP Sessions
+                  </router-link>
+                </div>
+              </div>
+              <div v-else class="text-sm text-gray-500">
+                No SSP subject assigned for your class
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-center py-4 text-gray-500">
+            Class information not available
+          </div>
+        </div>
+        
         <!-- SSP Progress -->
         <div class="bg-white rounded-lg shadow p-6">
           <h3 class="font-medium text-lg mb-4">SSP Progress</h3>
@@ -320,11 +374,13 @@
 import { ref, reactive, onMounted, computed } from 'vue';
 import { useAuthStore } from '../../stores/authStore';
 import { notificationService } from '../../services/notificationService';
+import { studentService } from '../../services/studentService';
 
 // State
 const loading = ref(true);
 const isUpdating = ref(false);
 const studentData = ref({});
+const student = ref(null);
 const authStore = useAuthStore();
 
 // Edit mode state
@@ -360,111 +416,191 @@ const userInitials = computed(() => {
 onMounted(async () => {
   try {
     loading.value = true;
-    // Simulate API call - replace with actual API call
     
-    // For demo purposes, set mock data
-    const data = {
-      firstName: authStore.user?.firstName || 'Student',
-      lastName: authStore.user?.lastName || 'User',
-      email: authStore.user?.email || 'student@example.com',
-      phoneNumber: '(123) 456-7890',
-      studentId: 'S12345678',
-      createdAt: new Date('2023-08-15'),
-      program: 'Bachelor of Science in Information Technology',
-      yearLevel: '3rd Year',
-      section: 'IT-3A',
-      major: 'System Development',
-      academicStatus: 'Good Standing',
-      adviser: 'Dr. Sarah Johnson',
-      odysseyPlanStatus: 'In Progress',
-      srmSurveyStatus: 'Completed'
+    // Fetch student data from API
+    const response = await studentService.getStudentDetails();
+    if (!response || !response.data) {
+      throw new Error('Failed to load student data');
+    }
+    
+    // Store the complete student object
+    student.value = response.data;
+    
+    // Set up studentData with data from user and class collections
+    studentData.value = {
+      firstName: student.value.user?.firstName || '',
+      lastName: student.value.user?.lastName || '',
+      email: student.value.user?.email || '',
+      phoneNumber: student.value.contactNumber || '',
+      studentId: student.value.user?.idNumber || '',
+      createdAt: new Date(student.value.createdAt || Date.now()),
+      program: 'Bachelor of Science in Information Technology', // This would need to come from program data
+      yearLevel: student.value.class?.yearLevel || student.value.classDetails?.yearLevel || '',
+      section: student.value.class?.section || student.value.classDetails?.section || '',
+      major: student.value.major || student.value.class?.major || '',
+      academicStatus: 'Good Standing', // This would need to come from academic data
+      adviser: 'Not assigned', // This would need to come from adviser assignment
+      odysseyPlanStatus: student.value.odysseyPlanCompleted ? 'Completed' : 'Not Started',
+      srmSurveyStatus: student.value.srmSurveyCompleted ? 'Completed' : 'Not Started'
     };
     
-    studentData.value = data;
-    
     // Initialize form with student data
-    form.firstName = data.firstName;
-    form.lastName = data.lastName;
-    form.email = data.email;
-    form.phoneNumber = data.phoneNumber;
+    form.firstName = studentData.value.firstName;
+    form.lastName = studentData.value.lastName;
+    form.email = studentData.value.email;
+    form.phoneNumber = studentData.value.phoneNumber;
   } catch (error) {
     console.error('Error loading student data:', error);
-    notificationService.showError('Failed to load profile data');
+    notificationService.showError('Failed to load profile data: ' + (error.message || 'Unknown error'));
+    
+    // Clear and initialize empty data instead of using mock data
+    studentData.value = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phoneNumber: '',
+      studentId: '',
+      createdAt: new Date(),
+      program: '',
+      yearLevel: '',
+      section: '',
+      major: '',
+      academicStatus: '',
+      adviser: '',
+      odysseyPlanStatus: 'Not Started',
+      srmSurveyStatus: 'Not Started'
+    };
+    
+    // Reset form fields
+    form.firstName = '';
+    form.lastName = '';
+    form.email = '';
+    form.phoneNumber = '';
   } finally {
     loading.value = false;
   }
 });
 
 // Update personal information
-async function updatePersonalInfo() {
+const updatePersonalInfo = async () => {
   try {
     isUpdating.value = true;
     
-    // Validate form (add validation logic if needed)
+    // Validate form inputs
+    if (!form.firstName || !form.lastName || !form.email) {
+      notificationService.showError('First name, last name, and email are required');
+      return;
+    }
+
+    // Prepare the profile data
+    const profileData = {
+      firstName: form.firstName,
+      lastName: form.lastName,
+      email: form.email,
+      contactNumber: form.phoneNumber
+    };
+
+    // Call the update profile API
+    const response = await studentService.updateStudentProfile(profileData);
     
-    // Simulate API call - replace with actual API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Update local state with form data
-    studentData.value.firstName = form.firstName;
-    studentData.value.lastName = form.lastName;
-    studentData.value.email = form.email;
-    studentData.value.phoneNumber = form.phoneNumber;
-    
-    // Exit edit mode
-    editMode.personal = false;
-    
-    notificationService.showSuccess('Personal information updated successfully');
+    if (response && response.data) {
+      // Update the local state with the new data
+      studentData.value.firstName = form.firstName;
+      studentData.value.lastName = form.lastName;
+      studentData.value.email = form.email;
+      studentData.value.phoneNumber = form.phoneNumber;
+      
+      // Update auth store if it exists
+      if (authStore.user) {
+        authStore.user.firstName = form.firstName;
+        authStore.user.lastName = form.lastName;
+        authStore.user.email = form.email;
+      }
+      
+      notificationService.showSuccess('Personal information updated successfully');
+      editMode.personal = false;
+    }
   } catch (error) {
-    console.error('Error updating personal information:', error);
-    notificationService.showError('Failed to update personal information');
+    console.error('Error updating personal info:', error);
+    notificationService.showError('Failed to update profile: ' + (error.message || 'Unknown error'));
   } finally {
     isUpdating.value = false;
   }
-}
+};
 
 // Update password
-async function updatePassword() {
+const changePassword = async () => {
   try {
     isUpdating.value = true;
     
     // Validate password form
+    if (!passwordForm.currentPassword) {
+      notificationService.showError('Current password is required');
+      return;
+    }
+    
+    if (!passwordForm.newPassword) {
+      notificationService.showError('New password is required');
+      return;
+    }
+    
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       notificationService.showError('New passwords do not match');
       return;
     }
     
-    // Simulate API call - replace with actual API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (passwordForm.newPassword.length < 6) {
+      notificationService.showError('New password must be at least 6 characters long');
+      return;
+    }
     
-    // Reset password form
-    passwordForm.currentPassword = '';
-    passwordForm.newPassword = '';
-    passwordForm.confirmPassword = '';
+    // Call the API to change password
+    const passwordData = {
+      currentPassword: passwordForm.currentPassword,
+      newPassword: passwordForm.newPassword
+    };
     
-    // Exit edit mode
-    editMode.password = false;
+    const response = await studentService.updatePassword(passwordData);
     
-    notificationService.showSuccess('Password updated successfully');
+    if (response && response.data) {
+      notificationService.showSuccess('Password changed successfully');
+      editMode.password = false;
+      
+      // Reset the password form
+      passwordForm.currentPassword = '';
+      passwordForm.newPassword = '';
+      passwordForm.confirmPassword = '';
+    }
   } catch (error) {
-    console.error('Error updating password:', error);
-    notificationService.showError('Failed to update password');
+    console.error('Error changing password:', error);
+    
+    // Check for specific error types
+    if (error.response && error.response.status === 401) {
+      notificationService.showError('Current password is incorrect');
+    } else {
+      notificationService.showError('Failed to change password: ' + (error.message || 'Unknown error'));
+    }
   } finally {
     isUpdating.value = false;
   }
-}
+};
 
 // Format date
-function formatDate(dateString) {
+const formatDate = (dateString) => {
   if (!dateString) return 'Not available';
   
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  }).format(date);
-}
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid date';
+  }
+};
 </script>
 
 <style scoped>
