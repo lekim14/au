@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const { authenticate, authorizeAdmin, authorizeAdviser } = require('../middleware/auth');
 const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
+const AdvisoryClass = require('../models/AdvisoryClass');
 
 // Ultra-basic test route - no database, no error handling, just a simple response
 router.get('/basic-test', (req, res) => {
@@ -1258,6 +1259,50 @@ router.put('/:id/profile', authenticate, async (req, res) => {
     });
   } catch (error) {
     console.error('Update student profile error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get advisory information for a student
+router.get('/:id/advisory-info', auth, async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    
+    // Find the student's class
+    const student = await Student.findById(studentId).populate('class');
+    
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    
+    if (!student.class) {
+      return res.status(200).json({ message: 'Student has no assigned class', adviser: null });
+    }
+    
+    // Find the advisory class with this class
+    const advisoryClass = await AdvisoryClass.findOne({ 
+      class: student.class._id,
+      status: 'active'
+    }).populate({
+      path: 'adviser',
+      select: 'firstName middleName lastName salutation email contactNumber'
+    });
+    
+    if (!advisoryClass) {
+      return res.status(200).json({ 
+        message: 'No adviser assigned to this class',
+        class: student.class,
+        adviser: null
+      });
+    }
+    
+    res.status(200).json({
+      class: student.class,
+      adviser: advisoryClass.adviser
+    });
+    
+  } catch (error) {
+    console.error('Error fetching student advisory info:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

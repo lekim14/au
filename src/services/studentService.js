@@ -321,7 +321,18 @@ export const studentService = {
       console.error('Error updating password:', error);
       throw error;
     }
-  }
+  },
+
+  // Add a new function to get advisory information
+  getAdvisoryInfo: async (studentId) => {
+    try {
+      const response = await api.get(`/students/${studentId}/advisory-info`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching student advisory info:', error);
+      throw error;
+    }
+  },
 };
 
 export default studentService; 

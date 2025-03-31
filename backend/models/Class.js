@@ -31,6 +31,11 @@ const ClassSchema = new mongoose.Schema({
     enum: [1, 2, 3],
     default: 1
   },
+  semester: {
+    type: String,
+    enum: ['First Semester', 'Second Semester', 'Summer', ''],
+    default: ''
+  },
   sspSubject: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Subject',
@@ -58,5 +63,8 @@ const ClassSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+// Create compound index on yearLevel and section for uniqueness
+ClassSchema.index({ yearLevel: 1, section: 1 }, { unique: true });
 
 module.exports = mongoose.model('Class', ClassSchema); 

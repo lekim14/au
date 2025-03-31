@@ -146,7 +146,7 @@ router.get('/:id', authenticate, async (req, res) => {
 // Create new class
 router.post('/', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { yearLevel, section, major, daySchedule, timeSchedule, room, sspSubjectId, hours } = req.body;
+    const { yearLevel, section, major, daySchedule, timeSchedule, room, sspSubjectId, hours, semester } = req.body;
     
     // Check if yearLevel is provided
     if (!yearLevel) {
@@ -198,7 +198,8 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
       timeSchedule,
       room,
       hours: classHours,
-      sspSubject: sspSubjectId  // Map sspSubjectId to sspSubject for the database
+      sspSubject: sspSubjectId,
+      semester
     });
     
     await newClass.save();
@@ -213,7 +214,7 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
 // Update class
 router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { yearLevel, section, major, daySchedule, timeSchedule, room, sspSubjectId, status, hours } = req.body;
+    const { yearLevel, section, major, daySchedule, timeSchedule, room, sspSubjectId, status, hours, semester } = req.body;
     
     const classItem = await Class.findById(req.params.id);
     
@@ -229,6 +230,7 @@ router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
     if (timeSchedule) classItem.timeSchedule = timeSchedule;
     if (room) classItem.room = room;
     if (hours) classItem.hours = hours;
+    if (semester) classItem.semester = semester;
     
     if (sspSubjectId) {
       // Check if SSP subject exists

@@ -461,13 +461,27 @@
               v-model="editedClass.subjectId"
               class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
               :class="{ 'border-red-500': errors.subjectId }"
+              @change="handleEditSubjectChange"
             >
               <option value="">Select Subject</option>
-              <option v-for="subject in editFilteredSubjects" :key="subject._id" :value="subject._id">
+              <option v-for="subject in filteredEditSubjects" :key="subject._id" :value="subject._id">
                 {{ subject.sspCode }} - {{ subject.name || subject.sspCode }} ({{ subject.hours }} hr)
               </option>
             </select>
             <p v-if="errors.subjectId" class="mt-1 text-sm text-red-500">{{ errors.subjectId }}</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Semester</label>
+            <select
+              v-model="editedClass.semester"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+            >
+              <option value="">Select Semester</option>
+              <option value="First Semester">First Semester</option>
+              <option value="Second Semester">Second Semester</option>
+              <option value="Summer">Summer</option>
+            </select>
           </div>
           
           <div>
@@ -537,7 +551,8 @@ const editedClass = ref({
   room: '',
   status: 'active',
   timeSchedule: '',
-  subjectId: ''
+  subjectId: '',
+  semester: ''
 })
 const showEditModal = ref(false)
 
@@ -722,7 +737,7 @@ const filteredSubjects = computed(() => {
 })
 
 // Filter subjects for edit modal based on selected year level
-const editFilteredSubjects = computed(() => {
+const filteredEditSubjects = computed(() => {
   if (!editedClass.value.yearLevel) {
     return subjects.value || [];
   }
@@ -1130,7 +1145,8 @@ function setupEditClassForm(classItem) {
     room: classItem.room || '',
     status: classItem.status || 'active',
     timeSchedule: classItem.timeSchedule || '',
-    subjectId: ''
+    subjectId: '',
+    semester: classItem.sspSubject?.semester || 'Not Set'
   };
   
   // Save reference to current class
@@ -1203,7 +1219,8 @@ async function updateClass() {
       status: editedClass.value.status || 'active',
       timeSchedule: editedClass.value.timeSchedule,
       sspSubjectId: editedClass.value.subjectId, // Changed from sspSubject to sspSubjectId to match server expectation
-      hours: hours
+      hours: hours,
+      semester: editedClass.value.semester
     };
     
     // Log what we're sending
@@ -1347,6 +1364,14 @@ function handleEditYearLevelChange() {
       selectedEditSubject.value = subject
     }
   }
+}
+
+function handleEditSubjectChange() {
+  // Find the selected subject
+  selectedEditSubject.value = subjects.value.find(subject => subject._id === editedClass.value.subjectId)
+  
+  // Reset timeSchedule when subject changes
+  editedClass.value.timeSchedule = ''
 }
 
 function getSubjectName(classItem) {

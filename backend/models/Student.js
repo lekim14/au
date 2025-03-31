@@ -76,6 +76,10 @@ const StudentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  address: {
+    type: String,
+    required: false
+  },
   major: {
     type: String,
     enum: ['Business Informatics', 'System Development', 'Digital Arts', 'Computer Security'],

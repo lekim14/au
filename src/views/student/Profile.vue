@@ -35,6 +35,18 @@
                   <p>{{ studentData.phoneNumber || 'Not set' }}</p>
                 </div>
               </div>
+              
+              <!-- Add address field -->
+              <div class="flex items-start mt-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <div>
+                  <p class="text-sm text-gray-500">Address</p>
+                  <p>{{ studentData.address || 'Not set' }}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -153,6 +165,14 @@
                   class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                 />
               </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <input 
+                  v-model="form.address" 
+                  type="text" 
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                />
+              </div>
             </div>
             
             <div class="flex justify-end">
@@ -201,6 +221,10 @@
                     <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Registration Date</td>
                     <td class="px-4 py-3">{{ formatDate(studentData.createdAt) }}</td>
                   </tr>
+                  <tr>
+                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Address</td>
+                    <td class="px-4 py-3">{{ studentData.address || 'Not set' }}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -248,7 +272,13 @@
                 </tr>
                 <tr>
                   <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Adviser</td>
-                  <td class="px-4 py-3">{{ studentData.adviser || 'Not assigned' }}</td>
+                  <td class="px-4 py-3">
+                    <div v-if="advisoryInfo">
+                      <div class="font-medium">{{ advisoryInfo.adviserName }}</div>
+                      <div class="text-sm text-gray-500">{{ advisoryInfo.adviserEmail }}</div>
+                    </div>
+                    <div v-else>Not assigned</div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -394,7 +424,8 @@ const form = reactive({
   firstName: '',
   lastName: '',
   email: '',
-  phoneNumber: ''
+  phoneNumber: '',
+  address: ''
 });
 
 // Password form
@@ -403,6 +434,9 @@ const passwordForm = reactive({
   newPassword: '',
   confirmPassword: ''
 });
+
+// Add these variables to fetch adviser information
+const advisoryInfo = ref(null);
 
 // Computed properties
 const userInitials = computed(() => {
@@ -449,6 +483,10 @@ onMounted(async () => {
     form.lastName = studentData.value.lastName;
     form.email = studentData.value.email;
     form.phoneNumber = studentData.value.phoneNumber;
+    form.address = studentData.value.address;
+    
+    // Fetch adviser information
+    await fetchAdvisoryInfo();
   } catch (error) {
     console.error('Error loading student data:', error);
     notificationService.showError('Failed to load profile data: ' + (error.message || 'Unknown error'));
@@ -476,10 +514,36 @@ onMounted(async () => {
     form.lastName = '';
     form.email = '';
     form.phoneNumber = '';
+    form.address = '';
   } finally {
     loading.value = false;
   }
 });
+
+// Function to fetch adviser information
+async function fetchAdvisoryInfo() {
+  try {
+    if (!student.value || !student.value._id) return;
+    
+    console.log('Fetching advisory info for student', student.value._id);
+    const response = await studentService.getAdvisoryInfo(student.value._id);
+    
+    if (response && response.adviser) {
+      console.log('Advisory info fetched successfully:', response);
+      advisoryInfo.value = {
+        adviserName: `${response.adviser.salutation || ''} ${response.adviser.firstName || ''} ${response.adviser.lastName || ''}`.trim(),
+        adviserEmail: response.adviser.email || '',
+        adviserContact: response.adviser.contactNumber || ''
+      };
+    } else {
+      console.log('No advisory info found');
+      advisoryInfo.value = null;
+    }
+  } catch (error) {
+    console.error('Error fetching advisory info:', error);
+    advisoryInfo.value = null;
+  }
+}
 
 // Update personal information
 const updatePersonalInfo = async () => {
@@ -497,7 +561,8 @@ const updatePersonalInfo = async () => {
       firstName: form.firstName,
       lastName: form.lastName,
       email: form.email,
-      contactNumber: form.phoneNumber
+      contactNumber: form.phoneNumber,
+      address: form.address
     };
 
     // Call the update profile API
@@ -509,6 +574,7 @@ const updatePersonalInfo = async () => {
       studentData.value.lastName = form.lastName;
       studentData.value.email = form.email;
       studentData.value.phoneNumber = form.phoneNumber;
+      studentData.value.address = form.address;
       
       // Update auth store if it exists
       if (authStore.user) {
