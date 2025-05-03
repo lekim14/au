@@ -167,21 +167,6 @@
               </td>
             </tr>
             <tr>
-              <td class="border-r border-gray-300 font-medium p-2">Semester</td>
-              <td class="p-2">
-                <select
-                  v-model="newSubject.semester"
-                  class="w-full p-1 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-                  :class="{ 'border-red-500': errors.semester }"
-                >
-                  <option value="">Select Semester</option>
-                  <option value="1st Semester">1st Semester</option>
-                  <option value="2nd Semester">2nd Semester</option>
-                </select>
-                <p v-if="errors.semester" class="mt-1 text-sm text-red-500">{{ errors.semester }}</p>
-              </td>
-            </tr>
-            <tr>
               <td class="border-r border-gray-300 font-medium p-2">Hours</td>
               <td class="p-2">
                 <select
@@ -216,12 +201,31 @@
           <p class="text-sm">Currently defined sessions: {{ sessionTitles.filter(t => t).length || 0 }} / 18</p>
         </div>
         
-        <div class="overflow-x-auto">
+        <!-- Tab navigation for 1st and 2nd semester sessions -->
+        <div class="flex border-b border-gray-200 mb-4">
+          <button 
+            @click="activeSessionTabAdd = '1st'"
+            class="px-4 py-2 text-sm font-medium"
+            :class="activeSessionTabAdd === '1st' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'"
+          >
+            1st Semester Sessions
+          </button>
+          <button 
+            @click="activeSessionTabAdd = '2nd'"
+            class="px-4 py-2 text-sm font-medium"
+            :class="activeSessionTabAdd === '2nd' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'"
+          >
+            2nd Semester Sessions
+          </button>
+        </div>
+        
+        <!-- 1st Semester Sessions Table -->
+        <div v-if="activeSessionTabAdd === '1st'" class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Day</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">1st Semester Session Title</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -245,6 +249,58 @@
                   <input 
                     type="text" 
                     v-model="sessionTitles[day]" 
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- 2nd Semester Sessions Table -->
+        <div v-if="activeSessionTabAdd === '2nd'" class="overflow-x-auto">
+          <div class="bg-yellow-50 p-4 mb-4 rounded-lg border border-yellow-200">
+            <div class="flex items-start">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-600 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+              <div>
+                <p class="text-sm text-yellow-700 font-medium">2nd Semester Sessions</p>
+                <p class="text-xs text-yellow-600 mt-1">
+                  These sessions will be available automatically after 1st semester sessions are completed.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Day</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">2nd Semester Session Title</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <!-- Day 0 - Introduction (read-only) -->
+              <tr>
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">0</td>
+                <td class="px-4 py-2">
+                  <input 
+                    type="text" 
+                    v-model="addSecondSemesterSessionTitles[0]" 
+                    class="w-full p-2 border border-gray-300 rounded-md bg-gray-50 focus:ring-primary focus:border-primary"
+                    readonly
+                  />
+                  <span class="text-xs text-gray-500 mt-1 block">Auto-added</span>
+                </td>
+              </tr>
+              <!-- Days 1-17 -->
+              <tr v-for="day in 17" :key="day">
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{{ day }}</td>
+                <td class="px-4 py-2">
+                  <input 
+                    type="text" 
+                    v-model="addSecondSemesterSessionTitles[day]" 
                     class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                   />
                 </td>
@@ -292,14 +348,58 @@
           <p class="text-sm">Sessions: {{ sortedSessions.length || 0 }} / 18</p>
         </div>
         
-        <div class="border border-gray-300 rounded-md mb-4">
+        <!-- Tab navigation for 1st and 2nd semester sessions -->
+        <div class="flex border-b border-gray-200 mb-4">
+          <button 
+            @click="viewSessionsTab = '1st'"
+            class="px-4 py-2 text-sm font-medium"
+            :class="viewSessionsTab === '1st' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'"
+          >
+            1st Semester Sessions
+          </button>
+          <button 
+            @click="viewSessionsTab = '2nd'"
+            class="px-4 py-2 text-sm font-medium"
+            :class="viewSessionsTab === '2nd' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'"
+            :disabled="!selectedSubject?.secondSemesterSessions?.length"
+          >
+            2nd Semester Sessions
+            <span class="ml-1 text-xs" v-if="selectedSubject?.secondSemesterSessions?.length">
+              ({{ selectedSubject.secondSemesterSessions.length }})
+            </span>
+          </button>
+        </div>
+        
+        <!-- 1st Semester Sessions Table -->
+        <div v-if="viewSessionsTab === '1st'" class="border border-gray-300 rounded-md mb-4">
           <table class="w-full">
             <tr class="bg-gray-50 border-b border-gray-300">
               <th class="border-r border-gray-300 p-2 w-1/6">Day/Session</th>
-              <th class="p-2 w-2/3">Title</th>
+              <th class="p-2 w-2/3">1st Semester Title</th>
             </tr>
             
             <tr v-for="session in sortedSessions" :key="session.day" class="border-b border-gray-300">
+              <td class="border-r border-gray-300 p-2 text-center">{{ session.day }}</td>
+              <td class="p-2">{{ session.title }}</td>
+            </tr>
+          </table>
+        </div>
+        
+        <!-- 2nd Semester Sessions Table -->
+        <div v-if="viewSessionsTab === '2nd'" class="border border-gray-300 rounded-md mb-4">
+          <table class="w-full">
+            <tr class="bg-gray-50 border-b border-gray-300">
+              <th class="border-r border-gray-300 p-2 w-1/6">Day/Session</th>
+              <th class="p-2 w-2/3">2nd Semester Title</th>
+            </tr>
+            
+            <tr v-if="!selectedSubject?.secondSemesterSessions?.length" class="border-b border-gray-300">
+              <td colspan="2" class="p-4 text-center text-gray-500">
+                No 2nd semester sessions defined for this subject
+              </td>
+            </tr>
+            
+            <tr v-for="session in sortedSecondSemesterSessions" :key="session.day" class="border-b border-gray-300">
               <td class="border-r border-gray-300 p-2 text-center">{{ session.day }}</td>
               <td class="p-2">{{ session.title }}</td>
             </tr>
@@ -373,21 +473,6 @@
               </td>
             </tr>
             <tr>
-              <td class="border-r border-gray-300 font-medium p-2">Semester</td>
-              <td class="p-2">
-                <select
-                  v-model="editedSubject.semester"
-                  class="w-full p-1 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-                  :class="{ 'border-red-500': errors.semester }"
-                >
-                  <option value="">Select Semester</option>
-                  <option value="1st Semester">1st Semester</option>
-                  <option value="2nd Semester">2nd Semester</option>
-                </select>
-                <p v-if="errors.semester" class="mt-1 text-sm text-red-500">{{ errors.semester }}</p>
-              </td>
-            </tr>
-            <tr>
               <td class="border-r border-gray-300 font-medium p-2">Hours</td>
               <td class="p-2">
                 <select
@@ -407,12 +492,31 @@
           <p class="text-sm">Currently defined sessions: {{ editSessionTitles.filter(t => t).length || 0 }} / 18</p>
         </div>
         
-        <div class="overflow-x-auto">
+        <!-- Tab navigation for 1st and 2nd semester sessions -->
+        <div class="flex border-b border-gray-200 mb-4">
+          <button 
+            @click="activeSessionTab = '1st'"
+            class="px-4 py-2 text-sm font-medium"
+            :class="activeSessionTab === '1st' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'"
+          >
+            1st Semester Sessions
+          </button>
+          <button 
+            @click="activeSessionTab = '2nd'"
+            class="px-4 py-2 text-sm font-medium"
+            :class="activeSessionTab === '2nd' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'"
+          >
+            2nd Semester Sessions
+          </button>
+        </div>
+        
+        <!-- 1st Semester Sessions Table -->
+        <div v-if="activeSessionTab === '1st'" class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Day</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">1st Semester Session Title</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -436,6 +540,58 @@
                   <input 
                     type="text" 
                     v-model="editSessionTitles[day]" 
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- 2nd Semester Sessions Table -->
+        <div v-if="activeSessionTab === '2nd'" class="overflow-x-auto">
+          <div class="bg-yellow-50 p-4 mb-4 rounded-lg border border-yellow-200">
+            <div class="flex items-start">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-600 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+              <div>
+                <p class="text-sm text-yellow-700 font-medium">2nd Semester Sessions</p>
+                <p class="text-xs text-yellow-600 mt-1">
+                  These sessions will be available automatically after 1st semester sessions are completed.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Day</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">2nd Semester Session Title</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <!-- Day 0 - Introduction (read-only) -->
+              <tr>
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">0</td>
+                <td class="px-4 py-2">
+                  <input 
+                    type="text" 
+                    v-model="secondSemesterSessionTitles[0]" 
+                    class="w-full p-2 border border-gray-300 rounded-md bg-gray-50 focus:ring-primary focus:border-primary"
+                    readonly
+                  />
+                  <span class="text-xs text-gray-500 mt-1 block">Auto-added</span>
+                </td>
+              </tr>
+              <!-- Days 1-17 -->
+              <tr v-for="day in 17" :key="day">
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{{ day }}</td>
+                <td class="px-4 py-2">
+                  <input 
+                    type="text" 
+                    v-model="secondSemesterSessionTitles[day]" 
                     class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                   />
                 </td>
@@ -481,6 +637,11 @@ const currentSubject = ref(null)
 const editedSubject = ref({})
 const editSessionTitles = ref(Array(18).fill(''))
 const showEditModal = ref(false)
+const activeSessionTab = ref('1st')
+const secondSemesterSessionTitles = ref(Array(18).fill(''))
+const activeSessionTabAdd = ref('1st')
+const addSecondSemesterSessionTitles = ref(Array(18).fill(''))
+const viewSessionsTab = ref('1st')
 
 // Dynamic options
 const yearLevelOptions = ref(['1st', '2nd', '3rd', '4th'])
@@ -612,19 +773,26 @@ function openAddModal() {
   newSubject.sspCode = ''
   newSubject.yearLevel = ''
   newSubject.sessions = []
-  newSubject.semester = ''
+  newSubject.semester = '1st Semester'  // Default to 1st semester but hide from UI
   newSubject.hours = ''
   
   // Reset session titles to empty array first
   sessionTitles.value = Array(18).fill('')
+  addSecondSemesterSessionTitles.value = Array(18).fill('')
   
-  // Set default title for day 0
+  // Set default title for day 0 for 1st semester
   sessionTitles.value[0] = defaultZeroDayTitle.value
+  
+  // Set default title for day 0 for 2nd semester
+  addSecondSemesterSessionTitles.value[0] = defaultZeroDayTitle.value
   
   // Reset errors
   Object.keys(errors).forEach(key => {
     errors[key] = ''
   })
+  
+  // Default to 1st semester tab
+  activeSessionTabAdd.value = '1st'
   
   showAddModal.value = true
 }
@@ -654,10 +822,8 @@ function validateForm() {
     isValid = false
   }
   
-  if (!newSubject.semester) {
-    errors.semester = 'Semester is required'
-    isValid = false
-  }
+  // Always use 1st Semester as default
+  newSubject.semester = '1st Semester'
   
   if (!newSubject.hours) {
     errors.hours = 'Hours are required'
@@ -690,8 +856,9 @@ async function addSubject() {
   try {
     // Create sessions array from the titles that have been entered
     const sessions = []
+    const secondSemesterSessions = []
     
-    // Add non-empty sessions, but limit to total of 18 (including day 0)
+    // Add non-empty sessions for 1st semester, but limit to total of 18 (including day 0)
     let sessionCount = 0;
     
     // Always add day zero with title from system options
@@ -715,6 +882,37 @@ async function addSubject() {
       }
     }
     
+    // Add non-empty sessions for 2nd semester, but limit to total of 18 (including day 0)
+    let secondSemesterSessionCount = 0;
+    
+    // Always add day zero with title from system options for 2nd semester
+    if (addSecondSemesterSessionTitles.value[0] && addSecondSemesterSessionTitles.value[0].trim()) {
+      secondSemesterSessions.push({
+        day: 0,
+        title: addSecondSemesterSessionTitles.value[0].trim()
+      })
+      secondSemesterSessionCount++;
+    } else if (defaultZeroDayTitle.value) {
+      // Use default zero day title if not set
+      secondSemesterSessions.push({
+        day: 0,
+        title: defaultZeroDayTitle.value
+      })
+      secondSemesterSessionCount++;
+    }
+    
+    // Add remaining 2nd semester sessions up to the maximum of 18 total
+    for (let index = 1; index < addSecondSemesterSessionTitles.value.length && secondSemesterSessionCount < 18; index++) {
+      const title = addSecondSemesterSessionTitles.value[index];
+      if (title && title.trim()) {
+        secondSemesterSessions.push({
+          day: index,  // Day is 1-indexed
+          title: title.trim()
+        });
+        secondSemesterSessionCount++;
+      }
+    }
+    
     // Create a copy of the subject with properly typed values
     const subjectToCreate = {
       sspCode: newSubject.sspCode,
@@ -724,7 +922,8 @@ async function addSubject() {
       // Convert hours from string to number
       hours: parseInt(newSubject.hours, 10),
       schoolYear: newSubject.schoolYear,
-      sessions: sessions
+      sessions: sessions,
+      secondSemesterSessions: secondSemesterSessions
     }
     
     // Log the data we're sending
@@ -759,6 +958,10 @@ function viewSessions(subject) {
   
   // Save selected subject for sessions view
   selectedSubject.value = subject
+  
+  // Default to 1st semester sessions tab
+  viewSessionsTab.value = '1st'
+  
   showSessionsModal.value = true
 }
 
@@ -767,8 +970,9 @@ function editSubject(subject) {
   
   // Reset session titles array to empty first
   editSessionTitles.value = Array(18).fill('')
+  secondSemesterSessionTitles.value = Array(18).fill('')
   
-  // Fill in existing session titles
+  // Fill in existing session titles for 1st semester
   if (subject.sessions && subject.sessions.length > 0) {
     subject.sessions.forEach(session => {
       // Make sure we don't go out of bounds
@@ -778,10 +982,28 @@ function editSubject(subject) {
     })
   } 
   
-  // If day 0 is not set, use the default
+  // Fill in existing session titles for 2nd semester
+  if (subject.secondSemesterSessions && subject.secondSemesterSessions.length > 0) {
+    subject.secondSemesterSessions.forEach(session => {
+      // Make sure we don't go out of bounds
+      if (session.day >= 0 && session.day < 18) {
+        secondSemesterSessionTitles.value[session.day] = session.title || ''
+      }
+    })
+  }
+  
+  // If day 0 is not set for 1st semester, use the default
   if (!editSessionTitles.value[0]) {
     editSessionTitles.value[0] = defaultZeroDayTitle.value
   }
+  
+  // If day 0 is not set for 2nd semester, use the default
+  if (!secondSemesterSessionTitles.value[0]) {
+    secondSemesterSessionTitles.value[0] = defaultZeroDayTitle.value
+  }
+  
+  // Default to 1st semester tab
+  activeSessionTab.value = '1st'
   
   showEditModal.value = true
 }
@@ -792,7 +1014,7 @@ function setupEditForm(subject) {
     _id: subject._id,
     sspCode: subject.sspCode || '',
     yearLevel: subject.yearLevel || '',
-    semester: subject.semester || '',
+    semester: subject.semester || '1st Semester',
     hours: subject.hours ? subject.hours.toString() : '1',
     schoolYear: subject.schoolYear || newSubject.schoolYear
   }
@@ -828,12 +1050,11 @@ function validateEditForm() {
     isValid = false
   }
   
+  // Always use 1st Semester as default if not set
   if (!editedSubject.value.semester) {
-    errors.semester = 'Semester is required'
-    isValid = false
+    editedSubject.value.semester = '1st Semester'
   } else if (!['1st Semester', '2nd Semester'].includes(editedSubject.value.semester)) {
-    errors.semester = 'Semester must be 1st Semester or 2nd Semester'
-    isValid = false
+    editedSubject.value.semester = '1st Semester'
   }
   
   if (!editedSubject.value.hours) {
@@ -849,13 +1070,6 @@ function validateEditForm() {
     isValid = false
   }
   
-  // Check if any session has an empty title
-  const emptyTitleIndex = editSessionTitles.value.findIndex(title => title !== '' && title.trim() === '')
-  if (emptyTitleIndex !== -1) {
-    notificationService.showWarning(`Session ${emptyTitleIndex + 1} has an empty title. Please provide a title or remove it.`)
-    isValid = false
-  }
-  
   return isValid
 }
 
@@ -865,15 +1079,16 @@ async function updateSubject() {
   }
   
   try {
-    // Update sessions array with the edited titles
-    const updatedSessions = []
+    // Create sessions array from the titles that have been entered
+    const sessions = []
+    const secondSemesterSessions = []
     
-    // Add non-empty sessions, but limit to total of 18 (including day 0)
+    // Add non-empty sessions for 1st semester, but limit to total of 18 (including day 0)
     let sessionCount = 0;
     
-    // Always include the day zero session with title from system options if it exists
+    // Always add day zero with title from system options
     if (editSessionTitles.value[0] && editSessionTitles.value[0].trim()) {
-      updatedSessions.push({
+      sessions.push({
         day: 0,
         title: editSessionTitles.value[0].trim()
       })
@@ -884,7 +1099,7 @@ async function updateSubject() {
     for (let index = 1; index < editSessionTitles.value.length && sessionCount < 18; index++) {
       const title = editSessionTitles.value[index];
       if (title && title.trim()) {
-        updatedSessions.push({
+        sessions.push({
           day: index,  // Day is 1-indexed
           title: title.trim()
         });
@@ -892,7 +1107,38 @@ async function updateSubject() {
       }
     }
     
-    // Create the updated subject object with proper type conversion
+    // Add non-empty sessions for 2nd semester, but limit to total of 18 (including day 0)
+    let secondSemesterSessionCount = 0;
+    
+    // Always add day zero with title from system options for 2nd semester
+    if (secondSemesterSessionTitles.value[0] && secondSemesterSessionTitles.value[0].trim()) {
+      secondSemesterSessions.push({
+        day: 0,
+        title: secondSemesterSessionTitles.value[0].trim()
+      })
+      secondSemesterSessionCount++;
+    } else if (defaultZeroDayTitle.value) {
+      // Use default zero day title if not set
+      secondSemesterSessions.push({
+        day: 0,
+        title: defaultZeroDayTitle.value
+      })
+      secondSemesterSessionCount++;
+    }
+    
+    // Add remaining 2nd semester sessions up to the maximum of 18 total
+    for (let index = 1; index < secondSemesterSessionTitles.value.length && secondSemesterSessionCount < 18; index++) {
+      const title = secondSemesterSessionTitles.value[index];
+      if (title && title.trim()) {
+        secondSemesterSessions.push({
+          day: index,  // Day is 1-indexed
+          title: title.trim()
+        });
+        secondSemesterSessionCount++;
+      }
+    }
+    
+    // Create a copy of the subject with properly typed values
     const subjectToUpdate = {
       _id: editedSubject.value._id,
       sspCode: editedSubject.value.sspCode,
@@ -901,12 +1147,12 @@ async function updateSubject() {
       // Convert hours from string to number
       hours: parseInt(editedSubject.value.hours, 10),
       schoolYear: editedSubject.value.schoolYear,
-      sessions: updatedSessions,
-      name: editedSubject.value.sspCode // Update name to match sspCode
+      sessions: sessions,
+      secondSemesterSessions: secondSemesterSessions
     }
     
     // Log the data we're sending
-    console.log('Updating subject with data:', JSON.stringify(subjectToUpdate))
+    console.log('Updating subject data:', JSON.stringify(subjectToUpdate))
     
     const response = await subjectService.update(editedSubject.value._id, subjectToUpdate)
     console.log('Subject updated:', response)
@@ -915,10 +1161,9 @@ async function updateSubject() {
     await fetchSubjects()
     
     notificationService.showSuccess('Subject updated successfully')
-    closeEditModal()
+    showEditModal.value = false
   } catch (error) {
     console.error('Error updating subject:', error)
-    console.error('Error details:', error.response?.data || error.message)
     
     if (error.response && error.response.data && error.response.data.message) {
       notificationService.showError(error.response.data.message)
@@ -932,5 +1177,10 @@ async function updateSubject() {
 const sortedSessions = computed(() => {
   if (!selectedSubject.value || !selectedSubject.value.sessions) return [];
   return [...selectedSubject.value.sessions].sort((a, b) => a.day - b.day);
+})
+
+const sortedSecondSemesterSessions = computed(() => {
+  if (!selectedSubject.value || !selectedSubject.value.secondSemesterSessions) return [];
+  return [...selectedSubject.value.secondSemesterSessions].sort((a, b) => a.day - b.day);
 })
 </script> 

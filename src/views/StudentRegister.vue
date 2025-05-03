@@ -127,6 +127,67 @@
               <p v-if="errors.gender" class="mt-1 text-sm text-red-500">{{ errors.gender }}</p>
             </div>
             
+            <div class="col-span-1 md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700">Address</label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+                <div>
+                  <label for="addressBlock" class="block text-xs font-medium text-gray-500 mb-1">Block</label>
+                  <input 
+                    v-model="student.address.block" 
+                    id="addressBlock" 
+                    name="addressBlock" 
+                    type="text" 
+                    placeholder="Block, Building, Unit"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                  >
+                </div>
+                <div>
+                  <label for="addressStreet" class="block text-xs font-medium text-gray-500 mb-1">Street/Purok</label>
+                  <input 
+                    v-model="student.address.street" 
+                    id="addressStreet" 
+                    name="addressStreet" 
+                    type="text"
+                    placeholder="Street or Purok name"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                  >
+                </div>
+                <div>
+                  <label for="addressBarangay" class="block text-xs font-medium text-gray-500 mb-1">Barangay</label>
+                  <input 
+                    v-model="student.address.barangay" 
+                    id="addressBarangay" 
+                    name="addressBarangay" 
+                    type="text"
+                    placeholder="Barangay"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                  >
+                </div>
+                <div>
+                  <label for="addressMunicipality" class="block text-xs font-medium text-gray-500 mb-1">Municipality</label>
+                  <input 
+                    v-model="student.address.municipality" 
+                    id="addressMunicipality" 
+                    name="addressMunicipality" 
+                    type="text"
+                    placeholder="City or Municipality"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                  >
+                </div>
+                <div>
+                  <label for="addressProvince" class="block text-xs font-medium text-gray-500 mb-1">Province</label>
+                  <input 
+                    v-model="student.address.province" 
+                    id="addressProvince" 
+                    name="addressProvince" 
+                    type="text"
+                    placeholder="Province"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                  >
+                </div>
+              </div>
+            </div>
+            
             <div>
               <label for="contactNumber" class="block text-sm font-medium text-gray-700">Contact Number *</label>
               <div class="flex">
@@ -281,13 +342,20 @@ const registrationSuccess = ref(false);
 // Student form data
 const student = reactive({
   firstName: '',
-  lastName: '',
   middleName: '',
+  lastName: '',
   nameExtension: '',
   idNumber: '',
   email: '',
   gender: '',
   contactNumber: '',
+  address: {
+    block: '',
+    street: '',
+    barangay: '',
+    municipality: '',
+    province: ''
+  },
   yearLevel: '',
   section: '',
   password: '',
@@ -454,20 +522,21 @@ async function registerStudent() {
   error.value = '';
   
   try {
-    // Prepare the data
+    // Prepare data for API
     const studentData = {
       firstName: student.firstName,
-      middleName: student.middleName,
       lastName: student.lastName,
-      nameExtension: student.nameExtension,
+      middleName: student.middleName || '',
+      nameExtension: student.nameExtension || '',
       idNumber: student.idNumber,
       email: student.email,
       gender: student.gender,
-      contactNumber: student.contactNumber,
+      address: student.address,
+      contactNumber: `63${student.contactNumber}`,
       yearLevel: student.yearLevel,
       section: student.section,
-      password: student.password,
-      major: student.major
+      major: student.major,
+      password: student.password
     };
     
     // Call the API endpoint
@@ -478,7 +547,17 @@ async function registerStudent() {
     
     // Reset form
     Object.keys(student).forEach(key => {
-      student[key] = '';
+      if (key === 'address') {
+        student.address = {
+          block: '',
+          street: '',
+          barangay: '',
+          municipality: '',
+          province: ''
+        };
+      } else {
+        student[key] = '';
+      }
     });
     
     // Redirect to login page after a delay

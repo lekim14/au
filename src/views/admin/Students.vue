@@ -59,28 +59,36 @@
       </div>
     </div>
 
-    <!-- Add this after the filter section -->
-    <div class="flex items-center justify-between">
-      <h2 class="text-lg font-semibold text-gray-900">Student Management</h2>
-      <div class="flex space-x-4">
-        <button 
-          @click="assignAllStudentsToClasses" 
-          class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 flex items-center"
+    <!-- Add button bar above table -->
+    <div class="mb-4 flex justify-between items-center">
+      <div>
+        <h2 class="text-lg font-semibold">Students</h2>
+      </div>
+      <div class="flex space-x-2">
+        <button
+          @click="reassignUnassignedStudents"
           :disabled="assigningClasses"
+          class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Find and reassign students that have lost their class assignments"
         >
-          <svg v-if="assigningClasses" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Assign Students to Classes
+          <span v-if="assigningClasses">Reassigning...</span>
+          <span v-else>Reassign Unassigned Students</span>
         </button>
-        
-        <button 
-          @click="refreshStudents" 
-          class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-          :disabled="loading"
+        <button
+          @click="assignAllStudentsToClasses"
+          :disabled="assigningClasses"
+          class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Refresh Students
+          <span v-if="assigningClasses">Assigning...</span>
+          <span v-else>Assign All Students</span>
+        </button>
+        <button
+          @click="refreshStudents"
+          :disabled="loading"
+          class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span v-if="loading">Loading...</span>
+          <span v-else>Refresh List</span>
         </button>
       </div>
     </div>
@@ -231,6 +239,18 @@
               <p class="text-gray-900">{{ currentStudent.contactNumber || 'N/A' }}</p>
             </div>
             
+            <div class="col-span-2">
+              <h4 class="text-sm font-medium text-gray-500">Address</h4>
+              <div v-if="currentStudent.address && (currentStudent.address.block || currentStudent.address.street || currentStudent.address.barangay || currentStudent.address.municipality || currentStudent.address.province)">
+                <p v-if="currentStudent.address.block">Block: {{ currentStudent.address.block }}</p>
+                <p v-if="currentStudent.address.street">Street/Purok: {{ currentStudent.address.street }}</p>
+                <p v-if="currentStudent.address.barangay">Barangay: {{ currentStudent.address.barangay }}</p>
+                <p v-if="currentStudent.address.municipality">Municipality: {{ currentStudent.address.municipality }}</p>
+                <p v-if="currentStudent.address.province">Province: {{ currentStudent.address.province }}</p>
+              </div>
+              <p v-else class="text-gray-900">N/A</p>
+            </div>
+            
             <div>
               <h4 class="text-sm font-medium text-gray-500">Gender</h4>
               <p class="text-gray-900">{{ currentStudent.gender || 'N/A' }}</p>
@@ -333,18 +353,57 @@
                 class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
               />
             </div>
-            <div class="mb-4">
+            <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
-              <div class="flex items-center">
-                <span class="inline-flex items-center px-3 py-2 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
-                  63+
-                </span>
-                <input 
-                  v-model="editForm.contactNumber" 
-                  type="text"
-                  class="flex-1 p-2 border border-gray-300 rounded-r-md focus:ring-primary focus:border-primary"
-                  placeholder="9123456789 (prefix 63+ will be added)"
-                />
+              <input 
+                v-model="editForm.contactNumber" 
+                type="text" 
+                class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+              />
+            </div>
+            <div class="col-span-1 md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+                <div>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">Block</label>
+                  <input 
+                    v-model="editForm.address.block" 
+                    type="text" 
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">Street/Purok</label>
+                  <input 
+                    v-model="editForm.address.street" 
+                    type="text" 
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">Barangay</label>
+                  <input 
+                    v-model="editForm.address.barangay" 
+                    type="text" 
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">Municipality</label>
+                  <input 
+                    v-model="editForm.address.municipality" 
+                    type="text" 
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">Province</label>
+                  <input 
+                    v-model="editForm.address.province" 
+                    type="text" 
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  />
+                </div>
               </div>
             </div>
             <div>
@@ -368,14 +427,6 @@
                 <option value="">Select Major</option>
                 <option v-for="major in availableMajors" :key="major" :value="major">{{ major }}</option>
               </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-              <textarea 
-                v-model="editForm.address" 
-                class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary h-20"
-                placeholder="Enter full address"
-              ></textarea>
             </div>
           </div>
           
@@ -405,6 +456,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { studentService } from '../../services/studentService';
 import { classService } from '../../services/classService';
 import { notificationService } from '../../services/notificationService';
+import api from '../../services/api';
 
 // State
 const students = ref([]);
@@ -457,11 +509,17 @@ const editForm = ref({
   email: '',
   idNumber: '',
   contactNumber: '',
+  address: {
+    block: '',
+    street: '',
+    barangay: '',
+    municipality: '',
+    province: ''
+  },
   gender: '',
   major: '',
   yearLevel: '',
-  section: '',
-  address: ''
+  section: ''
 });
 
 onMounted(async () => {
@@ -470,6 +528,17 @@ onMounted(async () => {
   
   // Fetch classes and students
   await fetchClasses();
+  
+  // Trigger auto-assign of students to classes first
+  try {
+    console.log('Auto-assigning students to classes on page load');
+    await studentService.assignClassesToStudents();
+  } catch (error) {
+    console.error('Failed to auto-assign students to classes:', error);
+    // Continue loading students even if assignment fails
+  }
+  
+  // Then fetch students with updated class assignments
   fetchStudents();
 });
 
@@ -502,6 +571,16 @@ async function fetchStudents() {
     if (Array.isArray(response)) {
       allStudents.value = response;
       console.log(`Loaded ${response.length} students successfully`);
+      
+      // Check if there are unassigned students and notify
+      const unassignedCount = response.filter(
+        student => !student.class || student.class === "" || student.class === null
+      ).length;
+      
+      if (unassignedCount > 0) {
+        console.warn(`Found ${unassignedCount} students with missing class assignments`);
+        notificationService.showWarning(`${unassignedCount} students need class assignment. Use the "Reassign Unassigned Students" button.`);
+      }
     } else {
       console.error('Unexpected response format:', response);
       allStudents.value = [];
@@ -714,60 +793,79 @@ function viewStudent(student) {
 }
 
 function editStudent(student) {
-  console.log('Editing student:', student);
-  showEditModal.value = true;
+  console.log('Edit student', student);
+  currentStudent.value = student;
   
-  // Format the contact number to remove any existing 63+ prefix
-  let contactNumber = student.contactNumber || '';
-  if (contactNumber.startsWith('63+')) {
-    contactNumber = contactNumber.substring(3);
-  } else if (contactNumber.startsWith('63')) {
-    contactNumber = contactNumber.substring(2);
+  // Initialize form data
+  if (student && student.user) {
+    // Create a structured address object if it doesn't exist
+    let addressObj = student.address || {};
+    if (typeof addressObj === 'string') {
+      // If address is still a string, convert to an empty object
+      addressObj = {
+        block: '',
+        street: '',
+        barangay: '',
+        municipality: '',
+        province: ''
+      };
+    }
+    
+    editForm.value = {
+      firstName: student.user.firstName || '',
+      middleName: student.user.middleName || '',
+      lastName: student.user.lastName || '',
+      nameExtension: student.user.nameExtension || '',
+      email: student.user.email || '',
+      idNumber: student.user.idNumber || '',
+      contactNumber: student.contactNumber || '',
+      address: {
+        block: addressObj.block || '',
+        street: addressObj.street || '',
+        barangay: addressObj.barangay || '',
+        municipality: addressObj.municipality || '',
+        province: addressObj.province || ''
+      },
+      gender: student.gender || '',
+      major: student.major || '',
+      yearLevel: student.yearLevel || '',
+      section: student.section || ''
+    };
   }
   
-  editForm.value = {
-    id: student._id,
-    firstName: student.firstName || '',
-    lastName: student.lastName || '',
-    email: student.email || '',
-    contactNumber: contactNumber,
-    major: student.major || '',
-    yearLevel: student.yearLevel || '',
-    section: student.section || '',
-    address: student.address || ''
-  };
+  showEditModal.value = true;
 }
 
 async function updateStudent() {
   try {
-    // Format contactNumber to ensure it has the 63+ prefix
-    let formattedContactNumber = editForm.value.contactNumber;
-    if (formattedContactNumber) {
-      if (formattedContactNumber.startsWith('63+')) {
-        formattedContactNumber = formattedContactNumber;
-      } else if (formattedContactNumber.startsWith('63')) {
-        formattedContactNumber = '63+' + formattedContactNumber.substring(2);
-      } else {
-        formattedContactNumber = '63+' + formattedContactNumber;
-      }
-    }
+    if (!currentStudent.value) return;
     
-    await studentService.updateStudent(editForm.value.id, {
+    console.log('Updating student with data:', editForm.value);
+    
+    const studentData = {
       firstName: editForm.value.firstName,
+      middleName: editForm.value.middleName,
       lastName: editForm.value.lastName,
+      nameExtension: editForm.value.nameExtension,
       email: editForm.value.email,
-      contactNumber: formattedContactNumber,
+      idNumber: editForm.value.idNumber,
+      contactNumber: editForm.value.contactNumber,
+      address: editForm.value.address,
+      gender: editForm.value.gender,
       major: editForm.value.major,
       yearLevel: editForm.value.yearLevel,
-      section: editForm.value.section,
-      address: editForm.value.address
-    });
+      section: editForm.value.section
+    };
     
-    notificationService.showSuccess('Student updated successfully');
-    showEditModal.value = false;
+    const response = await studentService.update(currentStudent.value._id, studentData);
     
-    // Refresh student list
-    await fetchStudents();
+    if (response) {
+      notificationService.showSuccess('Student updated successfully');
+      showEditModal.value = false;
+      
+      // Refresh student list
+      await fetchStudents();
+    }
   } catch (error) {
     console.error('Error updating student:', error);
     notificationService.showError('Failed to update student: ' + error.message);
@@ -813,21 +911,32 @@ function onYearLevelChange() {
 async function assignAllStudentsToClasses() {
   assigningClasses.value = true
   try {
-    console.log('Assigning all students to classes...')
-    const response = await studentService.assignClassesToStudents()
-    console.log('Assignment response:', response)
+    console.log('Cleaning and assigning all students to classes...')
     
-    if (response.success) {
-      notificationService.showSuccess(response.message)
-    } else {
-      notificationService.showError('Failed to assign students to classes: ' + response.message)
+    // Use the enhanced method that cleans invalid references and does a force reassign
+    const response = await studentService.cleanAndAssignClasses(true)
+    console.log('Cleanup and assignment response:', response)
+    
+    if (!response || !response.success) {
+      const errorMsg = response?.message || 'Unknown error occurred';
+      console.error('Assignment API returned error:', errorMsg);
+      notificationService.showError(`Failed to assign students: ${errorMsg}`);
+      return;
     }
     
+    const fixedCount = response.fixResult?.results?.fixed || 0;
+    const assignedCount = response.assignResult?.assigned || 0;
+    
+    // Show detailed success message
+    notificationService.showSuccess(
+      `Fixed ${fixedCount} invalid class references and assigned ${assignedCount} students to classes`
+    );
+    
     // Refresh the student list
-    refreshStudents()
+    await refreshStudents()
   } catch (error) {
     console.error('Error assigning students to classes:', error)
-    notificationService.showError('Error assigning students to classes: ' + error.message)
+    notificationService.showError(`Error assigning students: ${error.message || 'Unknown error'}`)
   } finally {
     assigningClasses.value = false
   }
@@ -835,5 +944,40 @@ async function assignAllStudentsToClasses() {
 
 async function refreshStudents() {
   await fetchStudents()
+}
+
+async function reassignUnassignedStudents() {
+  try {
+    assigningClasses.value = true; // Set loading state
+    console.log('Cleaning and reassigning students with missing class assignments...');
+    
+    // Use the enhanced method that cleans invalid references and then assigns
+    const response = await studentService.cleanAndAssignClasses(true);
+    
+    if (!response || !response.success) {
+      // Handle API error
+      const errorMsg = response?.message || 'Unknown error occurred';
+      console.error('Assignment API returned error:', errorMsg);
+      notificationService.showError(`Failed to reassign students: ${errorMsg}`);
+      assigningClasses.value = false;
+      return;
+    }
+    
+    const fixedCount = response.fixResult?.results?.fixed || 0;
+    const assignedCount = response.assignResult?.assigned || 0;
+    
+    // Show detailed success message
+    notificationService.showSuccess(
+      `Fixed ${fixedCount} invalid class references and assigned ${assignedCount} students to classes`
+    );
+    
+    // Refresh the student list to show updated assignments
+    await fetchStudents();
+  } catch (error) {
+    console.error('Failed to reassign unassigned students:', error);
+    notificationService.showError(`Failed to reassign students: ${error.message || 'Unknown error'}`);
+  } finally {
+    assigningClasses.value = false;
+  }
 }
 </script> 

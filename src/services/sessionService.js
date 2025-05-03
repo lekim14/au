@@ -18,10 +18,28 @@ export const sessionService = {
       // If error is due to sessions already being initialized, don't throw
       if (error.response && error.response.status === 400 && 
           error.response.data && error.response.data.message && 
-          error.response.data.message.includes('already initialized')) {
-        console.log('Sessions already initialized for this student');
-        return { data: { message: 'Sessions already initialized' } };
+          (error.response.data.message.includes('already initialized') || 
+           error.response.data.message.includes('already exist'))) {
+        console.log('Sessions already initialized for this student - this is normal behavior');
+        return { 
+          data: { 
+            message: 'Sessions already initialized',
+            count: error.response.data.count || 0
+          } 
+        };
       }
+      
+      // For other errors, log them but don't throw in student view to prevent UI disruption
+      if (window.location.pathname.includes('/student/')) {
+        console.warn(`Non-critical error initializing sessions: ${error.message}`);
+        return { 
+          data: { 
+            message: 'Error initializing sessions, will try again later',
+            error: error.message
+          } 
+        };
+      }
+      
       console.error(`Error initializing sessions for student ${studentId} in class ${classId}:`, error);
       throw error;
     }
@@ -153,5 +171,224 @@ export const sessionService = {
       console.error('Error saving session changes:', error);
       throw error;
     }
-  }
+  },
+  
+  /**
+   * Archive current semester sessions for a class
+   * @param {string} classId - The class ID
+   * @returns {Promise<Object>} - The response data
+   */
+  archiveSessions: async (classId) => {
+    try {
+      console.log(`Archiving sessions for class ${classId}`);
+      const response = await api.post(`/sessions/archive/${classId}`);
+      console.log('Session archiving successful:', response.data);
+      
+      // Check for success field explicitly
+      if (response.data && response.data.success === true) {
+        return response.data;
+      } else {
+        // If the success field is false or missing, treat as an error
+        const errorMsg = (response.data && response.data.message) ? 
+          response.data.message : 'Unknown error archiving sessions';
+        console.error('Archive operation failed:', errorMsg);
+        
+        const error = new Error(errorMsg);
+        error.response = response;
+        throw error;
+      }
+    } catch (error) {
+      console.error(`Error archiving sessions for class ${classId}:`, error);
+      // Enhance the error with the response data if available
+      if (error.response && error.response.data) {
+        error.message = error.response.data.message || error.message;
+      }
+      throw error;
+    }
+  },
+  
+  /**
+   * Load sessions for a specific semester
+   * @param {string} classId - The class ID
+   * @param {string} semester - The semester ('1st Semester' or '2nd Semester')
+   * @returns {Promise<Object>} - The response data
+   */
+  loadSessions: async (classId, semester) => {
+    try {
+      console.log(`Loading ${semester} semester sessions for class ${classId}`);
+      const response = await api.post(`/sessions/load/${classId}/${semester}`);
+      console.log(`${semester} semester session loading successful:`, response.data);
+      
+      // Check for success field explicitly
+      if (response.data && response.data.success === true) {
+        return response.data;
+      } else {
+        // If the success field is false or missing, treat as an error
+        const errorMsg = (response.data && response.data.message) ? 
+          response.data.message : `Unknown error loading ${semester} sessions`;
+        console.error('Load operation failed:', errorMsg);
+        
+        const error = new Error(errorMsg);
+        error.response = response;
+        throw error;
+      }
+    } catch (error) {
+      console.error(`Error loading ${semester} semester sessions for class ${classId}:`, error);
+      // Enhance the error with the response data if available
+      if (error.response && error.response.data) {
+        error.message = error.response.data.message || error.message;
+      }
+      throw error;
+    }
+  },
+  
+  /**
+   * Get session history by class (for SSP history pages)
+   * @param {string} classId - The class ID
+   * @param {string} semester - Optional semester filter
+   * @returns {Promise<Object>} - The response data
+   */
+  getSessionHistory: async (classId, semester = null) => {
+    try {
+      let url = `/sessions/history/${classId}`;
+      if (semester) {
+        url += `?semester=${semester}`;
+      }
+      console.log(`Fetching session history for class ${classId}`);
+      const response = await api.get(url);
+      console.log('Session history retrieved:', response.data);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching session history for class ${classId}:`, error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Get session history for a student
+   * @param {string} studentId - The student ID
+   * @param {string} classId - Optional class ID filter
+   * @returns {Promise<Object>} - The response data
+   */
+  getStudentSessionHistory: async (studentId, classId = null) => {
+    try {
+      let url = `/sessions/history/student/${studentId}`;
+      if (classId) {
+        url += `?classId=${classId}`;
+      }
+      console.log(`Fetching session history for student ${studentId}`);
+      const response = await api.get(url);
+      console.log('Student session history retrieved:', response.data);
+      
+      // Verify response structure
+      if (!response.data) {
+        console.warn('Empty response received for student history');
+        return { data: { success: true, data: [] } };
+      }
+      
+      // Handle case where backend returns non-success response
+      if (response.data.success === false) {
+        console.warn('Backend reported error:', response.data.message);
+        // Return empty data structure rather than throwing
+        return { data: { success: true, data: [] } };
+      }
+      
+      return response;
+    } catch (error) {
+      console.error(`Error fetching session history for student ${studentId}:`, error);
+      
+      // For UI consistency, return empty data structure rather than throwing
+      console.warn('Returning empty data structure due to error');
+      return { 
+        data: { 
+          success: true, 
+          data: [],
+          error: error.message,
+          errorOccurred: true
+        } 
+      };
+    }
+  },
+  
+  archiveCurrentSessions,
+  loadNextSemesterSessions,
+  loadSessionMatrix,
 }; 
+
+/**
+ * Archives the current semester sessions for a specific class
+ * @param {string} classId - The ID of the class
+ * @returns {Promise<Object>} - Response with success status and message
+ */
+async function archiveCurrentSessions(classId) {
+  try {
+    console.log(`Archiving sessions for class ${classId}`)
+    const response = await api.post('/sessions/archive', { classId })
+    
+    if (!response || !response.data) {
+      console.error('No response data received from archive API')
+      return { success: false, message: 'No response received from server' }
+    }
+    
+    console.log('Archive API response:', response.data)
+    return response.data
+  } catch (error) {
+    console.error('Error archiving sessions:', error)
+    return { 
+      success: false, 
+      message: error.response?.data?.message || error.message || 'Server error during archiving'
+    }
+  }
+}
+
+/**
+ * Loads sessions for the next semester for a specific class
+ * @param {string} classId - The ID of the class
+ * @returns {Promise<Object>} - Response with success status and message
+ */
+async function loadNextSemesterSessions(classId) {
+  try {
+    console.log(`Loading next semester sessions for class ${classId}`)
+    const response = await api.post('/sessions/load', { 
+      classId,
+      semester: '2nd Semester'
+    })
+    
+    if (!response || !response.data) {
+      console.error('No response data received from load API')
+      return { success: false, message: 'No response received from server' }
+    }
+    
+    console.log('Load API response:', response.data)
+    return response.data
+  } catch (error) {
+    console.error('Error loading next semester sessions:', error)
+    return { 
+      success: false, 
+      message: error.response?.data?.message || error.message || 'Server error during loading'
+    }
+  }
+}
+
+/**
+ * Loads the session matrix for a class
+ * @param {string} classId - The ID of the class
+ * @returns {Promise<Object>} - Session matrix with students and sessions
+ */
+async function loadSessionMatrix(classId) {
+  try {
+    console.log(`Loading session matrix for class ${classId}`)
+    const response = await api.get(`/sessions/matrix/${classId}`)
+    
+    if (!response || !response.data) {
+      console.error('No session matrix data received')
+      return null
+    }
+    
+    console.log(`Loaded matrix with ${response.data.students?.length || 0} students and ${response.data.sessions?.length || 0} sessions`)
+    return response.data
+  } catch (error) {
+    console.error('Error loading session matrix:', error)
+    throw new Error(`Failed to load session matrix: ${error.message}`)
+  }
+} 

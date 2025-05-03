@@ -35,18 +35,6 @@
                   <p>{{ studentData.phoneNumber || 'Not set' }}</p>
                 </div>
               </div>
-              
-              <!-- Add address field -->
-              <div class="flex items-start mt-3">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <div>
-                  <p class="text-sm text-gray-500">Address</p>
-                  <p>{{ studentData.address || 'Not set' }}</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -165,29 +153,61 @@
                   class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                 />
               </div>
-              <div>
+              <div class="col-span-1 md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
                 <input 
-                  v-model="form.address" 
+                  v-model="form.address.block" 
+                  type="text" 
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                />
+              </div>
+              <div class="col-span-1 md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Street</label>
+                <input 
+                  v-model="form.address.street" 
+                  type="text" 
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                />
+              </div>
+              <div class="col-span-1 md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Barangay</label>
+                <input 
+                  v-model="form.address.barangay" 
+                  type="text" 
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                />
+              </div>
+              <div class="col-span-1 md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Municipality</label>
+                <input 
+                  v-model="form.address.municipality" 
+                  type="text" 
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                />
+              </div>
+              <div class="col-span-1 md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Province</label>
+                <input 
+                  v-model="form.address.province" 
                   type="text" 
                   class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                 />
               </div>
             </div>
-            
-            <div class="flex justify-end">
+            <div class="flex justify-end mt-4">
+              <button 
+                type="button" 
+                @click="editMode.personal = false" 
+                class="mr-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                Cancel
+              </button>
               <button 
                 type="submit" 
                 class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                 :disabled="isUpdating"
               >
-                <span v-if="isUpdating" class="flex items-center">
-                  <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Updating...
-                </span>
+                <span v-if="isUpdating">Updating...</span>
                 <span v-else>Save Changes</span>
               </button>
             </div>
@@ -218,12 +238,21 @@
                     <td class="px-4 py-3">{{ studentData.studentId || 'Not available' }}</td>
                   </tr>
                   <tr>
-                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Registration Date</td>
-                    <td class="px-4 py-3">{{ formatDate(studentData.createdAt) }}</td>
+                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Address</td>
+                    <td class="px-4 py-3">
+                      <div v-if="studentData.address && (studentData.address.block || studentData.address.street || studentData.address.barangay || studentData.address.municipality || studentData.address.province)">
+                        <p v-if="studentData.address.block">Block: {{ studentData.address.block }}</p>
+                        <p v-if="studentData.address.street">Street/Purok: {{ studentData.address.street }}</p>
+                        <p v-if="studentData.address.barangay">Barangay: {{ studentData.address.barangay }}</p>
+                        <p v-if="studentData.address.municipality">Municipality: {{ studentData.address.municipality }}</p>
+                        <p v-if="studentData.address.province">Province: {{ studentData.address.province }}</p>
+                      </div>
+                      <span v-else>Not provided</span>
+                    </td>
                   </tr>
                   <tr>
-                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Address</td>
-                    <td class="px-4 py-3">{{ studentData.address || 'Not set' }}</td>
+                    <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Registration Date</td>
+                    <td class="px-4 py-3">{{ formatDate(studentData.createdAt) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -273,11 +302,12 @@
                 <tr>
                   <td class="px-4 py-3 bg-gray-50 font-medium text-gray-700">Adviser</td>
                   <td class="px-4 py-3">
-                    <div v-if="advisoryInfo">
-                      <div class="font-medium">{{ advisoryInfo.adviserName }}</div>
-                      <div class="text-sm text-gray-500">{{ advisoryInfo.adviserEmail }}</div>
+                    <div v-if="studentData.adviser">
+                      <p>{{ studentData.adviser.name }}</p>
+                      <p v-if="studentData.adviser.email" class="text-sm text-gray-500">{{ studentData.adviser.email }}</p>
+                      <p v-if="studentData.adviser.contactNumber" class="text-sm text-gray-500">{{ studentData.adviser.contactNumber }}</p>
                     </div>
-                    <div v-else>Not assigned</div>
+                    <span v-else>Not assigned</span>
                   </td>
                 </tr>
               </tbody>
@@ -317,7 +347,10 @@
               <div v-if="student.class.sspSubject">
                 <div class="mb-2">
                   <div class="text-sm text-gray-600">Subject Code:</div>
-                  <div class="font-medium">{{ student.class.sspSubject.sspCode }}</div>
+                  <div class="font-medium">
+                    {{ student.class.sspSubject.sspCode }} 
+                    {{ student.class.sspSubject.semester ? `(${student.class.sspSubject.semester})` : '' }}
+                  </div>
                 </div>
                 <div>
                   <div class="text-sm text-gray-600">Subject Name:</div>
@@ -425,7 +458,13 @@ const form = reactive({
   lastName: '',
   email: '',
   phoneNumber: '',
-  address: ''
+  address: {
+    block: '',
+    street: '',
+    barangay: '',
+    municipality: '',
+    province: ''
+  }
 });
 
 // Password form
@@ -434,9 +473,6 @@ const passwordForm = reactive({
   newPassword: '',
   confirmPassword: ''
 });
-
-// Add these variables to fetch adviser information
-const advisoryInfo = ref(null);
 
 // Computed properties
 const userInitials = computed(() => {
@@ -460,12 +496,27 @@ onMounted(async () => {
     // Store the complete student object
     student.value = response.data;
     
+    // Format adviser information
+    let adviserInfo = null;
+    if (student.value.adviserInfo) {
+      const adviser = student.value.adviserInfo;
+      const middleInitial = adviser.middleName ? ` ${adviser.middleName.charAt(0)}.` : '';
+      const nameExt = adviser.nameExtension && adviser.nameExtension !== 'N/A' ? ` ${adviser.nameExtension}` : '';
+      
+      adviserInfo = {
+        name: `${adviser.salutation || ''} ${adviser.firstName || ''}${middleInitial} ${adviser.lastName || ''}${nameExt}`.trim(),
+        email: adviser.email || '',
+        contactNumber: adviser.contactNumber || ''
+      };
+    }
+    
     // Set up studentData with data from user and class collections
     studentData.value = {
       firstName: student.value.user?.firstName || '',
       lastName: student.value.user?.lastName || '',
       email: student.value.user?.email || '',
       phoneNumber: student.value.contactNumber || '',
+      address: student.value.address || { block: '', street: '', barangay: '', municipality: '', province: '' },
       studentId: student.value.user?.idNumber || '',
       createdAt: new Date(student.value.createdAt || Date.now()),
       program: 'Bachelor of Science in Information Technology', // This would need to come from program data
@@ -473,7 +524,7 @@ onMounted(async () => {
       section: student.value.class?.section || student.value.classDetails?.section || '',
       major: student.value.major || student.value.class?.major || '',
       academicStatus: 'Good Standing', // This would need to come from academic data
-      adviser: 'Not assigned', // This would need to come from adviser assignment
+      adviser: adviserInfo,
       odysseyPlanStatus: student.value.odysseyPlanCompleted ? 'Completed' : 'Not Started',
       srmSurveyStatus: student.value.srmSurveyCompleted ? 'Completed' : 'Not Started'
     };
@@ -483,10 +534,13 @@ onMounted(async () => {
     form.lastName = studentData.value.lastName;
     form.email = studentData.value.email;
     form.phoneNumber = studentData.value.phoneNumber;
-    form.address = studentData.value.address;
-    
-    // Fetch adviser information
-    await fetchAdvisoryInfo();
+    form.address = {
+      block: studentData.value.address.block || '',
+      street: studentData.value.address.street || '',
+      barangay: studentData.value.address.barangay || '',
+      municipality: studentData.value.address.municipality || '',
+      province: studentData.value.address.province || ''
+    };
   } catch (error) {
     console.error('Error loading student data:', error);
     notificationService.showError('Failed to load profile data: ' + (error.message || 'Unknown error'));
@@ -514,36 +568,17 @@ onMounted(async () => {
     form.lastName = '';
     form.email = '';
     form.phoneNumber = '';
-    form.address = '';
+    form.address = {
+      block: '',
+      street: '',
+      barangay: '',
+      municipality: '',
+      province: ''
+    };
   } finally {
     loading.value = false;
   }
 });
-
-// Function to fetch adviser information
-async function fetchAdvisoryInfo() {
-  try {
-    if (!student.value || !student.value._id) return;
-    
-    console.log('Fetching advisory info for student', student.value._id);
-    const response = await studentService.getAdvisoryInfo(student.value._id);
-    
-    if (response && response.adviser) {
-      console.log('Advisory info fetched successfully:', response);
-      advisoryInfo.value = {
-        adviserName: `${response.adviser.salutation || ''} ${response.adviser.firstName || ''} ${response.adviser.lastName || ''}`.trim(),
-        adviserEmail: response.adviser.email || '',
-        adviserContact: response.adviser.contactNumber || ''
-      };
-    } else {
-      console.log('No advisory info found');
-      advisoryInfo.value = null;
-    }
-  } catch (error) {
-    console.error('Error fetching advisory info:', error);
-    advisoryInfo.value = null;
-  }
-}
 
 // Update personal information
 const updatePersonalInfo = async () => {

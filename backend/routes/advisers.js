@@ -5,7 +5,8 @@ const AdvisoryClass = require('../models/AdvisoryClass');
 const Class = require('../models/Class');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
-const { authenticate, authorizeAdmin } = require('../middleware/auth');
+const { authenticate, authorizeAdmin, authorizeAdviser } = require('../middleware/auth');
+const Student = require('../models/Student');
 
 // Get all advisers
 router.get('/', authenticate, authorizeAdmin, async (req, res) => {
@@ -277,7 +278,7 @@ router.get('/my/classes', authenticate, async (req, res) => {
       path: 'class',
       select: 'yearLevel section major room daySchedule timeSchedule status students',
       populate: [
-        { path: 'sspSubject', select: 'sspCode name sessions' },
+        { path: 'sspSubject', select: 'sspCode name sessions semester schoolYear hours secondSemesterSessions' },
         { path: 'students', 
           select: 'odysseyPlanCompleted srmSurveyCompleted consultations',
           populate: { path: 'user', select: 'firstName lastName idNumber email' }
@@ -303,7 +304,7 @@ router.get('/advisory/available-classes', authenticate, authorizeAdmin, async (r
   try {
     // Get all classes
     const allClasses = await Class.find({ status: 'active' })
-      .populate('sspSubject', 'sspCode name hours');
+      .populate('sspSubject', 'sspCode name hours semester schoolYear');
     
     // Get all advisory classes that have an adviser assigned
     const advisoryClasses = await AdvisoryClass.find({ 
@@ -477,6 +478,122 @@ router.get('/archived/all', authenticate, authorizeAdmin, async (req, res) => {
   } catch (error) {
     console.error('Get inactive advisers error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get students for a specific class (for adviser use)
+router.get('/class/:id/students', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`Adviser ${req.user._id} requesting students for class ${id}`);
+    
+    // Ensure the user is an adviser
+    if (req.user.role !== 'adviser') {
+      return res.status(403).json({ message: 'Only advisers can access this endpoint' });
+    }
+    
+    // Find if this adviser is assigned to this class
+    const advisoryClass = await AdvisoryClass.findOne({
+      adviser: req.user._id,
+      class: id,
+      status: 'active'
+    });
+    
+    if (!advisoryClass) {
+      console.log(`Adviser ${req.user._id} not assigned to class ${id}`);
+      return res.status(403).json({ message: 'You are not assigned as the adviser for this class' });
+    }
+    
+    // Get class with subject details
+    const classItem = await Class.findById(id)
+      .populate('sspSubject', 'sspCode name sessions semester schoolYear hours secondSemesterSessions');
+    
+    if (!classItem) {
+      return res.status(404).json({ message: 'Class not found' });
+    }
+    
+    console.log(`Found class: ${classItem.yearLevel} Year - ${classItem.section} (${classItem.major})`);
+    console.log(`Class has ${classItem.students?.length || 0} students in students array`);
+    console.log(`Class subject data:`, classItem.sspSubject);
+    
+    // Get students directly assigned to this class
+    const students = await Student.find({
+      class: id,
+      status: 'active'
+    }).populate('user', 'firstName middleName lastName nameExtension idNumber email');
+    
+    console.log(`Returning ${students.length} students for class ${id}`);
+    res.json(students);
+  } catch (error) {
+    console.error('Get class students error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get all classes advised by the current user with student counts and SSP subjects
+router.get('/classes', authenticate, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    
+    console.log(`Getting classes advised by user ${userId} with role ${userRole}`);
+    
+    // Check if user is admin or adviser
+    if (userRole !== 'admin' && userRole !== 'adviser') {
+      console.warn(`User ${userId} with role ${userRole} attempted to access adviser classes`);
+      return res.status(403).json({ message: 'Access denied. Admin or adviser role required.' });
+    }
+    
+    // Build query based on role
+    const query = { status: 'active' };
+    if (userRole === 'adviser') {
+      // Only show classes assigned to this adviser
+      query.adviser = userId;
+    }
+    
+    // Log the query we're using
+    console.log('Using query:', JSON.stringify(query));
+    
+    // Get all classes advised by the user with populated subject data
+    const classes = await Class.find(query)
+      .populate({
+        path: 'sspSubject',
+        select: 'sspCode yearLevel hours schoolYear semester'
+      })
+      .lean();
+    
+    if (!classes || classes.length === 0) {
+      console.log(`No classes found for query`);
+      return res.json([]);
+    }
+    
+    console.log(`Found ${classes.length} classes for query`);
+    
+    // For each class, count the students and check if subject is properly assigned
+    const enhancedClasses = await Promise.all(classes.map(async (classItem) => {
+      // Count students in this class
+      const studentCount = await Student.countDocuments({
+        class: classItem._id,
+        status: 'active'
+      });
+      
+      const result = {
+        ...classItem,
+        studentCount
+      };
+      
+      // Check if there's an SSP subject assigned
+      if (!classItem.sspSubject) {
+        console.warn(`Class ${classItem._id} has no SSP subject assigned`);
+      }
+      
+      return result;
+    }));
+    
+    return res.json(enhancedClasses);
+  } catch (error) {
+    console.error('Error getting advised classes:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

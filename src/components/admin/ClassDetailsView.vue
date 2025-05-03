@@ -13,103 +13,67 @@
     </button>
   </div>
   
-  <div v-if="classData" class="p-4">
-    <div class="flex justify-between items-center mb-6">
-      <div>
-        <h3 class="text-xl font-bold">{{ classData.yearLevel }}-{{ classData.section }}</h3>
-        <p v-if="classData.major" class="text-gray-600">{{ classData.major }}</p>
-      </div>
-      <div class="flex gap-3">
+  <div v-if="showStudents">
+    <div class="p-4">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Students ({{ students.length }})</h3>
         <button 
-          v-if="classData.status === 'active'" 
-          @click="$emit('deactivate', classData._id)" 
-          class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition"
+          @click="fetchStudentsInClass" 
+          class="text-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
+          :disabled="loadingStudents"
         >
-          Deactivate
-        </button>
-        <button 
-          v-if="classData.status === 'inactive'" 
-          @click="$emit('activate', classData._id)" 
-          class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition"
-        >
-          Activate
-        </button>
-        <button 
-          @click="$emit('delete', classData._id)" 
-          class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition"
-        >
-          Delete
+          <span v-if="loadingStudents">Loading...</span>
+          <span v-else>Refresh Students</span>
         </button>
       </div>
-    </div>
-
-    <div class="bg-gray-50 p-3 rounded-lg mb-4 flex justify-between items-center">
-      <span class="font-medium">Semester: {{ classData.semester || 'Not set' }}</span>
-      <span class="font-medium">School Year: 2024 - 2025</span>
-    </div>
-    
-    <div v-if="showStudents">
-      <div class="p-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold">Students ({{ students.length }})</h3>
-          <button 
-            @click="fetchStudentsInClass" 
-            class="text-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
-            :disabled="loadingStudents"
-          >
-            <span v-if="loadingStudents">Loading...</span>
-            <span v-else>Refresh Students</span>
-          </button>
-        </div>
-        
-        <div v-if="loadingStudents" class="flex justify-center items-center p-4">
-          <svg class="animate-spin h-6 w-6 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span class="ml-2">Loading students...</span>
-        </div>
-        
-        <div v-else-if="students.length === 0" class="text-center p-4 bg-gray-50 rounded-md">
-          <p>No students found for this class.</p>
-          <button 
-            @click="fetchStudentsInClass" 
-            class="mt-2 text-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
-          >
-            Refresh List
-          </button>
-        </div>
-        
-        <div v-else class="bg-white rounded-md overflow-hidden shadow-sm">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ID Number
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="student in students" :key="student._id" class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {{ getUserField(student, 'idNumber') || 'N/A' }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ getFullName(student) }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ getUserField(student, 'email') || 'N/A' }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      
+      <div v-if="loadingStudents" class="flex justify-center items-center p-4">
+        <svg class="animate-spin h-6 w-6 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="ml-2">Loading students...</span>
+      </div>
+      
+      <div v-else-if="students.length === 0" class="text-center p-4 bg-gray-50 rounded-md">
+        <p>No students found for this class.</p>
+        <button 
+          @click="fetchStudentsInClass" 
+          class="mt-2 text-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
+        >
+          Refresh List
+        </button>
+      </div>
+      
+      <div v-else class="bg-white rounded-md overflow-hidden shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                ID Number
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Name
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Email
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="student in students" :key="student._id" class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {{ getUserField(student, 'idNumber') || 'N/A' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ getFullName(student) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ getUserField(student, 'email') || 'N/A' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -204,12 +168,27 @@ async function fetchStudentsInClass() {
   try {
     console.log(`Fetching students for class ${props.classData._id}`);
     
-    // Always fetch from the API to ensure most up-to-date data
+    // First, ensure all students are properly assigned to classes
+    try {
+      console.log('Triggering auto-assignment to ensure students are properly assigned');
+      const assignResponse = await studentService.assignClassesToStudents();
+      console.log('Auto-assignment response:', assignResponse);
+      if (assignResponse.mismatches && assignResponse.mismatches.fixed > 0) {
+        console.log(`Fixed ${assignResponse.mismatches.fixed} student-class mismatches`);
+      }
+    } catch (assignError) {
+      console.warn('Auto-assignment failed, continuing with direct fetch:', assignError);
+    }
+    
+    // Then fetch students for this specific class
     const response = await studentService.getStudentsByClass(props.classData._id);
     
     if (response && Array.isArray(response)) {
       students.value = response;
       console.log(`Fetched ${students.value.length} students for class ${props.classData._id}`);
+      
+      // Check if any students should be in this class based on yearLevel/section but aren't assigned
+      checkForMissingStudents();
     } else {
       console.error('Invalid response format from getStudentsByClass:', response);
       students.value = [];
@@ -220,6 +199,21 @@ async function fetchStudentsInClass() {
     students.value = [];
   } finally {
     loadingStudents.value = false;
+  }
+}
+
+async function checkForMissingStudents() {
+  // No need to check if no class data
+  if (!props.classData?.yearLevel || !props.classData?.section) return;
+  
+  try {
+    console.log(`Checking for students that should be in ${props.classData.yearLevel} Year - ${props.classData.section} class`);
+    
+    // This will be handled by the backend auto-assignment process
+    // We could add more UI feedback here if needed
+    
+  } catch (error) {
+    console.error('Error checking for missing students:', error);
   }
 }
 

@@ -187,6 +187,7 @@ router.post('/register-student', async (req, res) => {
     const { 
       firstName, middleName, lastName, nameExtension, 
       idNumber, email, gender, contactNumber, 
+      address, // This can now be an object with components
       yearLevel, section, password, major 
     } = req.body;
     
@@ -296,6 +297,13 @@ router.post('/register-student', async (req, res) => {
       },
       gender,
       contactNumber,
+      address: {
+        block: address?.block || '',
+        street: address?.street || '',
+        barangay: address?.barangay || '',
+        municipality: address?.municipality || '',
+        province: address?.province || ''
+      },
       major: major || 'Business Informatics', // Default to a major if not specified
       odysseyPlanCompleted: false,
       srmSurveyCompleted: false,

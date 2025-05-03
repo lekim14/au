@@ -238,7 +238,7 @@
             >
               <option value="">Select Subject</option>
               <option v-for="subject in filteredSubjects" :key="subject._id" :value="subject._id">
-                {{ subject.sspCode }} - {{ subject.name || subject.sspCode }} ({{ subject.hours }} hr)
+                {{ subject.sspCode }} ({{ subject.hours }} hr)
               </option>
             </select>
             <p v-if="errors.subjectId" class="mt-1 text-sm text-red-500">{{ errors.subjectId }}</p>
@@ -308,15 +308,15 @@
               </td>
             </tr>
             <tr>
-              <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">School Year</td>
+              <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">Semester</td>
               <td class="px-4 py-2">
-                {{ selectedClass?.sspSubject?.schoolYear || '2024 - 2025' }}
+                {{ selectedClass?.sspSubject?.semester || selectedClass?.subject?.semester || '' }}
               </td>
             </tr>
             <tr>
-              <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">Semester</td>
+              <td class="px-4 py-2 bg-gray-50 font-medium text-gray-700">School Year</td>
               <td class="px-4 py-2">
-                {{ selectedClass?.sspSubject?.semester || 'Not Set' }}
+                {{ selectedClass?.sspSubject?.schoolYear || selectedClass?.subject?.schoolYear || '2024 - 2025' }}
               </td>
             </tr>
             <tr>
@@ -461,27 +461,13 @@
               v-model="editedClass.subjectId"
               class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
               :class="{ 'border-red-500': errors.subjectId }"
-              @change="handleEditSubjectChange"
             >
               <option value="">Select Subject</option>
-              <option v-for="subject in filteredEditSubjects" :key="subject._id" :value="subject._id">
-                {{ subject.sspCode }} - {{ subject.name || subject.sspCode }} ({{ subject.hours }} hr)
+              <option v-for="subject in editFilteredSubjects" :key="subject._id" :value="subject._id">
+                {{ subject.sspCode }} ({{ subject.hours }} hr)
               </option>
             </select>
             <p v-if="errors.subjectId" class="mt-1 text-sm text-red-500">{{ errors.subjectId }}</p>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Semester</label>
-            <select
-              v-model="editedClass.semester"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-            >
-              <option value="">Select Semester</option>
-              <option value="First Semester">First Semester</option>
-              <option value="Second Semester">Second Semester</option>
-              <option value="Summer">Summer</option>
-            </select>
           </div>
           
           <div>
@@ -531,6 +517,7 @@ import { notificationService } from '../../services/notificationService'
 import { systemOptionsService } from '../../services/systemOptionsService'
 import ClassDetailsView from '../../components/admin/ClassDetailsView.vue'
 import api from '../../services/api'
+import { studentService } from '../../services/studentService'
 
 // State
 const loading = ref(true)
@@ -551,8 +538,7 @@ const editedClass = ref({
   room: '',
   status: 'active',
   timeSchedule: '',
-  subjectId: '',
-  semester: ''
+  subjectId: ''
 })
 const showEditModal = ref(false)
 
@@ -737,7 +723,7 @@ const filteredSubjects = computed(() => {
 })
 
 // Filter subjects for edit modal based on selected year level
-const filteredEditSubjects = computed(() => {
+const editFilteredSubjects = computed(() => {
   if (!editedClass.value.yearLevel) {
     return subjects.value || [];
   }
@@ -809,11 +795,40 @@ watch(systemOptionsData, (newVal) => {
   }
 }, { deep: true })
 
+// Auto-assign students to classes when the view loads
+async function ensureStudentClassAssignments() {
+  try {
+    console.log('Ensuring all students are properly assigned to classes');
+    const response = await studentService.assignClassesToStudents();
+    console.log('Auto-assignment results:', response);
+    
+    if (response.assigned > 0 || (response.mismatches && response.mismatches.fixed > 0)) {
+      notificationService.showSuccess(
+        `Auto-assigned ${response.assigned} students to classes and fixed ${response.mismatches?.fixed || 0} mismatches`
+      );
+      
+      // Refresh class list to show updated student counts
+      await fetchClasses();
+    }
+  } catch (error) {
+    console.error('Error ensuring student class assignments:', error);
+    // Don't show error to user as this is a background operation
+  }
+}
+
 // Fetch data on mount
 onMounted(async () => {
-  await loadSystemOptions()
-  await fetchClasses()
-  await fetchSubjects()
+  try {
+    await loadSystemOptions()
+    await fetchClasses()
+    await fetchSubjects()
+    
+    // Run auto-assignment after loading classes
+    await ensureStudentClassAssignments()
+  } catch (error) {
+    console.error('Error initializing classes view:', error)
+    notificationService.showError('Failed to load initial data')
+  }
 })
 
 // Load system options from API
@@ -863,16 +878,132 @@ async function fetchClasses() {
   try {
     console.log('Fetching active classes')
     const response = await classService.getAll()
-    allClasses.value = response
-    classes.value = response
-    console.log(`Fetched ${response.length} active classes`)
+    console.log(`Got ${response.length} raw classes from API`)
+    
+    // Process classes to ensure semester information is properly set
+    const processedClasses = await Promise.all(response.map(async classItem => {
+      // Make a copy to avoid mutating the original
+      const processedClass = { ...classItem };
+      
+      console.log(`Processing class ${processedClass._id}`, { 
+        hasSubject: !!processedClass.subject,
+        hasSSPSubject: !!processedClass.sspSubject,
+        originalSemester: processedClass.sspSubject?.semester || processedClass.subject?.semester || 'none'
+      });
+      
+      // If sspSubject is just an ID reference, fetch the full subject data
+      if (processedClass.sspSubject && (typeof processedClass.sspSubject === 'string' || !processedClass.sspSubject.sspCode)) {
+        const subjectId = typeof processedClass.sspSubject === 'string' ? processedClass.sspSubject : processedClass.sspSubject._id;
+        console.log(`Class ${processedClass._id} has sspSubject as ID reference, fetching full subject data for ID: ${subjectId}`);
+        
+        try {
+          const subjectResponse = await api.get(`/subjects/${subjectId}`);
+          if (subjectResponse.data) {
+            processedClass.sspSubject = subjectResponse.data;
+            console.log(`Fetched full subject data for class ${processedClass._id}:`, {
+              sspCode: processedClass.sspSubject.sspCode,
+              semester: processedClass.sspSubject.semester
+            });
+          }
+        } catch (err) {
+          console.error(`Error fetching subject data for class ${processedClass._id}:`, err);
+        }
+      }
+      
+      // Handle semester information
+      if (processedClass.sspSubject) {
+        // Ensure sspSubject is a full object, not just an ID reference
+        if (typeof processedClass.sspSubject === 'string' || !processedClass.sspSubject.sspCode) {
+          console.log(`Class ${processedClass._id} has sspSubject as ID or incomplete object, need to populate`);
+          processedClass.needsSubjectData = true;
+          
+          // Create a temporary placeholder
+          if (typeof processedClass.sspSubject === 'string') {
+            processedClass.sspSubjectId = processedClass.sspSubject;
+            processedClass.sspSubject = {
+              sspCode: 'Loading...',
+              semester: '',
+              schoolYear: '2024 - 2025'
+            };
+          }
+        }
+        
+        // Ensure semester is set from subject if missing in sspSubject
+        if (!processedClass.sspSubject.semester && processedClass.subject && processedClass.subject.semester) {
+          console.log(`Setting semester ${processedClass.subject.semester} from subject for class ${processedClass._id}`);
+          processedClass.sspSubject.semester = processedClass.subject.semester;
+        }
+      } else if (processedClass.subject) {
+        // Create sspSubject if it doesn't exist but subject does
+        console.log(`Creating sspSubject from subject for class ${processedClass._id}`);
+        processedClass.sspSubject = {
+          sspCode: processedClass.subject.sspCode || '',
+          semester: processedClass.subject.semester || '',
+          schoolYear: processedClass.subject.schoolYear || '2024 - 2025',
+          hours: processedClass.subject.hours || 1
+        };
+      } else if (processedClass.sspSubjectId) {
+        // If we have a subject ID but no subject data, fetch the subject directly
+        console.log(`Class ${processedClass._id} has sspSubjectId but no subject data, fetching from API`);
+        try {
+          const subjectResponse = await api.get(`/subjects/${processedClass.sspSubjectId}`);
+          if (subjectResponse.data) {
+            processedClass.sspSubject = subjectResponse.data;
+            console.log(`Fetched subject data for class ${processedClass._id}:`, {
+              sspCode: processedClass.sspSubject.sspCode,
+              semester: processedClass.sspSubject.semester
+            });
+          } else {
+            processedClass.sspSubject = {
+              sspCode: 'Not Found',
+              semester: '',
+              schoolYear: '2024 - 2025'
+            };
+          }
+        } catch (err) {
+          console.error(`Error fetching subject for class ${processedClass._id}:`, err);
+          processedClass.sspSubject = {
+            sspCode: 'Error Loading',
+            semester: '',
+            schoolYear: '2024 - 2025'
+          };
+        }
+      }
+      
+      // If still no semester, try to fetch the class with populated subject
+      if (!processedClass.sspSubject?.semester) {
+        try {
+          console.log(`No semester found for class ${processedClass._id}, trying to fetch complete class data`);
+          const classResponse = await api.get(`/classes/${processedClass._id}`);
+          if (classResponse.data) {
+            if (classResponse.data.sspSubject && classResponse.data.sspSubject.semester) {
+              if (!processedClass.sspSubject) processedClass.sspSubject = {};
+              processedClass.sspSubject.sspCode = classResponse.data.sspSubject.sspCode || processedClass.sspSubject.sspCode;
+              processedClass.sspSubject.semester = classResponse.data.sspSubject.semester;
+              console.log(`Updated semester to ${processedClass.sspSubject.semester} from class API`);
+            } else if (classResponse.data.subject && classResponse.data.subject.semester) {
+              if (!processedClass.sspSubject) processedClass.sspSubject = {};
+              processedClass.sspSubject.sspCode = classResponse.data.subject.sspCode || processedClass.sspSubject.sspCode;
+              processedClass.sspSubject.semester = classResponse.data.subject.semester;
+              console.log(`Updated semester to ${processedClass.sspSubject.semester} from subject in class API`);
+            }
+          }
+        } catch (err) {
+          console.error(`Error fetching complete class data for ${processedClass._id}:`, err);
+        }
+      }
+      
+      console.log(`Final semester for class ${processedClass._id}: ${processedClass.sspSubject?.semester || 'Not set'}`);
+      return processedClass;
+    }));
+    
+    allClasses.value = processedClasses;
+    classes.value = processedClasses;
   } catch (error) {
-    console.error('Error fetching classes:', error)
-    notificationService.showError('Failed to fetch classes. Please try again later.')
-    allClasses.value = []
-    classes.value = []
+    console.error('Error fetching classes:', error);
+    notificationService.showError('Failed to load classes');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
@@ -1052,18 +1183,37 @@ function viewDetails(classItem) {
   selectedClass.value = classItem;
   
   // If the class has a subject reference but not the full subject object, fetch it
-  if (classItem.sspSubjectId && !classItem.sspSubject) {
+  if (classItem.sspSubjectId && (!classItem.sspSubject || !classItem.sspSubject.semester)) {
     subjectService.getById(classItem.sspSubjectId)
       .then(subject => {
+        console.log('Fetched subject details:', subject);
         // Create a new object to ensure reactivity
         selectedClass.value = {
           ...selectedClass.value,
-          sspSubject: subject
+          sspSubject: {
+            ...(selectedClass.value.sspSubject || {}),
+            sspCode: subject.sspCode || '',
+            semester: subject.semester || '', // Ensure semester is included
+            schoolYear: subject.schoolYear || ''
+          }
         };
+        console.log('Updated selectedClass with subject details:', selectedClass.value);
       })
       .catch(error => {
         console.error('Error fetching subject details:', error);
       });
+  } else if (classItem.subject && classItem.subject.semester && (!classItem.sspSubject || !classItem.sspSubject.semester)) {
+    // Copy semester from subject to sspSubject if needed
+    selectedClass.value = {
+      ...selectedClass.value,
+      sspSubject: {
+        ...(selectedClass.value.sspSubject || {}),
+        sspCode: classItem.subject.sspCode || '',
+        semester: classItem.subject.semester || '',
+        schoolYear: classItem.subject.schoolYear || ''
+      }
+    };
+    console.log('Copied semester from subject to sspSubject:', selectedClass.value);
   }
   
   // Show the details modal
@@ -1145,8 +1295,7 @@ function setupEditClassForm(classItem) {
     room: classItem.room || '',
     status: classItem.status || 'active',
     timeSchedule: classItem.timeSchedule || '',
-    subjectId: '',
-    semester: classItem.sspSubject?.semester || 'Not Set'
+    subjectId: ''
   };
   
   // Save reference to current class
@@ -1219,8 +1368,7 @@ async function updateClass() {
       status: editedClass.value.status || 'active',
       timeSchedule: editedClass.value.timeSchedule,
       sspSubjectId: editedClass.value.subjectId, // Changed from sspSubject to sspSubjectId to match server expectation
-      hours: hours,
-      semester: editedClass.value.semester
+      hours: hours
     };
     
     // Log what we're sending
@@ -1366,33 +1514,31 @@ function handleEditYearLevelChange() {
   }
 }
 
-function handleEditSubjectChange() {
-  // Find the selected subject
-  selectedEditSubject.value = subjects.value.find(subject => subject._id === editedClass.value.subjectId)
-  
-  // Reset timeSchedule when subject changes
-  editedClass.value.timeSchedule = ''
-}
-
 function getSubjectName(classItem) {
   if (!classItem) return 'Not Assigned';
   
-  let subjectName = 'Not Assigned';
+  console.log('getSubjectName input:', classItem);
+  console.log('sspSubject:', classItem.sspSubject);
+  console.log('subject:', classItem.subject);
+  
   let subjectCode = '';
+  let semester = '';
   
   if (classItem.subject) {
-    subjectName = classItem.subject.name || classItem.subject.sspCode;
     subjectCode = classItem.subject.sspCode;
+    semester = classItem.subject.semester;
   } else if (classItem.sspSubject) {
-    subjectName = classItem.sspSubject.name || classItem.sspSubject.sspCode;
     subjectCode = classItem.sspSubject.sspCode;
+    semester = classItem.sspSubject.semester;
   }
   
-  if (subjectCode) {
-    return `${subjectCode}: ${subjectName}`;
-  }
+  if (!subjectCode) return 'Not Assigned';
   
-  return subjectName;
+  // Log the semester information for debugging
+  console.log(`Subject: ${subjectCode}, Semester: ${semester || 'Not Set'}`);
+  
+  // Return the subject code without semester since we've added a separate row for semester
+  return subjectCode;
 }
 
 // Function to show the time schedule

@@ -6,6 +6,7 @@ const Subject = require('../models/Subject');
 const { authenticate, authorizeAdmin } = require('../middleware/auth');
 const Student = require('../models/Student');
 const mongoose = require('mongoose');
+const User = require('../models/User');
 
 // Get all classes
 router.get('/', authenticate, authorizeAdmin, async (req, res) => {
@@ -25,7 +26,10 @@ router.get('/', authenticate, authorizeAdmin, async (req, res) => {
       query.status = status;
     }
     
-    const classes = await Class.find(query).populate('sspSubject', 'sspCode');
+    // Populate the subject with more fields including semester
+    const classes = await Class.find(query)
+      .populate('sspSubject', 'sspCode name semester schoolYear hours sessions secondSemesterSessions');
+    
     res.json(classes);
   } catch (error) {
     console.error('Get classes error:', error);
@@ -46,7 +50,7 @@ router.get('/:id', authenticate, async (req, res) => {
     
     // First get the class with populated students and subject
     const classItem = await Class.findById(id)
-      .populate('sspSubject', 'sspCode name sessions')
+      .populate('sspSubject', 'sspCode name sessions semester schoolYear hours secondSemesterSessions')
       .populate({
         path: 'students',
         populate: {
@@ -61,6 +65,7 @@ router.get('/:id', authenticate, async (req, res) => {
     
     console.log(`Found class: ${classItem.yearLevel} Year - ${classItem.section} (${classItem.major})`);
     console.log(`Class has ${classItem.students.length} students in students array`);
+    console.log(`Class subject data:`, classItem.sspSubject);
     
     // Look for any additional students that should be in this class but aren't in the students array
     // This helps cover cases where the student.class reference exists but the class.students array wasn't updated
@@ -146,7 +151,7 @@ router.get('/:id', authenticate, async (req, res) => {
 // Create new class
 router.post('/', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { yearLevel, section, major, daySchedule, timeSchedule, room, sspSubjectId, hours, semester } = req.body;
+    const { yearLevel, section, major, daySchedule, timeSchedule, room, sspSubjectId, hours } = req.body;
     
     // Check if yearLevel is provided
     if (!yearLevel) {
@@ -198,8 +203,7 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
       timeSchedule,
       room,
       hours: classHours,
-      sspSubject: sspSubjectId,
-      semester
+      sspSubject: sspSubjectId  // Map sspSubjectId to sspSubject for the database
     });
     
     await newClass.save();
@@ -214,7 +218,7 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
 // Update class
 router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { yearLevel, section, major, daySchedule, timeSchedule, room, sspSubjectId, status, hours, semester } = req.body;
+    const { yearLevel, section, major, daySchedule, timeSchedule, room, sspSubjectId, status, hours } = req.body;
     
     const classItem = await Class.findById(req.params.id);
     
@@ -230,7 +234,6 @@ router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
     if (timeSchedule) classItem.timeSchedule = timeSchedule;
     if (room) classItem.room = room;
     if (hours) classItem.hours = hours;
-    if (semester) classItem.semester = semester;
     
     if (sspSubjectId) {
       // Check if SSP subject exists
@@ -406,6 +409,121 @@ router.put('/reactivate/:id', authenticate, authorizeAdmin, async (req, res) => 
   } catch (error) {
     console.error('Reactivate class error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all classes - with adviser-friendly authentication
+router.get('/all-for-adviser', authenticate, async (req, res) => {
+  try {
+    console.log('Getting all active classes for adviser view');
+    
+    // Check if user is admin or adviser
+    if (req.user.role !== 'admin' && req.user.role !== 'adviser') {
+      return res.status(403).json({ message: 'Access denied. Admin or adviser role required.' });
+    }
+    
+    const userId = req.user.id;
+    console.log(`Request from user ${userId} with role ${req.user.role}`);
+    
+    let query = { status: 'active' };
+    
+    // If user is an adviser, only return their classes
+    if (req.user.role === 'adviser') {
+      query.adviser = userId;
+    }
+    
+    // Get classes with populated SSP subject
+    const classes = await Class.find(query)
+      .populate({
+        path: 'sspSubject',
+        select: 'sspCode yearLevel hours schoolYear semester'
+      })
+      .lean();
+    
+    console.log(`Found ${classes.length} classes matching query`);
+    
+    // For each class, count the students
+    const enhancedClasses = await Promise.all(classes.map(async (classItem) => {
+      // Count students in this class
+      const studentCount = await Student.countDocuments({
+        class: classItem._id,
+        status: 'active'
+      });
+      
+      return {
+        ...classItem,
+        studentCount
+      };
+    }));
+    
+    return res.json(enhancedClasses);
+  } catch (error) {
+    console.error('Error getting classes for adviser view:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get a class by ID with adviser-friendly authentication
+router.get('/by-id/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    
+    console.log(`User ${userId} with role ${userRole} accessing class ${id}`);
+    
+    // Verify user has permission (admin or assigned adviser)
+    if (userRole !== 'admin' && userRole !== 'adviser') {
+      console.warn(`User ${userId} with role ${userRole} attempted to access class ${id}`);
+      return res.status(403).json({ message: 'Access denied. Admin or adviser role required.' });
+    }
+    
+    // Find the class with populated subject
+    const classItem = await Class.findById(id)
+      .populate({
+        path: 'sspSubject',
+        select: 'sspCode yearLevel hours schoolYear semester'
+      })
+      .populate('adviser');
+    
+    if (!classItem) {
+      return res.status(404).json({ message: 'Class not found' });
+    }
+    
+    // If user is an adviser, check if they are assigned to this class
+    if (userRole === 'adviser' && classItem.adviser) {
+      if (classItem.adviser._id.toString() !== userId) {
+        // Check if the user is designated as an admin-adviser (special case)
+        const isAdminAdviser = await User.findOne({
+          _id: userId,
+          role: 'adviser',
+          isAdminAdviser: true
+        });
+        
+        if (!isAdminAdviser) {
+          console.warn(`Adviser ${userId} attempted to access class ${id} assigned to adviser ${classItem.adviser._id}`);
+          return res.status(403).json({ message: 'Access denied. You are not assigned to this class.' });
+        }
+      }
+    }
+    
+    // Count students in this class
+    const studentCount = await Student.countDocuments({
+      class: id,
+      status: 'active'
+    });
+    
+    // Add student count to the response
+    const result = {
+      ...classItem.toObject(),
+      studentCount
+    };
+    
+    console.log(`Returning class ${id} with ${studentCount} students`);
+    return res.json(result);
+  } catch (error) {
+    console.error('Error getting class by ID:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

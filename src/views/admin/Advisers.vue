@@ -78,7 +78,7 @@
               {{ adviser.idNumber || 'N/A' }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              {{ adviser.salutation || '' }} {{ adviser.firstName || '' }} {{ adviser.lastName || '' }}
+              {{ adviser.salutation || '' }} {{ adviser.firstName || '' }} {{ adviser.middleName ? adviser.middleName + ' ' : '' }}{{ adviser.lastName || '' }} {{ adviser.nameExtension ? adviser.nameExtension : '' }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ adviser.email || 'N/A' }}
@@ -152,6 +152,16 @@
           </div>
           
           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Middle Name</label>
+            <input
+              v-model="newAdviser.middleName"
+              type="text"
+              placeholder="Middle Name"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+            />
+          </div>
+          
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
             <input
               v-model="newAdviser.lastName"
@@ -161,6 +171,16 @@
               :class="{ 'border-red-500': errors.lastName }"
             />
             <p v-if="errors.lastName" class="mt-1 text-sm text-red-500">{{ errors.lastName }}</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Name Extension</label>
+            <input
+              v-model="newAdviser.nameExtension"
+              type="text"
+              placeholder="e.g., Jr., Sr., III"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+            />
           </div>
           
           <div>
@@ -241,7 +261,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <p>{{ selectedAdviser.salutation || '' }} {{ selectedAdviser.firstName || '' }} {{ selectedAdviser.lastName || '' }}</p>
+            <p>{{ selectedAdviser.salutation || '' }} {{ selectedAdviser.firstName || '' }} {{ selectedAdviser.middleName ? selectedAdviser.middleName + ' ' : '' }}{{ selectedAdviser.lastName || '' }} {{ selectedAdviser.nameExtension ? selectedAdviser.nameExtension : '' }}</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -314,6 +334,16 @@
           </div>
           
           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Middle Name</label>
+            <input
+              v-model="editedAdviser.middleName"
+              type="text"
+              placeholder="Middle Name"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+            />
+          </div>
+          
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
             <input
               v-model="editedAdviser.lastName"
@@ -323,6 +353,16 @@
               :class="{ 'border-red-500': errors.lastName }"
             />
             <p v-if="errors.lastName" class="mt-1 text-sm text-red-500">{{ errors.lastName }}</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Name Extension</label>
+            <input
+              v-model="editedAdviser.nameExtension"
+              type="text"
+              placeholder="e.g., Jr., Sr., III"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+            />
           </div>
           
           <div>

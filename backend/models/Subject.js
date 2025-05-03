@@ -63,6 +63,17 @@ const SubjectSchema = new mongoose.Schema({
       }
     ]
   },
+  secondSemesterSessions: {
+    type: [SessionSchema],
+    validate: [
+      {
+        validator: function(sessions) {
+          return sessions.length <= 18;
+        },
+        message: 'Maximum 18 sessions allowed for second semester'
+      }
+    ]
+  },
   createdAt: {
     type: Date,
     default: Date.now

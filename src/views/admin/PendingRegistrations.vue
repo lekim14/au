@@ -192,6 +192,11 @@
                       </div>
                     </div>
                     
+                    <div class="mb-4">
+                      <h4 class="text-sm font-medium text-gray-500">Address</h4>
+                      <p>{{ viewModal.student.address || 'Not provided' }}</p>
+                    </div>
+                    
                     <div class="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <h4 class="text-sm font-medium text-gray-500">Gender</h4>

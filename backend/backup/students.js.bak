@@ -167,8 +167,8 @@ router.get('/pending', authenticate, authorizeAdmin, async (req, res) => {
     console.log(`Successfully processed ${formattedStudents.length} pending students`);
     res.json(formattedStudents);
   } catch (error) {
-    console.error('Error fetching pending registrations:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Get pending students error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
@@ -396,111 +396,10 @@ router.get('/user/:userId', authenticate, async (req, res) => {
       return res.status(404).json({ message: 'Student not found for this user' });
     }
     
-    // Find adviser information from AdvisoryClass collection
-    let adviserInfo = null;
-    
-    if (student.class) {
-      const advisoryClass = await mongoose.model('AdvisoryClass').findOne({ 
-        class: student.class._id,
-        status: 'active'
-      }).populate('adviser', 'firstName middleName lastName nameExtension salutation email contactNumber');
-      
-      if (advisoryClass && advisoryClass.adviser) {
-        adviserInfo = advisoryClass.adviser;
-      }
-    }
-    
-    // Add the adviser information to the response
-    const studentData = student.toObject();
-    studentData.adviserInfo = adviserInfo;
-    
-    res.json(studentData);
+    res.json(student);
   } catch (error) {
     console.error('Get student by user ID error:', error);
     res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Update profile by user ID
-router.put('/user/:userId/profile', authenticate, async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { firstName, lastName, email, contactNumber, address } = req.body;
-    
-    // Find student with this user ID
-    const student = await Student.findOne({ user: userId });
-    
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found for this user' });
-    }
-    
-    // Verify that the logged-in user is the owner of this profile
-    if (userId !== req.user._id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'You do not have permission to update this profile' });
-    }
-    
-    // Update contact information on student record
-    if (contactNumber) {
-      student.contactNumber = contactNumber;
-    }
-    
-    // Handle address as a structured object with components
-    if (address !== undefined) {
-      // Ensure each address component is updated if provided
-      if (typeof address === 'object') {
-        student.address = {
-          block: address.block !== undefined ? address.block : (student.address?.block || ''),
-          street: address.street !== undefined ? address.street : (student.address?.street || ''),
-          barangay: address.barangay !== undefined ? address.barangay : (student.address?.barangay || ''),
-          municipality: address.municipality !== undefined ? address.municipality : (student.address?.municipality || ''),
-          province: address.province !== undefined ? address.province : (student.address?.province || '')
-        };
-      } else {
-        // If address is not an object, set empty structure
-        student.address = {
-          block: '',
-          street: '',
-          barangay: '',
-          municipality: '',
-          province: ''
-        };
-      }
-    }
-    
-    await student.save();
-    
-    // Update user information
-    if (firstName || lastName || email) {
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'User record not found' });
-      }
-      
-      if (firstName) user.firstName = firstName;
-      if (lastName) user.lastName = lastName;
-      if (email) user.email = email;
-      
-      await user.save();
-    }
-    
-    res.json({ 
-      message: 'Profile updated successfully',
-      data: {
-        student: {
-          ...student.toObject(),
-          contactNumber: student.contactNumber,
-          address: student.address,
-          user: {
-            firstName: firstName || (student.user && student.user.firstName),
-            lastName: lastName || (student.user && student.user.lastName),
-            email: email || (student.user && student.user.email)
-          }
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Update student profile by user ID error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
@@ -756,12 +655,7 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
 // Update student
 router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { 
-      firstName, middleName, lastName, nameExtension, 
-      email, idNumber, contactNumber, address,
-      gender, major, yearLevel, section, 
-      classId, odysseyPlanCompleted, srmSurveyCompleted, status 
-    } = req.body;
+    const { classId, odysseyPlanCompleted, srmSurveyCompleted, status } = req.body;
     
     const student = await Student.findById(req.params.id);
     
@@ -769,42 +663,6 @@ router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
     
-    // Update student fields
-    if (contactNumber) {
-      student.contactNumber = contactNumber;
-    }
-    
-    // Handle address as a structured object with components
-    if (address !== undefined) {
-      // Ensure each address component is updated if provided
-      if (typeof address === 'object') {
-        student.address = {
-          block: address.block !== undefined ? address.block : (student.address?.block || ''),
-          street: address.street !== undefined ? address.street : (student.address?.street || ''),
-          barangay: address.barangay !== undefined ? address.barangay : (student.address?.barangay || ''),
-          municipality: address.municipality !== undefined ? address.municipality : (student.address?.municipality || ''),
-          province: address.province !== undefined ? address.province : (student.address?.province || '')
-        };
-      } else {
-        // If address is not an object, set empty structure
-        student.address = {
-          block: '',
-          street: '',
-          barangay: '',
-          municipality: '',
-          province: ''
-        };
-      }
-    }
-    
-    if (gender) {
-      student.gender = gender;
-    }
-    
-    if (major) {
-      student.major = major;
-    }
-
     // If class is changing, handle class assignments
     if (classId && classId !== student.class?.toString()) {
       // Check if new class exists
@@ -840,7 +698,7 @@ router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
     if (srmSurveyCompleted !== undefined) student.srmSurveyCompleted = srmSurveyCompleted;
     
     if (status) {
-      if (!['active', 'inactive', 'suspended', 'graduated'].includes(status)) {
+      if (!['active', 'inactive', 'archived'].includes(status)) {
         return res.status(400).json({ message: 'Invalid status' });
       }
       student.status = status;
@@ -852,27 +710,10 @@ router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
     student.updatedAt = Date.now();
     await student.save();
     
-    // Update user information if provided
-    if (firstName || lastName || middleName || nameExtension || email || idNumber) {
-      const user = await User.findById(student.user);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      
-      if (firstName) user.firstName = firstName;
-      if (middleName) user.middleName = middleName;
-      if (lastName) user.lastName = lastName;
-      if (nameExtension) user.nameExtension = nameExtension;
-      if (email) user.email = email;
-      if (idNumber) user.idNumber = idNumber;
-      
-      await user.save();
-    }
-    
-    res.json({ message: 'Student updated successfully', student });
+    res.json({ message: 'Student updated successfully' });
   } catch (error) {
     console.error('Update student error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -988,122 +829,158 @@ router.get('/force-create-test', async (req, res) => {
   }
 });
 
-// AUTO-ASSIGN STUDENTS TO APPROPRIATE CLASSES
-router.post('/assign-classes', async (req, res) => {
+// Match and assign students to classes based on yearLevel, section, and major
+router.post('/assign-classes', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    console.log('Assign classes request received:', req.body);
-    const forceReassign = req.body.forceReassign === true;
-    console.log('Force reassign mode:', forceReassign);
+    console.log('Starting to assign students to classes');
     
-    // Query to find students:
-    // If forceReassign is true - get all active students
-    // If forceReassign is false - get only unassigned students
-    const query = forceReassign 
-      ? { active: true } 
-      : { 
-          $or: [
-            { class: { $exists: false } },
-            { class: null },
-            { class: "" }
-          ],
-          active: true
-        };
-    
-    console.log('Using query to find students:', JSON.stringify(query));
-    const students = await Student.find(query);
-    console.log(`Found ${students.length} students to process`);
-    
-    // Find all active classes
-    const classes = await Class.find({ active: true });
+    // Get all active classes
+    const classes = await Class.find({ status: 'active' });
     console.log(`Found ${classes.length} active classes`);
     
-    // Log class details for debugging
-    classes.forEach(classObj => {
-      console.log(`Class: ${classObj._id}, YL: ${classObj.yearLevel}, Sec: ${classObj.section}, Major: ${classObj.major || 'none'}`);
-    });
+    // Get all students (both active and pending approved)
+    const students = await Student.find({
+      $or: [
+        { status: 'active' },
+        { approvalStatus: 'approved' }
+      ]
+    }).populate('user', 'firstName lastName'); // Populate user for better logging
+    
+    console.log(`Found ${students.length} total students to process`);
     
     let assignedCount = 0;
-    let failedCount = 0;
-    const assignmentErrors = [];
+    let updatedClasses = [];
+    let failedStudents = [];
     
-    // Process each student
+    // For each student, find matching class
     for (const student of students) {
       try {
-        console.log(`Processing student: ${student._id} (${student.lastName}, ${student.firstName})`);
-        console.log(`Student details - YL: ${student.yearLevel}, Major: ${student.major || 'none'}, Class details:`, student.classDetails);
+        const studentName = student.user ? `${student.user.firstName} ${student.user.lastName}` : `Student ${student._id}`;
+        console.log(`Processing student ${student._id} (${studentName})`);
         
-        // Find a matching class for this student
-        let matchingClass = null;
-        
-        // Try to find an exact match first (year, section, and major)
-        if (student.classDetails && student.classDetails.yearLevel && student.classDetails.section) {
-          const yearLevel = student.classDetails.yearLevel;
-          const section = student.classDetails.section;
-          const major = student.major || "";
-          
-          matchingClass = classes.find(c => 
-            c.yearLevel === yearLevel && 
-            c.section === section && 
-            (c.major || "") === major
-          );
-          
-          if (matchingClass) {
-            console.log(`Found exact class match: ${matchingClass._id} (${matchingClass.yearLevel}-${matchingClass.section})`);
+        // Skip if already assigned to a class and class exists
+        if (student.class) {
+          const existingClass = classes.find(c => c._id.toString() === student.class.toString());
+          if (existingClass) {
+            console.log(`Student ${studentName} already assigned to class ${student.class}`);
+            continue;
           } else {
-            // If no exact match with major, try without considering major
-            matchingClass = classes.find(c => 
-              c.yearLevel === yearLevel && 
-              c.section === section
-            );
-            
-            if (matchingClass) {
-              console.log(`Found partial class match (ignoring major): ${matchingClass._id} (${matchingClass.yearLevel}-${matchingClass.section})`);
-            }
+            console.log(`Student ${studentName} has invalid class reference ${student.class}, will reassign`);
           }
         }
         
-        // If still no match, fall back to year level only
-        if (!matchingClass && student.yearLevel) {
-          console.log(`Falling back to year level only match for student ${student._id}`);
-          matchingClass = classes.find(c => c.yearLevel === student.yearLevel);
-          
-          if (matchingClass) {
-            console.log(`Found year level only match: ${matchingClass._id} (${matchingClass.yearLevel}-${matchingClass.section})`);
-          }
+        // Get class details from either classDetails or directly from student
+        const yearLevel = student.classDetails?.yearLevel || '';
+        const section = student.classDetails?.section || '';
+        const major = student.classDetails?.major || student.major || '';
+        
+        if (!yearLevel || !section) {
+          console.log(`Student ${studentName} missing yearLevel or section info, skipping`);
+          failedStudents.push({
+            id: student._id,
+            name: studentName,
+            reason: 'Missing yearLevel or section information'
+          });
+          continue; // Skip if missing required info
+        }
+        
+        console.log(`Looking for a class matching: ${yearLevel} Year - ${section} - ${major}`);
+        
+        // Normalize year level for comparison (handle both "2" and "2nd" formats)
+        const normalizedYearLevel = yearLevel.toString().replace(/[^0-9]/g, '');
+        
+        // Find a matching class - first try exact match with all criteria
+        let matchingClass = classes.find(c => {
+          const classYearLevel = c.yearLevel.toString().replace(/[^0-9]/g, '');
+          return classYearLevel === normalizedYearLevel && 
+                 c.section === section && 
+                 c.major === major &&
+                 c.status === 'active';
+        });
+        
+        // If no exact match, try without matching major (if major is empty)
+        if (!matchingClass && (!major || major.trim() === '')) {
+          console.log(`No exact match with empty major, trying year and section only`);
+          matchingClass = classes.find(c => {
+            const classYearLevel = c.yearLevel.toString().replace(/[^0-9]/g, '');
+            return classYearLevel === normalizedYearLevel && 
+                   c.section === section &&
+                   c.status === 'active';
+          });
         }
         
         if (matchingClass) {
-          // Assign the class to the student
+          console.log(`Found matching class ${matchingClass._id} (${matchingClass.yearLevel} Year - ${matchingClass.section}) for student ${studentName}`);
+          
+          // Assign student to class
           student.class = matchingClass._id;
+          
+          // Update class details on student for reference
+          student.classDetails = {
+            yearLevel: matchingClass.yearLevel,
+            section: matchingClass.section,
+            major: matchingClass.major
+          };
+          
           await student.save();
+          console.log(`Saved student ${studentName} with class ${matchingClass._id}`);
+          
+          // Add student to class's students array if not already there
+          if (!matchingClass.students.includes(student._id)) {
+            matchingClass.students.push(student._id);
+            
+            if (!updatedClasses.includes(matchingClass._id.toString())) {
+              updatedClasses.push(matchingClass._id.toString());
+            }
+            
+            await matchingClass.save();
+            console.log(`Added student ${studentName} to class ${matchingClass._id}'s student list`);
+          } else {
+            console.log(`Student ${studentName} already in class ${matchingClass._id}'s student list`);
+          }
+          
           assignedCount++;
-          console.log(`✅ Assigned student ${student._id} to class ${matchingClass._id}`);
         } else {
-          failedCount++;
-          const errorMsg = `No matching class found for student ${student._id} (${student.lastName}, ${student.firstName})`;
-          console.error(errorMsg);
-          assignmentErrors.push(errorMsg);
+          console.log(`No matching class found for student ${studentName} with ${yearLevel} Year - ${section} - ${major}`);
+          failedStudents.push({
+            id: student._id,
+            name: studentName,
+            reason: `No matching class for ${yearLevel} Year - ${section} - ${major}`
+          });
         }
       } catch (studentError) {
-        failedCount++;
-        console.error(`Error processing student ${student._id}:`, studentError);
-        assignmentErrors.push(`Error with student ${student._id}: ${studentError.message}`);
+        const studentName = student.user ? `${student.user.firstName} ${student.user.lastName}` : `Student ${student._id}`;
+        console.error(`Error processing student ${studentName}:`, studentError);
+        failedStudents.push({
+          id: student._id,
+          name: studentName,
+          reason: studentError.message || 'Unknown error'
+        });
       }
     }
     
-    console.log(`Assignment complete. Assigned: ${assignedCount}, Failed: ${failedCount}`);
-    return res.json({
-      success: true,
-      message: `Successfully assigned ${assignedCount} students to classes (${failedCount} failed)`,
-      assigned: assignedCount,
-      failed: failedCount,
-      errors: assignmentErrors
+    console.log(`Assigned ${assignedCount} students to classes`);
+    console.log(`Updated ${updatedClasses.length} classes`);
+    console.log(`Failed to assign ${failedStudents.length} students`);
+    
+    res.json({
+      success: true, 
+      message: `Assigned ${assignedCount} students to classes`,
+      stats: {
+        processed: students.length,
+        assigned: assignedCount,
+        failed: failedStudents.length,
+        updatedClasses: updatedClasses.length
+      },
+      updatedClasses,
+      failedStudents: failedStudents.length > 0 ? failedStudents : undefined
     });
   } catch (error) {
-    console.error('Error in assign-classes route:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to assign students to classes: ' + error.message
+    console.error('Error assigning students to classes:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error assigning students to classes', 
+      error: error.message 
     });
   }
 });
@@ -1334,7 +1211,7 @@ router.put('/:id/fix-yearLevel', authenticate, authorizeAdmin, async (req, res) 
 router.put('/:id/profile', authenticate, async (req, res) => {
   try {
     const studentId = req.params.id;
-    const { firstName, lastName, email, contactNumber, address } = req.body;
+    const { firstName, lastName, email, contactNumber } = req.body;
     
     // Find the student record
     const student = await Student.findById(studentId);
@@ -1350,29 +1227,6 @@ router.put('/:id/profile', authenticate, async (req, res) => {
     // Update contact information on student record
     if (contactNumber) {
       student.contactNumber = contactNumber;
-    }
-    
-    // Handle address as a structured object with components
-    if (address !== undefined) {
-      // Ensure each address component is updated if provided
-      if (typeof address === 'object') {
-        student.address = {
-          block: address.block !== undefined ? address.block : (student.address?.block || ''),
-          street: address.street !== undefined ? address.street : (student.address?.street || ''),
-          barangay: address.barangay !== undefined ? address.barangay : (student.address?.barangay || ''),
-          municipality: address.municipality !== undefined ? address.municipality : (student.address?.municipality || ''),
-          province: address.province !== undefined ? address.province : (student.address?.province || '')
-        };
-      } else {
-        // If address is not an object, set empty structure
-        student.address = {
-          block: '',
-          street: '',
-          barangay: '',
-          municipality: '',
-          province: ''
-        };
-      }
     }
     
     await student.save();
@@ -1405,155 +1259,6 @@ router.put('/:id/profile', authenticate, async (req, res) => {
   } catch (error) {
     console.error('Update student profile error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// Get student details
-router.get('/details', authenticate, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    
-    // Find student by user ID
-    const student = await Student.findOne({ user: userId })
-      .populate('user', 'firstName lastName email idNumber')
-      .populate({
-        path: 'class',
-        populate: {
-          path: 'sspSubject',
-          select: 'sspCode yearLevel hours schoolYear semester'
-        }
-      });
-    
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-    
-    // Log detailed information for debugging
-    console.log(`Student details found for user ${userId}:`);
-    console.log(`- Student ID: ${student._id}`);
-    console.log(`- Class assigned: ${student.class ? student.class._id : 'None'}`);
-    
-    if (student.class) {
-      console.log(`- Class yearLevel: ${student.class.yearLevel}`);
-      console.log(`- Class section: ${student.class.section}`);
-      console.log(`- SSP Subject: ${student.class.sspSubject ? student.class.sspSubject._id : 'None'}`);
-      
-      if (student.class.sspSubject) {
-        console.log(`- Subject semester: ${student.class.sspSubject.semester}`);
-      }
-    } else {
-      console.warn(`Student ${student._id} has no class assigned`);
-    }
-    
-    // Set default classDetails if missing but class is assigned
-    if (student.class && (!student.classDetails || !student.classDetails.yearLevel)) {
-      student.classDetails = {
-        yearLevel: student.class.yearLevel || '',
-        section: student.class.section || '',
-        major: student.major || ''
-      };
-      await student.save();
-      console.log(`Updated missing classDetails for student ${student._id}`);
-    }
-    
-    // Try to update class assignment if missing but classDetails exists
-    if (!student.class && student.classDetails && student.classDetails.yearLevel && student.classDetails.section) {
-      console.log(`Attempting to find matching class for student ${student._id} with yearLevel: ${student.classDetails.yearLevel}, section: ${student.classDetails.section}`);
-      
-      const matchingClass = await Class.findOne({
-        yearLevel: student.classDetails.yearLevel,
-        section: student.classDetails.section,
-        status: 'active'
-      });
-      
-      if (matchingClass) {
-        student.class = matchingClass._id;
-        await student.save();
-        console.log(`Auto-assigned class ${matchingClass._id} to student ${student._id}`);
-      }
-    }
-    
-    res.json(student);
-  } catch (error) {
-    console.error('Error getting student details:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// Fix invalid class references
-router.post('/fix-class-references', async (req, res) => {
-  try {
-    console.log('Starting fix for invalid class references');
-    
-    // Get all students
-    const allStudents = await Student.find({}).lean();
-    console.log(`Found ${allStudents.length} total students to check`);
-    
-    // Get all valid classes
-    const allClasses = await Class.find({}).lean();
-    const validClassIds = allClasses.map(c => c._id.toString());
-    console.log(`Found ${allClasses.length} valid classes for reference`);
-    
-    let fixedCount = 0;
-    let noIssueCount = 0;
-    let errorCount = 0;
-    
-    // Process each student
-    for (const student of allStudents) {
-      try {
-        // Check if the student has a class reference
-        if (student.class) {
-          const studentId = student._id;
-          const classId = student.class.toString();
-          
-          // Check if the class reference is valid
-          if (!validClassIds.includes(classId)) {
-            console.log(`Found invalid class reference for student ${studentId}: ${classId}`);
-            
-            // Update the student to remove the invalid class reference
-            const updatedStudent = await Student.findByIdAndUpdate(
-              studentId,
-              { 
-                $unset: { class: 1 },
-                status: 'active'  // Ensure student is marked as active for reassignment
-              },
-              { new: true }
-            );
-            
-            console.log(`Fixed invalid class reference for student ${studentId}`);
-            fixedCount++;
-          } else {
-            // Valid class reference
-            noIssueCount++;
-          }
-        } else {
-          // No class reference, nothing to fix
-          noIssueCount++;
-        }
-      } catch (studentError) {
-        console.error(`Error processing student ${student._id}:`, studentError);
-        errorCount++;
-      }
-    }
-    
-    console.log(`Fix complete: ${fixedCount} students fixed, ${noIssueCount} had no issues, ${errorCount} errors`);
-    
-    // Return the results
-    return res.json({
-      success: true,
-      message: `Fixed invalid class references for ${fixedCount} students`,
-      results: {
-        fixed: fixedCount,
-        noIssue: noIssueCount,
-        errors: errorCount
-      }
-    });
-  } catch (error) {
-    console.error('Error fixing class references:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Error fixing class references: ' + error.message
-    });
   }
 });
 

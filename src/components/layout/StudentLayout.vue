@@ -87,19 +87,64 @@
             </div>
           </router-link>
           
-          <!-- SSP -->
-          <router-link 
-            to="/student/ssp" 
-            class="block px-4 py-2 rounded-md transition-colors"
-            :class="isActive('/student/ssp') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
-          >
-            <div class="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              SSP
+          <!-- SSP with dropdown -->
+          <div class="relative">
+            <button 
+              @click="toggleSSPDropdown" 
+              class="block w-full text-left px-4 py-2 rounded-md transition-colors"
+              :class="isActive('/student/ssp') || isActive('/student/ssp-history') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  SSP
+                </div>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  class="h-4 w-4 transition-transform duration-200" 
+                  :class="{'transform rotate-180': sspDropdownOpen}"
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </button>
+            
+            <!-- SSP Dropdown Items -->
+            <div v-if="sspDropdownOpen" class="pl-8 mt-1 space-y-1">
+              <router-link 
+                to="/student/ssp" 
+                class="block px-4 py-2 rounded-md transition-colors"
+                :class="isActive('/student/ssp') && !isActive('/student/ssp-history') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+                @click="showMobileMenu = false"
+              >
+                <div class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Current Sessions
+                </div>
+              </router-link>
+              
+              <router-link 
+                to="/student/ssp-history" 
+                class="block px-4 py-2 rounded-md transition-colors"
+                :class="isActive('/student/ssp-history') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+                @click="showMobileMenu = false"
+              >
+                <div class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Session History
+                </div>
+              </router-link>
             </div>
-          </router-link>
+          </div>
           
           <!-- Odyssey Plan -->
           <router-link 
@@ -239,19 +284,64 @@
               </div>
             </router-link>
             
-            <router-link 
-              to="/student/ssp" 
-              class="block px-4 py-2 rounded-md transition-colors"
-              :class="isActive('/student/ssp') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
-              @click="showMobileMenu = false"
-            >
-              <div class="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                SSP
+            <!-- Mobile SSP dropdown -->
+            <div class="relative">
+              <button 
+                @click="toggleMobileSSPDropdown" 
+                class="block w-full text-left px-4 py-2 rounded-md transition-colors"
+                :class="isActive('/student/ssp') || isActive('/student/ssp-history') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    SSP
+                  </div>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    class="h-4 w-4 transition-transform duration-200" 
+                    :class="{'transform rotate-180': mobileSSPDropdownOpen}"
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </button>
+              
+              <!-- Mobile SSP Dropdown Items -->
+              <div v-if="mobileSSPDropdownOpen" class="pl-8 mt-1 space-y-1">
+                <router-link 
+                  to="/student/ssp" 
+                  class="block px-4 py-2 rounded-md transition-colors"
+                  :class="isActive('/student/ssp') && !isActive('/student/ssp-history') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+                  @click="showMobileMenu = false"
+                >
+                  <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Current Sessions
+                  </div>
+                </router-link>
+                
+                <router-link 
+                  to="/student/ssp-history" 
+                  class="block px-4 py-2 rounded-md transition-colors"
+                  :class="isActive('/student/ssp-history') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+                  @click="showMobileMenu = false"
+                >
+                  <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Session History
+                  </div>
+                </router-link>
               </div>
-            </router-link>
+            </div>
             
             <router-link 
               to="/student/odyssey-plan" 
@@ -353,6 +443,8 @@ const authStore = useAuthStore();
 // State variables
 const showMobileMenu = ref(false);
 const profileMenuOpen = ref(false);
+const sspDropdownOpen = ref(false);
+const mobileSSPDropdownOpen = ref(false);
 
 // Computed properties
 const pageTitle = computed(() => {
@@ -380,6 +472,16 @@ function isActive(path) {
 function logout() {
   authStore.logout();
   router.push('/login');
+}
+
+// Toggle SSP dropdown
+function toggleSSPDropdown() {
+  sspDropdownOpen.value = !sspDropdownOpen.value;
+}
+
+// Toggle mobile SSP dropdown
+function toggleMobileSSPDropdown() {
+  mobileSSPDropdownOpen.value = !mobileSSPDropdownOpen.value;
 }
 </script>
 

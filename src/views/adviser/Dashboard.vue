@@ -211,7 +211,10 @@ const fetchActivities = async () => {
 const getClassSubject = (classItem) => {
   const cls = classItem?.class || {};
   const subject = cls?.sspSubject || {};
-  return subject?.sspCode || 'Unknown Subject';
+  const sspCode = subject?.sspCode || 'Unknown Subject';
+  const semester = subject?.semester;
+  
+  return semester ? `${sspCode} (${semester})` : sspCode;
 };
 
 const getClassSection = (classItem) => {

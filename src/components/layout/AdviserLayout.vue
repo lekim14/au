@@ -51,24 +51,76 @@
             </div>
           </router-link>
           
-          <!-- Classes -->
-          <router-link 
-            to="/adviser/classes" 
-            class="block px-4 py-2 rounded-md transition-colors"
-            :class="{ 
-              'bg-primary-light text-primary-dark': isActive('/adviser/classes'), 
-              'text-gray-700 hover:bg-gray-100': !isActive('/adviser/classes'),
-              'opacity-50 cursor-not-allowed': authStore.passwordChangeRequired
-            }"
-            @click.prevent="navigateTo('/adviser/classes')"
-          >
-            <div class="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              Classes
+          <!-- Classes with dropdown -->
+          <div class="relative">
+            <button 
+              @click="toggleClassesDropdown" 
+              class="block w-full text-left px-4 py-2 rounded-md transition-colors"
+              :class="{ 
+                'bg-primary-light text-primary-dark': isActive('/adviser/classes') || isActive('/adviser/classes-history'), 
+                'text-gray-700 hover:bg-gray-100': !isActive('/adviser/classes') && !isActive('/adviser/classes-history'),
+                'opacity-50 cursor-not-allowed': authStore.passwordChangeRequired
+              }"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  Classes
+                </div>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  class="h-4 w-4 transition-transform duration-200" 
+                  :class="{'transform rotate-180': classesDropdownOpen}"
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </button>
+            
+            <!-- Classes Dropdown Items -->
+            <div v-if="classesDropdownOpen" class="pl-8 mt-1 space-y-1">
+              <router-link 
+                to="/adviser/classes" 
+                class="block px-4 py-2 rounded-md transition-colors"
+                :class="{ 
+                  'bg-primary-light text-primary-dark': isActive('/adviser/classes'), 
+                  'text-gray-700 hover:bg-gray-100': !isActive('/adviser/classes'),
+                  'opacity-50 cursor-not-allowed': authStore.passwordChangeRequired
+                }"
+                @click.prevent="navigateTo('/adviser/classes')"
+              >
+                <div class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  Current Classes
+                </div>
+              </router-link>
+              
+              <router-link 
+                to="/adviser/classes-history" 
+                class="block px-4 py-2 rounded-md transition-colors"
+                :class="{ 
+                  'bg-primary-light text-primary-dark': isActive('/adviser/classes-history'), 
+                  'text-gray-700 hover:bg-gray-100': !isActive('/adviser/classes-history'),
+                  'opacity-50 cursor-not-allowed': authStore.passwordChangeRequired
+                }"
+                @click.prevent="navigateTo('/adviser/classes-history')"
+              >
+                <div class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Class History
+                </div>
+              </router-link>
             </div>
-          </router-link>
+          </div>
           
           <!-- Meetings & Consultations -->
           <router-link 
@@ -231,7 +283,65 @@
                 Profile
               </div>
             </router-link>
-            <!-- Other menu items follow the same pattern -->
+            
+            <!-- Mobile Classes dropdown -->
+            <div class="relative">
+              <button 
+                @click="toggleMobileClassesDropdown" 
+                class="block w-full text-left px-4 py-2 rounded-md transition-colors"
+                :class="isActive('/adviser/classes') || isActive('/adviser/classes-history') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    Classes
+                  </div>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    class="h-4 w-4 transition-transform duration-200" 
+                    :class="{'transform rotate-180': mobileClassesDropdownOpen}"
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </button>
+              
+              <!-- Mobile Classes Dropdown Items -->
+              <div v-if="mobileClassesDropdownOpen" class="pl-8 mt-1 space-y-1">
+                <router-link 
+                  to="/adviser/classes" 
+                  class="block px-4 py-2 rounded-md transition-colors"
+                  :class="isActive('/adviser/classes') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+                  @click="showMobileMenu = false"
+                >
+                  <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    Current Classes
+                  </div>
+                </router-link>
+                
+                <router-link 
+                  to="/adviser/classes-history" 
+                  class="block px-4 py-2 rounded-md transition-colors"
+                  :class="isActive('/adviser/classes-history') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+                  @click="showMobileMenu = false"
+                >
+                  <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Class History
+                  </div>
+                </router-link>
+              </div>
+            </div>
           </div>
         </nav>
       </div>
@@ -365,5 +475,19 @@ function navigateTo(path) {
     // Normal navigation
     router.push(path);
   }
+}
+
+// Classes dropdown state
+const classesDropdownOpen = ref(false);
+
+function toggleClassesDropdown() {
+  classesDropdownOpen.value = !classesDropdownOpen.value;
+}
+
+// Mobile Classes dropdown state
+const mobileClassesDropdownOpen = ref(false);
+
+function toggleMobileClassesDropdown() {
+  mobileClassesDropdownOpen.value = !mobileClassesDropdownOpen.value;
 }
 </script> 

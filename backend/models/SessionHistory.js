@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const SessionCompletionSchema = new mongoose.Schema({
+const SessionHistorySchema = new mongoose.Schema({
   student: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
@@ -13,12 +13,10 @@ const SessionCompletionSchema = new mongoose.Schema({
   },
   subject: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Subject',
-    required: true
+    ref: 'Subject'
   },
   session: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true
+    type: mongoose.Schema.Types.ObjectId
   },
   sessionDay: {
     type: Number,
@@ -35,32 +33,23 @@ const SessionCompletionSchema = new mongoose.Schema({
   completionDate: {
     type: Date
   },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  },
   markedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  notes: {
-    type: String
-  },
   semester: {
     type: String,
-    enum: ['1st Semester', '2nd Semester'],
-    default: '1st Semester'
+    required: true,
+    enum: ['1st Semester', '2nd Semester']
   },
   createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
     type: Date,
     default: Date.now
   }
 });
 
-// Create a compound index to ensure uniqueness per student-session combination
-SessionCompletionSchema.index(
-  { student: 1, session: 1 },
-  { unique: true }
-);
-
-module.exports = mongoose.model('SessionCompletion', SessionCompletionSchema); 
+module.exports = mongoose.model('SessionHistory', SessionHistorySchema); 

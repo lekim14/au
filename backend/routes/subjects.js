@@ -33,7 +33,7 @@ router.get('/:id', authenticate, authorizeAdmin, async (req, res) => {
 // Create new subject
 router.post('/', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { sspCode, name, yearLevel, sessions, description, semester, hours, schoolYear } = req.body;
+    const { sspCode, name, yearLevel, sessions, secondSemesterSessions, description, semester, hours, schoolYear } = req.body;
     
     // Check if subject with same code already exists
     const existingSubject = await Subject.findOne({ sspCode });
@@ -46,6 +46,11 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
       return res.status(400).json({ message: 'Maximum 18 sessions allowed per subject' });
     }
     
+    // Validate second semester sessions count
+    if (secondSemesterSessions && secondSemesterSessions.length > 18) {
+      return res.status(400).json({ message: 'Maximum 18 sessions allowed for second semester' });
+    }
+    
     // Create subject
     const subject = new Subject({
       sspCode,
@@ -55,7 +60,8 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
       semester,
       schoolYear: schoolYear || '2024 - 2025', // Default to current school year
       hours: hours || 1, // Default to 1 hour if not specified
-      sessions: sessions || []
+      sessions: sessions || [],
+      secondSemesterSessions: secondSemesterSessions || [] 
     });
     
     await subject.save();
@@ -77,7 +83,7 @@ router.post('/', authenticate, authorizeAdmin, async (req, res) => {
 // Update subject
 router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const { sspCode, name, yearLevel, sessions, description, semester, hours, schoolYear } = req.body;
+    const { sspCode, name, yearLevel, sessions, secondSemesterSessions, description, semester, hours, schoolYear } = req.body;
     
     const subject = await Subject.findById(req.params.id);
     
@@ -107,6 +113,13 @@ router.put('/:id', authenticate, authorizeAdmin, async (req, res) => {
         return res.status(400).json({ message: 'Maximum 18 sessions allowed per subject' });
       }
       subject.sessions = sessions;
+    }
+    
+    if (secondSemesterSessions) {
+      if (secondSemesterSessions.length > 18) {
+        return res.status(400).json({ message: 'Maximum 18 sessions allowed for second semester' });
+      }
+      subject.secondSemesterSessions = secondSemesterSessions;
     }
     
     subject.updatedAt = Date.now();

@@ -27,6 +27,7 @@ const AdviserMM = () => import('../views/adviser/MM.vue')
 const AdviserMonitoring = () => import('../views/adviser/Monitoring.vue')
 const AdviserAcademic = () => import('../views/adviser/Academic.vue')
 const AdviserAttendance = () => import('../views/adviser/Attendance.vue')
+const ClassesHistory = () => import('../views/adviser/ClassesHistory.vue')
 
 // Student views 
 const StudentLayout = () => import('../components/layout/StudentLayout.vue')
@@ -38,6 +39,7 @@ const StudentAnnouncements = () => import('../views/student/Announcements.vue')
 const StudentSSP = () => import('../views/student/SSP.vue')
 const StudentOdysseyPlan = () => import('../views/student/OdysseyPlan.vue')
 const StudentSurveys = () => import('../views/student/Surveys.vue')
+const SSPHistory = () => import('../views/student/SSPHistory.vue')
 
 // Routes
 const routes = [
@@ -191,6 +193,12 @@ const routes = [
         meta: { title: 'Classes' }
       },
       {
+        path: 'classes-history',
+        name: 'ClassesHistory',
+        component: ClassesHistory,
+        meta: { title: 'Classes History' }
+      },
+      {
         path: 'consultations',
         name: 'AdviserConsultations',
         component: AdviserConsultations,
@@ -262,6 +270,12 @@ const routes = [
         name: 'StudentSSP',
         component: StudentSSP,
         meta: { title: 'SSP' }
+      },
+      {
+        path: 'ssp-history',
+        name: 'SSPHistory',
+        component: SSPHistory,
+        meta: { title: 'SSP History' }
       },
       {
         path: 'odyssey-plan',

@@ -76,11 +76,9 @@ export const useAuthStore = defineStore('auth', {
         if (response.data) {
           this.user = response.data
           
-          // Check if user has ever changed their password (using localStorage)
-          const hasChangedPassword = localStorage.getItem('hasChangedPassword') === 'true'
-          
-          // Only set passwordChangeRequired if the user hasn't changed their password before
-          this.passwordChangeRequired = !hasChangedPassword && response.data.passwordChangeRequired === true
+          // Set passwordChangeRequired directly from the server response
+          // without checking localStorage
+          this.passwordChangeRequired = response.data.passwordChangeRequired === true
           
           return true
         }
@@ -111,9 +109,9 @@ export const useAuthStore = defineStore('auth', {
     
     clearPasswordChangeRequired() {
       this.passwordChangeRequired = false
-      // Set a flag that the user has changed their password
-      localStorage.setItem('hasChangedPassword', 'true')
-      // Also clear the stored flag for safety
+      // Don't set the hasChangedPassword flag anymore since we rely on server
+      // Remove any old localStorage flags that may exist
+      localStorage.removeItem('hasChangedPassword')
       localStorage.removeItem('passwordChangeRequired')
     }
   },

@@ -1,5 +1,6 @@
 import api from './api';
 import { useAuthStore } from '../stores/authStore';
+import axios from 'axios';
 
 export const studentService = {
   getAll: async (filters = {}) => {
@@ -176,16 +177,51 @@ export const studentService = {
     }
   },
   
-  // New method to assign classes to students
-  assignClassesToStudents: async () => {
+  // Enhanced method to assign classes to students
+  assignClassesToStudents: async (forceReassign = false) => {
     try {
-      console.log('Assigning all students to classes...');
-      const response = await api.post('/students/assign-classes');
-      console.log('Class assignment response:', response.data);
-      return response.data;
+      console.log(`Assigning classes to students (forceReassign: ${forceReassign})`);
+      
+      // Set timeout for 30 seconds since this can be a longer operation
+      const timeout = 30000;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
+      try {
+        const response = await api.post('/students/assign-classes', 
+          { forceReassign }, 
+          { signal: controller.signal }
+        );
+        
+        clearTimeout(timeoutId);
+        
+        if (!response || !response.data) {
+          console.error('No response data received from assign-classes API');
+          return { success: false, message: 'No response received from server' };
+        }
+        
+        console.log('Assignment API response:', response.data);
+        return response.data;
+      } catch (requestError) {
+        clearTimeout(timeoutId);
+        
+        if (requestError.name === 'AbortError') {
+          console.error('Assignment request timed out after', timeout, 'ms');
+          return { 
+            success: false, 
+            message: `Request timed out after ${timeout/1000} seconds. The operation might still be processing.` 
+          };
+        }
+        
+        console.error('Error in assignment API request:', requestError);
+        return { 
+          success: false, 
+          message: requestError.response?.data?.message || requestError.message || 'Server error during assignment'
+        };
+      }
     } catch (error) {
-      console.error('Failed to assign classes to students:', error);
-      throw error;
+      console.error('Error in assignClassesToStudents function:', error);
+      return { success: false, message: error.message };
     }
   },
 
@@ -248,29 +284,44 @@ export const studentService = {
       }
       
       console.log(`Fetching student details for user ${userId}`);
-      const response = await api.get(`/students/user/${userId}`);
       
-      // Ensure we have the expected data structure
-      if (!response.data) {
-        console.error('No student data returned from API');
-        throw new Error('No student data found');
-      }
-      
-      // Log if student has class assigned
-      if (response.data.class && response.data.class._id) {
-        console.log(`Student is assigned to class ${response.data.class._id}`);
+      // First try the new details endpoint which handles auto-assignment
+      try {
+        const response = await api.get('/students/details');
         
-        // Check if SSP subject exists
-        if (response.data.class.sspSubject) {
-          console.log(`Class has SSP subject: ${response.data.class.sspSubject.name}`);
-        } else {
-          console.warn('Class has no SSP subject assigned');
+        // Ensure we have the expected data structure
+        if (!response.data) {
+          console.error('No student data returned from API');
+          throw new Error('No student data found');
         }
-      } else {
-        console.warn('Student has no class assigned');
+        
+        // Log if student has class assigned
+        if (response.data.class && response.data.class._id) {
+          console.log(`Student is assigned to class ${response.data.class._id}`);
+          
+          // Check if SSP subject exists
+          if (response.data.class.sspSubject) {
+            console.log(`Class has SSP subject: ${response.data.class.sspSubject.sspCode}, semester: ${response.data.class.sspSubject.semester}`);
+          } else {
+            console.warn('Class has no SSP subject assigned');
+          }
+        } else {
+          console.warn('Student has no class assigned');
+        }
+        
+        return response;
+      } catch (detailsError) {
+        console.warn('Error using new details endpoint, falling back to legacy endpoint:', detailsError);
+        
+        // Fall back to the old user-based endpoint if the new one fails
+        const response = await api.get(`/students/user/${userId}`);
+        
+        if (!response.data) {
+          throw new Error('No student data found');
+        }
+        
+        return response;
       }
-      
-      return response;
     } catch (error) {
       console.error('Error fetching student details:', error);
       throw error;
@@ -278,9 +329,9 @@ export const studentService = {
   },
 
   /**
-   * Update student profile information
+   * Update the currently logged in student's profile
    * @param {Object} profileData - The profile data to update
-   * @returns {Promise<Object>} - The response
+   * @returns {Promise<Object>} - The update response
    */
   updateStudentProfile: async (profileData) => {
     try {
@@ -293,14 +344,9 @@ export const studentService = {
         throw new Error('User not authenticated');
       }
       
-      // First, get the student ID from the user ID
-      const studentResponse = await api.get(`/students/user/${userId}`);
-      if (!studentResponse || !studentResponse.data || !studentResponse.data._id) {
-        throw new Error('Student record not found');
-      }
+      console.log(`Updating student profile for user ${userId}:`, profileData);
       
-      // Now update the student record
-      const response = await api.put(`/students/${studentResponse.data._id}/profile`, profileData);
+      const response = await api.put(`/students/user/${userId}/profile`, profileData);
       return response;
     } catch (error) {
       console.error('Error updating student profile:', error);
@@ -323,16 +369,92 @@ export const studentService = {
     }
   },
 
-  // Add a new function to get advisory information
-  getAdvisoryInfo: async (studentId) => {
+  /**
+   * Loads students for a specific class
+   * @param {string} classId - The ID of the class to load students for
+   * @returns {Promise<Array>} - Array of student objects
+   */
+  loadStudentsByClass: async (classId) => {
     try {
-      const response = await api.get(`/students/${studentId}/advisory-info`);
-      return response.data;
+      if (!classId) {
+        console.error('No class ID provided to loadStudentsByClass')
+        return []
+      }
+      
+      console.log(`Loading students for class: ${classId}`)
+      const response = await api.get(`/students/class/${classId}`)
+      
+      if (!response || !response.data || !Array.isArray(response.data)) {
+        console.error('Invalid response from students API:', response?.data)
+        return []
+      }
+      
+      console.log(`Loaded ${response.data.length} students for class ${classId}`)
+      return response.data
     } catch (error) {
-      console.error('Error fetching student advisory info:', error);
-      throw error;
+      console.error('Error loading students by class:', error)
+      throw new Error(`Failed to load students: ${error.message}`)
     }
   },
+
+  /**
+   * Fix student class references by removing invalid class IDs and updating classDetails
+   * @returns {Promise<Object>} - Result of the operation
+   */
+  fixInvalidClassReferences: async () => {
+    try {
+      console.log('Fixing invalid class references for students');
+      
+      // Make API request to fix invalid class references
+      const response = await api.post('/students/fix-class-references');
+      
+      if (!response || !response.data) {
+        console.error('No response data received from fix-class-references API');
+        return { success: false, message: 'No response received from server' };
+      }
+      
+      console.log('Fix class references response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fixing student class references:', error);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || error.message || 'Error fixing student class references' 
+      };
+    }
+  },
+  
+  /**
+   * Clean student class references and then run assignment
+   * @param {boolean} forceReassign - Whether to force reassignment of all students 
+   * @returns {Promise<Object>} - Response with success status and message
+   */
+  cleanAndAssignClasses: async (forceReassign = false) => {
+    try {
+      console.log('Starting cleanup and class assignment process');
+      
+      // First clean up invalid class references
+      const fixResult = await studentService.fixInvalidClassReferences();
+      console.log('Fix invalid references result:', fixResult);
+      
+      // Then run the regular assignment with force option
+      const assignResult = await studentService.assignClassesToStudents(true);
+      console.log('Assignment result after cleanup:', assignResult);
+      
+      return {
+        success: true,
+        message: 'Class reference cleanup and assignment completed',
+        fixResult,
+        assignResult
+      };
+    } catch (error) {
+      console.error('Error in cleanup and assignment process:', error);
+      return { 
+        success: false, 
+        message: 'Failed to complete cleanup and assignment process' 
+      };
+    }
+  }
 };
 
 export default studentService; 

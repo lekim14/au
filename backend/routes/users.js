@@ -89,6 +89,11 @@ router.post('/change-password', authenticate, async (req, res) => {
     user.password = newPassword; // The User model will hash this
     user.updatedAt = new Date();
     
+    // Set passwordChangeRequired to false when password is changed
+    if (user.passwordChangeRequired) {
+      user.passwordChangeRequired = false;
+    }
+    
     await user.save();
     
     res.json({ message: 'Password updated successfully' });

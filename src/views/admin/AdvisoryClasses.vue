@@ -546,7 +546,15 @@ function getAdviserName(adviser = {}) {
 function getSubjectName(advisoryClass) {
   const cls = advisoryClass?.class || {};
   const subject = cls.sspSubject || {};
-  return subject.sspCode ? `${subject.sspCode} - ${subject.name || ''}` : 'Not assigned';
+  const sspCode = subject.sspCode || '';
+  const semester = subject.semester;
+  
+  if (!sspCode) return 'Not assigned';
+  
+  const name = subject.name || '';
+  const codeWithSemester = semester ? `${sspCode} (${semester})` : sspCode;
+  
+  return name ? `${codeWithSemester} - ${name}` : codeWithSemester;
 }
 
 async function openAddModal() {

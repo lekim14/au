@@ -37,6 +37,7 @@
             <div>{{ classItem.daySchedule }} / {{ classItem.timeSchedule }}</div>
             <div>Room: {{ classItem.room }}</div>
             <div>SSP: {{ classItem.sspSubject.sspCode }}</div>
+            <div>Semester: {{ classItem.sspSubject.semester || classItem.subject?.semester || '' }}</div>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center">
@@ -93,13 +94,13 @@
             <div class="flex justify-between">
               <span class="text-sm text-gray-600">Semester:</span>
               <span class="text-sm font-medium">
-                {{ selectedClass.sspSubject.semester }}
+                {{ selectedClass.sspSubject.semester || selectedClass.subject?.semester || '' }}
               </span>
             </div>
             <div class="flex justify-between">
               <span class="text-sm text-gray-600">School Year:</span>
               <span class="text-sm font-medium">
-                {{ selectedClass.sspSubject.schoolYear || '2024 - 2025' }}
+                {{ selectedClass.sspSubject.schoolYear || selectedClass.subject?.schoolYear || '2024 - 2025' }}
               </span>
             </div>
             <div class="flex justify-between">
@@ -193,8 +194,8 @@
                       <label class="inline-flex items-center">
                         <input 
                           type="checkbox" 
-                          :checked="student.sessions[session._id].completed"
-                          @change="toggleSessionCompletion(student.id, session._id, $event.target.checked)"
+                          v-model="student.sessions[session._id].completed"
+                          @change="toggleSessionCompletion(student.id, session._id, student.sessions[session._id].completed)"
                           class="form-checkbox h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
                         />
                       </label>
@@ -218,8 +219,34 @@
         </div>
       </div>
       
+      <!-- Debug information for semester completion -->
+      <div v-if="selectedClass" class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <h3 class="text-lg font-medium text-gray-700 mb-2">Debug Information</h3>
+        <p class="text-sm text-gray-600">Current Semester: <span class="font-medium">{{ selectedClass.sspSubject?.semester || 'Not set' }}</span></p>
+        <p class="text-sm text-gray-600">Overall Compliance: <span class="font-medium">{{ overallCompliancePercentage }}%</span></p>
+        <p class="text-sm text-gray-600">Can Complete Semester: <span class="font-medium">{{ canCompleteSemester ? 'Yes' : 'No' }}</span></p>
+        <p class="text-sm text-gray-600">Sessions: <span class="font-medium">{{ sessionMatrix.sessions?.length || 0 }}</span>, Students: <span class="font-medium">{{ sessionMatrix.students?.length || 0 }}</span></p>
+      </div>
+      
       <!-- Save Changes Button -->
-      <div v-if="hasChanges" class="flex justify-end mt-4">
+      <div class="flex justify-between mt-4">
+        <button 
+          v-if="canCompleteSemester"
+          @click="completeSemesterConfirm" 
+          :disabled="completingSemester || hasChanges" 
+          class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span v-if="completingSemester" class="flex items-center">
+            <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Processing...
+          </span>
+          <span v-else>Complete 1st Semester</span>
+        </button>
+        
+        <div v-if="hasChanges" class="ml-auto">
         <button 
           @click="saveChanges" 
           :disabled="saving" 
@@ -233,6 +260,46 @@
             Saving...
           </span>
           <span v-else>Save Changes</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Confirm Complete Semester Modal -->
+  <div v-if="showCompleteSemesterModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 max-w-md mx-auto">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Complete 1st Semester</h3>
+      <p class="text-gray-600 mb-4">
+        Are you sure you want to complete the 1st semester for this class? This will:
+      </p>
+      <ul class="list-disc pl-5 mb-5 text-gray-600 text-sm space-y-2">
+        <li>Archive all current 1st semester session data</li>
+        <li>Change the class status to 2nd semester</li>
+        <li>Load 2nd semester sessions for all students</li>
+        <li>This action cannot be undone</li>
+      </ul>
+      
+      <div class="flex justify-end space-x-3">
+        <button 
+          @click="showCompleteSemesterModal = false" 
+          class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+        >
+          Cancel
+        </button>
+        <button 
+          @click="completeSemester" 
+          :disabled="completingSemester"
+          class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none disabled:opacity-50"
+        >
+          <span v-if="completingSemester" class="flex items-center">
+            <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Processing...
+          </span>
+          <span v-else>Confirm & Complete</span>
         </button>
       </div>
     </div>
@@ -240,17 +307,34 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { classService } from '../../services/classService';
-import { sessionService } from '../../services/sessionService';
-import { notificationService } from '../../services/notificationService';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/authStore';
+import { sessionService } from '../../services/sessionService';
+import { classService } from '../../services/classService';
+import { notificationService } from '../../services/notificationService';
 import api from '../../services/api';
+import { adviserService } from '../../services/adviserService';
+import { studentService } from '../../services/studentService';
+
+// Import analyticsService conditionally to prevent errors
+let analyticsService;
+try {
+  analyticsService = require('../../services/analyticsService').analyticsService;
+} catch (error) {
+  console.warn('Analytics service not available, tracking disabled');
+  analyticsService = {
+    trackEvent: () => false,
+    trackPageView: () => false
+  };
+}
 
 // State
 const loading = ref(true);
 const matrixLoading = ref(false);
 const saving = ref(false);
+const completingSemester = ref(false);
+const showCompleteSemesterModal = ref(false);
 const classes = ref([]);
 const selectedClass = ref(null);
 const sessionMatrix = ref({
@@ -259,10 +343,41 @@ const sessionMatrix = ref({
 });
 const pendingChanges = ref(new Map());
 const authStore = useAuthStore();
+const errorMessage = ref('');
+const selectedStudent = ref(null);
+const sessions = ref([]);
 
 // Computed properties
 const hasChanges = computed(() => {
   return pendingChanges.value.size > 0;
+});
+
+const canCompleteSemester = computed(() => {
+  if (!selectedClass.value || !selectedClass.value.sspSubject) {
+    console.log('canCompleteSemester: No selected class or sspSubject');
+    return false;
+  }
+  
+  // Only show button for 1st semester - make matching more flexible
+  const semester = selectedClass.value.sspSubject.semester || '';
+  console.log('canCompleteSemester: Current semester is', semester);
+  
+  // Check for "1st Semester", "First Semester", or just "1st"
+  const is1stSemester = semester.toLowerCase().includes('1st') || 
+                         semester.toLowerCase().includes('first') || 
+                         semester === '1';
+                         
+  console.log('canCompleteSemester: is1stSemester =', is1stSemester);
+  
+  // Check overall compliance - at least 90% to complete semester
+  const hasHighCompliance = overallCompliancePercentage.value >= 90;
+  console.log('canCompleteSemester: overallCompliancePercentage =', overallCompliancePercentage.value);
+  console.log('canCompleteSemester: hasHighCompliance =', hasHighCompliance);
+  
+  const canComplete = is1stSemester && hasHighCompliance;
+  console.log('canCompleteSemester: Final result =', canComplete);
+  
+  return canComplete;
 });
 
 const overallCompliancePercentage = computed(() => {
@@ -292,7 +407,7 @@ const overallCompliancePercentage = computed(() => {
 // Lifecycle hooks
 onMounted(async () => {
   try {
-    await fetchAdvisoryClasses();
+    await loadClasses();
   } catch (error) {
     console.error('Failed to load advisory classes:', error);
     notificationService.showError('Failed to load advisory classes');
@@ -302,159 +417,190 @@ onMounted(async () => {
 });
 
 // Functions
-async function fetchAdvisoryClasses() {
+async function loadClasses() {
   try {
-    console.log('Fetching advisory classes for adviser');
-    const response = await classService.getAdvisoryClasses();
-    if (response && response.data) {
-      // Check if we have a valid response with class data
-      if (!Array.isArray(response.data)) {
-        console.error('Invalid response structure:', response.data);
-        notificationService.showError('Failed to load advisory classes: Invalid data structure');
-        return;
-      }
-      
-      // Filter out any invalid class entries
-      classes.value = response.data.filter(c => c && c._id);
-      console.log(`Loaded ${classes.value.length} advisory classes`);
-      
-      // Process class data to handle advisory class structure
-      for (let i = 0; i < classes.value.length; i++) {
-        const classItem = classes.value[i];
-        
-        // If the class data is nested in 'class' property, extract it
-        if (classItem.class && typeof classItem.class === 'object') {
-          // Extract class details from nested structure
-          const classData = classItem.class;
-          classItem._id = classData._id || classItem._id;
-          classItem.yearLevel = classData.yearLevel || classItem.yearLevel;
-          classItem.section = classData.section || classItem.section;
-          classItem.major = classData.major || classItem.major;
-          classItem.daySchedule = classData.daySchedule || classItem.daySchedule;
-          classItem.timeSchedule = classData.timeSchedule || classItem.timeSchedule;
-          classItem.room = classData.room || classItem.room;
-          classItem.students = classData.students || classItem.students || [];
-          classItem.sspSubject = classData.sspSubject || classItem.sspSubject || { sspCode: 'Unknown' };
-        }
-        
-        // If students array is missing or empty, try to fetch them separately
-        if (!classItem.students || classItem.students.length === 0) {
-          try {
-            console.log(`No students found in class ${classItem._id}, fetching them separately`);
-            const classDetail = await api.get(`/advisers/class/${classItem._id}/students`);
-            if (classDetail.data && Array.isArray(classDetail.data)) {
-              classItem.students = classDetail.data;
-              console.log(`Loaded ${classItem.students.length} students for class ${classItem._id}`);
-            }
-          } catch (error) {
-            console.error(`Error fetching students for class ${classItem._id}:`, error);
-          }
-        }
-      }
-    } else {
-      notificationService.showError('Failed to load advisory classes');
+    loading.value = true;
+    errorMessage.value = '';
+    
+    console.log('Loading classes for adviser...');
+    
+    // Add auth store reference to debug token issues
+    const authStore = useAuthStore();
+    console.log('Auth state:', {
+      isAuthenticated: authStore.isAuthenticated,
+      userRole: authStore.user?.role,
+      hasToken: Boolean(localStorage.getItem('token')),
+      hasUserId: Boolean(localStorage.getItem('userId'))
+    });
+    
+    // Use the enhanced adviser service to get classes
+    const loadedClasses = await adviserService.getAdvisedClasses();
+    console.log(`Loaded ${loadedClasses.length} classes`);
+    
+    if (!loadedClasses || loadedClasses.length === 0) {
+      console.warn('No classes returned from service');
+      classes.value = [];
+      notificationService.showWarning('No advisory classes found. This could be due to a connection issue or you may not have classes assigned yet.');
+      return;
     }
-  } catch (error) {
-    console.error('Error fetching advisory classes:', error);
-    notificationService.showError('Failed to load advisory classes');
+    
+    // Sort classes by year level and section
+    loadedClasses.sort((a, b) => {
+      // Sort by year level first
+      if (a.yearLevel !== b.yearLevel) {
+        return a.yearLevel.localeCompare(b.yearLevel);
+      }
+      // Then by section
+      return a.section.localeCompare(b.section);
+    });
+    
+    // Log semester and subject details for debugging
+    loadedClasses.forEach(c => {
+      console.log(`Class ${c.yearLevel}-${c.section}: 
+        Subject: ${c.sspSubject ? c.sspSubject.sspCode : 'None'}, 
+        Semester: ${c.sspSubject ? c.sspSubject.semester : 'Unknown'}, 
+        Students: ${c.studentCount || c.students?.length || 'Unknown'}`);
+    });
+    
+    // Store in our reactive reference
+    classes.value = loadedClasses;
+    
+    // Auto-select the first class if available and none is currently selected
+    if (classes.value.length > 0 && !selectedClass.value) {
+      console.log('Auto-selecting first class');
+      await selectClass(classes.value[0]);
+        }
+      } catch (error) {
+    console.error('Error loading classes:', error);
+    errorMessage.value = `Failed to load classes: ${error.message}`;
+    classes.value = [];
+    notificationService.showError(`Failed to load advisory classes: ${error.message}`);
+  } finally {
+    loading.value = false;
   }
 }
 
-async function selectClass(classItem) {
-  selectedClass.value = classItem;
+async function selectClass(classData) {
+  console.log('Selecting class:', classData)
+  try {
+    if (!classData || !classData._id) {
+      console.error('Invalid class data:', classData)
+      notificationService.showError('Invalid class data received')
+      return
+    }
+    
+    loading.value = true
+    errorMessage.value = ''
+    selectedClass.value = classData
+    
+    // Store selected class ID in localStorage
+    localStorage.setItem('selectedClassId', classData._id)
+
+    try {
+      console.log(`Loading students for class: ${classData.yearLevel}-${classData.section} (${classData._id})`)
+      const loadedStudents = await studentService.loadStudentsByClass(classData._id)
+      
+      if (!loadedStudents || loadedStudents.length === 0) {
+        console.warn(`No students found for class ${classData.yearLevel}-${classData.section}`)
+        students.value = []
+        notificationService.showWarning('No students found in this class')
+      } else {
+        console.log(`Loaded ${loadedStudents.length} students for class ${classData.yearLevel}-${classData.section}`)
+        students.value = loadedStudents
+      }
+    } catch (studentError) {
+      console.error('Error loading students:', studentError)
+      errorMessage.value = `Failed to load students: ${studentError.message}`
+      notificationService.showError(`Error loading students: ${studentError.message}`)
+      students.value = []
+    }
+
+    try {
+      console.log(`Loading session matrix for class: ${classData.yearLevel}-${classData.section}`)
+      const matrix = await sessionService.loadSessionMatrix(classData._id)
+      
+      if (!matrix) {
+        console.warn('No session matrix returned from API')
+        sessionMatrix.value = null
+      } else {
+        console.log('Session matrix loaded successfully:', matrix)
+        sessionMatrix.value = matrix
+      }
+    } catch (matrixError) {
+      console.error('Error loading session matrix:', matrixError)
+      errorMessage.value = `Failed to load session matrix: ${matrixError.message}`
+      notificationService.showError(`Error loading session data: ${matrixError.message}`)
+      sessionMatrix.value = null
+    }
+    
+    // Reset selected student when changing class
+    selectedStudent.value = null
+    sessions.value = []
+        } catch (error) {
+    console.error('Error in selectClass function:', error)
+    errorMessage.value = `Error selecting class: ${error.message}`
+    notificationService.showError(`Failed to select class: ${error.message}`)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadSessionCompletionStatus() {
+  if (!selectedClass.value || !selectedClass.value._id) {
+    console.error('No class selected');
+    return;
+  }
+  
   matrixLoading.value = true;
   
   try {
-    // If no students are loaded yet, try to fetch them from the advisory endpoint first
-    if (!classItem.students || classItem.students.length === 0) {
-      try {
-        console.log(`Fetching students for class ${classItem._id} from advisory endpoint`);
-        const advisoryDetail = await api.get(`/advisers/class/${classItem._id}/students`);
-        if (advisoryDetail.data && Array.isArray(advisoryDetail.data)) {
-          selectedClass.value.students = advisoryDetail.data;
-          console.log(`Loaded ${selectedClass.value.students.length} students from advisory endpoint`);
-        } else {
-          // Fallback to regular class endpoint if advisory endpoint fails
-          console.log(`No students found in advisory endpoint, trying regular class endpoint`);
-          const classDetail = await api.get(`/classes/${classItem._id}`);
-          if (classDetail.data && classDetail.data.students) {
-            selectedClass.value.students = classDetail.data.students;
-            console.log(`Loaded ${selectedClass.value.students.length} students from class endpoint`);
-          }
-        }
-      } catch (error) {
-        console.error(`Error fetching students for class ${classItem._id}:`, error);
-      }
-    }
+    console.log(`Loading session completion matrix for class ${selectedClass.value._id}`);
     
-    // Clear any pending changes
-    pendingChanges.value.clear();
+    // First validate the session data to make sure all sessions exist
+    await sessionService.validateClassSessions(selectedClass.value._id);
     
-    // First, validate session data for the class
-    try {
-      console.log(`Validating sessions for class ${classItem._id}`);
-      await sessionService.validateClassSessions(classItem._id);
-    } catch (validationError) {
-      console.error("Session validation failed:", validationError);
-      notificationService.showWarning("Session validation failed, some data may be incomplete");
-    }
+    // Get session matrix from API
+    const matrixResponse = await sessionService.getSessionMatrix(selectedClass.value._id);
     
-    // Initialize sessions for students before fetching the matrix
-    await initializeSessionsForStudents(classItem);
-    
-    // Fetch the session matrix for this class
-    const matrixResponse = await sessionService.getSessionMatrix(classItem._id);
     if (matrixResponse && matrixResponse.data) {
-      // Make sure we have the sessions sorted by day number
-      if (matrixResponse.data.sessions && Array.isArray(matrixResponse.data.sessions)) {
-        // Check if day 17 is missing and add it if needed
-        const days = matrixResponse.data.sessions.map(s => s.day);
-        console.log("Original session days:", days);
-        
-        // Ensure all students have all sessions including day 17
-        await ensureAllSessionsExist(classItem._id);
-        
-        // Sort sessions by day number (ascending)
-        matrixResponse.data.sessions.sort((a, b) => {
-          // Handle day 0 (should come first)
-          if (a.day === 0) return -1;
-          if (b.day === 0) return 1;
-          return a.day - b.day;
+      console.log('Session matrix data received:', matrixResponse.data);
+      sessionMatrix.value = matrixResponse.data;
+      
+      // Debug logging
+      console.log(`Matrix loaded with ${sessionMatrix.value.sessions?.length || 0} sessions and ${sessionMatrix.value.students?.length || 0} students`);
+      console.log('Overall compliance percentage:', overallCompliancePercentage.value);
+      
+      // Make sure each session has a title for display
+      if (sessionMatrix.value.sessions) {
+        sessionMatrix.value.sessions.forEach(session => {
+          if (!session.title && session.day !== undefined) {
+            session.title = `Day ${session.day + 1}`;
+          }
         });
       }
       
-      sessionMatrix.value = matrixResponse.data;
-      console.log(`Matrix loaded with ${sessionMatrix.value.sessions?.length || 0} sessions and ${sessionMatrix.value.students?.length || 0} students`);
-      
-      // Debug: Log all session days to verify we have all days
-      if (sessionMatrix.value.sessions && sessionMatrix.value.sessions.length > 0) {
-        const days = sessionMatrix.value.sessions.map(s => s.day).sort((a, b) => a - b);
-        console.log("Session days available:", days);
-        
-        // Check if day 17 is missing
-        if (!days.includes(17)) {
-          console.warn("Day 17 is missing from sessions. Please check session configuration.");
-        }
-      }
-      
-      // Show warning if matrix is incomplete
-      if (!sessionMatrix.value.sessions || sessionMatrix.value.sessions.length === 0) {
-        notificationService.showWarning('No sessions found for this class. Check if the class has an SSP subject assigned.');
-      } else if (!sessionMatrix.value.students || sessionMatrix.value.students.length === 0) {
-        notificationService.showWarning('No students found in the matrix. Check if students are properly assigned to this class.');
-      } else {
-        notificationService.showSuccess(`Loaded ${sessionMatrix.value.sessions.length} sessions for ${sessionMatrix.value.students.length} students`);
+      // Recalculate and log the complete semester conditions
+      if (selectedClass.value && selectedClass.value.sspSubject) {
+        const semester = selectedClass.value.sspSubject.semester || '';
+        const is1stSemester = semester.toLowerCase().includes('1st') || 
+                             semester.toLowerCase().includes('first') || 
+                             semester === '1';
+        console.log(`After loading matrix - Semester: ${semester}, Is 1st: ${is1stSemester}, Compliance: ${overallCompliancePercentage.value}%`);
       }
     } else {
+      console.error('Failed to get session matrix:', matrixResponse);
       sessionMatrix.value = {
         sessions: [],
         students: []
       };
-      notificationService.showWarning('No session data available for this class');
     }
   } catch (error) {
-    console.error('Error loading session matrix:', error);
-    notificationService.showError('Failed to load session matrix');
+    console.error('Error loading session completion status:', error);
+    notificationService.showError('Failed to load session data');
+    sessionMatrix.value = {
+      sessions: [],
+      students: []
+    };
   } finally {
     matrixLoading.value = false;
   }
@@ -517,9 +663,6 @@ async function toggleSessionCompletion(studentId, sessionId, completed) {
       console.error('Session completion ID not found');
       return;
     }
-    
-    // Update the local state immediately for better UX
-    student.sessions[sessionId].completed = completed;
     
     // Add to pending changes
     const changeKey = `${studentId}_${sessionId}`;
@@ -671,6 +814,178 @@ async function ensureAllSessionsExist(classId) {
     console.log('Sessions validation completed');
   } catch (error) {
     console.error('Error ensuring all sessions exist:', error);
+  }
+}
+
+async function completeSemesterConfirm() {
+  showCompleteSemesterModal.value = true;
+}
+
+async function completeSemester() {
+  try {
+    loading.value = true
+    errorMessage.value = ''
+    
+    if (!selectedClass.value || !selectedClass.value._id) {
+      console.error('No class selected for semester completion')
+      notificationService.showError('No class selected')
+      return
+    }
+    
+    console.log(`Starting semester completion for class ${selectedClass.value.yearLevel}-${selectedClass.value.section}`)
+    notificationService.showInfo('Starting semester completion process...')
+    
+    // 1. Archive the current semester sessions
+    console.log('Archiving current semester sessions...')
+    try {
+      const archiveResponse = await sessionService.archiveCurrentSessions(selectedClass.value._id)
+      
+      if (!archiveResponse || !archiveResponse.success) {
+        const errorMsg = archiveResponse?.message || 'Unknown error occurred'
+        console.error('Archiving failed:', errorMsg)
+        notificationService.showError(`Failed to archive sessions: ${errorMsg}`)
+        return
+      }
+      
+      console.log('Archive successful:', archiveResponse)
+      notificationService.showSuccess('Successfully archived current semester sessions')
+      
+      // Small delay to ensure backend processing is complete
+      await new Promise(resolve => setTimeout(resolve, 500))
+    } catch (archiveError) {
+      console.error('Error archiving sessions:', archiveError)
+      notificationService.showError(`Failed to archive: ${archiveError.message}`)
+      return
+    }
+    
+    // 2. Load sessions for the next semester
+    console.log('Loading sessions for next semester...')
+    try {
+      // Update the current semester to 2nd Semester
+      selectedClass.value.semester = '2nd Semester'
+      
+      const loadResponse = await sessionService.loadNextSemesterSessions(selectedClass.value._id)
+      
+      if (!loadResponse || !loadResponse.success) {
+        const errorMsg = loadResponse?.message || 'Unknown error occurred'
+        console.error('Loading next semester failed:', errorMsg)
+        notificationService.showError(`Failed to load next semester: ${errorMsg}`)
+        return
+      }
+      
+      console.log('Next semester loaded successfully:', loadResponse)
+      notificationService.showSuccess('Successfully transitioned to the next semester')
+      
+      // Small delay to ensure backend processing is complete
+      await new Promise(resolve => setTimeout(resolve, 500))
+    } catch (loadError) {
+      console.error('Error loading next semester:', loadError)
+      notificationService.showError(`Failed to load next semester: ${loadError.message}`)
+      return
+    }
+    
+    // 3. Refresh the data to reflect the changes
+    console.log('Refreshing local data after semester completion...')
+    
+    // Update the class data from the server
+    try {
+      const updatedClass = await adviserService.loadClassById(selectedClass.value._id)
+      if (updatedClass) {
+        selectedClass.value = updatedClass
+        console.log('Updated class data:', updatedClass)
+      }
+    } catch (classError) {
+      console.error('Error refreshing class data:', classError)
+    }
+    
+    // Clear and reload session matrix
+    sessionMatrix.value = null
+    try {
+      const matrix = await sessionService.loadSessionMatrix(selectedClass.value._id)
+      sessionMatrix.value = matrix
+      console.log('Reloaded session matrix:', matrix)
+    } catch (matrixError) {
+      console.error('Error reloading session matrix:', matrixError)
+      notificationService.showError(`Error reloading session data: ${matrixError.message}`)
+    }
+    
+    notificationService.showSuccess('Semester transition complete. You are now working with the 2nd Semester.')
+  } catch (error) {
+    console.error('Error in completeSemester function:', error)
+    errorMessage.value = `Error completing semester: ${error.message}`
+    notificationService.showError(`Failed to complete semester: ${error.message}`)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function ensureAllStudentsHaveSessions(classId) {
+  try {
+    if (!classId) return;
+    
+    console.log(`Ensuring all students have sessions for class ${classId}`);
+    
+    const response = await sessionService.validateClassSessions(classId);
+    console.log('Session validation result:', response.data.results);
+    
+    // If any sessions were created, refresh the matrix
+    if (response.data.results.createdSessions > 0) {
+      console.log(`Created ${response.data.results.createdSessions} missing sessions`);
+      await loadSessionCompletionStatus();
+    }
+    
+    return response.data.results;
+  } catch (error) {
+    console.error('Error ensuring all students have sessions:', error);
+    notificationService.showWarning('Could not verify all student sessions. Some students may be missing session data.');
+  }
+}
+
+async function loadStudent(student) {
+  console.log('Loading student data:', student)
+  try {
+    selectedStudent.value = student
+    loading.value = true
+    errorMessage.value = ''
+
+    // Check if student and classId are valid
+    if (!student || !student._id || !selectedClass.value || !selectedClass.value._id) {
+      console.error('Invalid student or class data:', { 
+        student: student ? student._id : 'null', 
+        class: selectedClass.value ? selectedClass.value._id : 'null' 
+      })
+      errorMessage.value = 'Invalid student or class data'
+      return
+    }
+
+    try {
+      console.log(`Loading sessions for student ${student.name} with ID ${student._id}`)
+      const loadedSessions = await sessionService.loadSessionsByStudentAndClass(
+        student._id, 
+        selectedClass.value._id
+      )
+      
+      if (!loadedSessions || loadedSessions.length === 0) {
+        console.warn(`No sessions found for student ${student.name} in class ${selectedClass.value.yearLevel}-${selectedClass.value.section}`)
+        notificationService.showWarning(`No sessions found for ${student.name}`)
+      } else {
+        console.log(`Loaded ${loadedSessions.length} sessions for student ${student.name}`)
+        sessions.value = loadedSessions
+      }
+      
+      // Process sessions for the matrix
+      await processSessionsForMatrix()
+    } catch (sessionError) {
+      console.error('Error loading sessions:', sessionError)
+      errorMessage.value = `Error loading sessions: ${sessionError.message}`
+      notificationService.showError(`Failed to load sessions: ${sessionError.message}`)
+    }
+  } catch (error) {
+    console.error('Error in loadStudent function:', error)
+    errorMessage.value = `Failed to load student data: ${error.message}`
+    notificationService.showError(`Error loading student: ${error.message}`)
+  } finally {
+    loading.value = false
   }
 }
 </script>

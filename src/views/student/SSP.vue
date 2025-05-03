@@ -33,13 +33,26 @@
         </button>
       </div>
       
-      <!-- No class assigned state -->
-      <div v-else-if="noClassAssigned" class="py-6 text-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-yellow-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-        <h3 class="text-lg font-medium text-gray-700 mb-2">No Class Assigned</h3>
-        <p class="text-gray-500 max-w-md mx-auto">You are not currently assigned to an SSP class. Please contact your academic adviser for assistance.</p>
+      <!-- No class assigned message -->
+      <div v-if="!student || !student.class" class="bg-white rounded-lg shadow p-6 mb-6">
+        <div class="flex items-center justify-center flex-col py-8">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-yellow-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No Class Assigned</h3>
+          <p class="text-gray-600 text-center max-w-md mb-4">
+            You're currently not assigned to any class. Please contact your SSP adviser or the system administrator to get assigned to a class.
+          </p>
+          <button 
+            @click="refreshData" 
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
+        </div>
       </div>
       
       <!-- No sessions found state -->
@@ -66,7 +79,7 @@
               <span class="font-medium">{{ completedSessions.length }}/{{ sessions.length }}</span>
             </div>
             <div 
-              class="bg-gray-100 rounded-lg px-3 py-1 text-sm flex items-center"
+              class="bg-gray-100 rounded-lg px-3 py-1 text-sm flex items-center mr-2"
               :class="{ 
                 'bg-red-100 text-red-800': completionPercentage < 50,
                 'bg-yellow-100 text-yellow-800': completionPercentage >= 50 && completionPercentage < 80,
@@ -76,6 +89,20 @@
               <span class="mr-2">Completion:</span>
               <span class="font-medium">{{ completionPercentage }}%</span>
             </div>
+            <button 
+              @click="manualRefresh" 
+              class="px-2 py-1 bg-blue-50 text-primary border border-blue-100 rounded hover:bg-blue-100 transition-colors flex items-center"
+              :disabled="refreshing"
+            >
+              <svg v-if="refreshing" class="animate-spin h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span class="text-sm">{{ refreshing ? 'Refreshing...' : 'Refresh' }}</span>
+            </button>
           </div>
         </div>
         
@@ -137,6 +164,7 @@ const student = ref(null);
 const sessions = ref([]);
 const authStore = useAuthStore();
 const refreshInterval = ref(null);
+const refreshing = ref(false);
 
 // Computed properties
 const completedSessions = computed(() => {
@@ -152,11 +180,11 @@ const completionPercentage = computed(() => {
 onMounted(async () => {
   await loadData();
   
-  // Set up refresh interval (every 30 seconds)
+  // Set up refresh interval (every 10 seconds)
   refreshInterval.value = setInterval(async () => {
     console.log("Auto-refreshing session data...");
     await refreshSessions();
-  }, 30000); // 30 seconds
+  }, 10000); // 10 seconds instead of 30
 });
 
 // Clean up interval when component is unmounted
@@ -173,6 +201,7 @@ async function loadData() {
     loading.value = true;
     loadError.value = false;
     noClassAssigned.value = false;
+    refreshing.value = true;
     
     // Get student details with proper error handling
     const studentResponse = await studentService.getStudentDetails();
@@ -189,7 +218,14 @@ async function loadData() {
       
       try {
         // Initialize sessions for this student if needed
-        await sessionService.initSessionsForStudent(student.value._id, student.value.class._id);
+        // We'll continue even if this fails with 400 (already initialized)
+        try {
+          await sessionService.initSessionsForStudent(student.value._id, student.value.class._id);
+        } catch (initError) {
+          // This is expected to fail with 400 if sessions are already initialized
+          // We'll continue with fetching sessions anyway
+          console.log("Note: Sessions initialization returned an error, continuing with fetch:", initError.message);
+        }
         
         // Fetch session data from backend
         await fetchSessions();
@@ -209,6 +245,7 @@ async function loadData() {
     notificationService.showError("Failed to load SSP data: " + (error.message || "Unknown error"));
   } finally {
     loading.value = false;
+    refreshing.value = false;
   }
 }
 
@@ -220,24 +257,24 @@ async function fetchSessions() {
     if (sessionResponse && Array.isArray(sessionResponse.data)) {
       console.log("Sessions loaded:", sessionResponse.data.length);
       
-      // Ensure uniqueness by using a Map with session day as the key
+      // Ensure uniqueness by using a Map with session _id as the key
+      // This ensures we always get the most up-to-date status
       const uniqueSessions = new Map();
       sessionResponse.data.forEach(session => {
-        if (!uniqueSessions.has(session.sessionDay)) {
-          uniqueSessions.set(session.sessionDay, session);
-        }
+        uniqueSessions.set(session._id, session);
       });
       
       // Convert Map back to array and sort by session day
       sessions.value = Array.from(uniqueSessions.values()).sort((a, b) => a.sessionDay - b.sessionDay);
-      console.log("Unique sessions after deduplication:", sessions.value.length);
+      console.log("Unique sessions after processing:", sessions.value.length);
     } else {
       console.warn("No session data returned or not in expected format");
       sessions.value = [];
     }
   } catch (error) {
     console.error("Error fetching sessions:", error);
-    throw error;
+    // Don't throw - handle error gracefully
+    notificationService.showError("Failed to refresh session data");
   }
 }
 
@@ -245,12 +282,15 @@ async function fetchSessions() {
 async function refreshSessions() {
   if (!student.value?.class || !student.value?._id) return;
   
+  refreshing.value = true;
   try {
     await fetchSessions();
     console.log("Sessions refreshed successfully");
   } catch (error) {
     console.error("Error refreshing sessions:", error);
     // Don't show error notifications during auto-refresh to avoid annoying the user
+  } finally {
+    refreshing.value = false;
   }
 }
 
@@ -269,6 +309,28 @@ function formatDate(dateString) {
     month: 'short', 
     day: 'numeric' 
   }).format(date);
+}
+
+function manualRefresh() {
+  refreshSessions();
+}
+
+// Function to refresh data
+async function refreshData() {
+  loading.value = true;
+  errorMessage.value = '';
+  noClassAssigned.value = false;
+  
+  try {
+    await loadStudentData();
+    notificationService.showSuccess('Data refreshed successfully');
+  } catch (error) {
+    console.error('Error refreshing data:', error);
+    errorMessage.value = error.message || 'Failed to refresh data';
+    notificationService.showError('Failed to refresh data');
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 
