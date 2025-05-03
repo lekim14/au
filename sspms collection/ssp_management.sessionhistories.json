@@ -1,0 +1,1808 @@
+[{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d8960f8"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b24"
+  },
+  "sessionDay": 0,
+  "sessionTitle": "INTRODUCTION",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:12.432Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:12.436Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.837Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d8960fa"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b25"
+  },
+  "sessionDay": 1,
+  "sessionTitle": "asdf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:12.977Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:12.979Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.843Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d8960fc"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b26"
+  },
+  "sessionDay": 2,
+  "sessionTitle": "dsafds",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:13.471Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:13.473Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.844Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d8960fe"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b27"
+  },
+  "sessionDay": 3,
+  "sessionTitle": "dsf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:14.113Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:14.114Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.846Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896100"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b28"
+  },
+  "sessionDay": 4,
+  "sessionTitle": "fsdaf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:14.635Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:14.638Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.848Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896102"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b29"
+  },
+  "sessionDay": 5,
+  "sessionTitle": "adsfas",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:15.081Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:15.082Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.850Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896104"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2a"
+  },
+  "sessionDay": 6,
+  "sessionTitle": "ddfdsaf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:15.769Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:15.770Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.851Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896106"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2b"
+  },
+  "sessionDay": 7,
+  "sessionTitle": "dsafdsa",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:17.058Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:17.059Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.853Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896108"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2c"
+  },
+  "sessionDay": 8,
+  "sessionTitle": "fdsadsaf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:17.579Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:17.582Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.855Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89610a"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2d"
+  },
+  "sessionDay": 9,
+  "sessionTitle": "dsafasd",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:18.136Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:18.138Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.857Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89610c"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2e"
+  },
+  "sessionDay": 10,
+  "sessionTitle": "fsda",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:20.240Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:20.242Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.859Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89610e"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2f"
+  },
+  "sessionDay": 11,
+  "sessionTitle": "adsfads",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:19.506Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:19.507Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.862Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896110"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b30"
+  },
+  "sessionDay": 12,
+  "sessionTitle": "fsda",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:20.963Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:20.964Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.864Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896112"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b31"
+  },
+  "sessionDay": 13,
+  "sessionTitle": "dfsdaf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:21.846Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:21.849Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.868Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896114"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b32"
+  },
+  "sessionDay": 14,
+  "sessionTitle": "asdfas",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:22.604Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:22.605Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.869Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896116"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b33"
+  },
+  "sessionDay": 15,
+  "sessionTitle": "das",
+  "completed": false,
+  "updatedAt": {
+    "$date": "2025-04-01T17:50:31.527Z"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.871Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896118"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b34"
+  },
+  "sessionDay": 16,
+  "sessionTitle": "dafasdf",
+  "completed": false,
+  "updatedAt": {
+    "$date": "2025-04-01T17:50:31.528Z"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.872Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89611a"
+  },
+  "student": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b35"
+  },
+  "sessionDay": 17,
+  "sessionTitle": "adfasf",
+  "completed": false,
+  "updatedAt": {
+    "$date": "2025-04-01T17:50:31.528Z"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.873Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89611c"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b24"
+  },
+  "sessionDay": 0,
+  "sessionTitle": "INTRODUCTION",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-01T17:50:35.456Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-01T17:50:35.458Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.875Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89611e"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b25"
+  },
+  "sessionDay": 1,
+  "sessionTitle": "asdf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-01T17:50:36.322Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-01T17:50:36.324Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.877Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896120"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b26"
+  },
+  "sessionDay": 2,
+  "sessionTitle": "dsafds",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-01T18:04:38.635Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-01T18:04:38.636Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.878Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896122"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b27"
+  },
+  "sessionDay": 3,
+  "sessionTitle": "dsf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:53:52.993Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:53:52.995Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.879Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896124"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b28"
+  },
+  "sessionDay": 4,
+  "sessionTitle": "fsdaf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:53:53.297Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:53:53.298Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.881Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896126"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b29"
+  },
+  "sessionDay": 5,
+  "sessionTitle": "adsfas",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:53:54.006Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:53:54.009Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.883Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896128"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2a"
+  },
+  "sessionDay": 6,
+  "sessionTitle": "ddfdsaf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:53:55.131Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:53:55.132Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.884Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89612a"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2b"
+  },
+  "sessionDay": 7,
+  "sessionTitle": "dsafdsa",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:53:56.187Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:53:56.190Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.886Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89612c"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2c"
+  },
+  "sessionDay": 8,
+  "sessionTitle": "fdsadsaf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:53:56.751Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:53:56.756Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.888Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89612e"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2d"
+  },
+  "sessionDay": 9,
+  "sessionTitle": "dsafasd",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:53:57.552Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:53:57.587Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.889Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896130"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2e"
+  },
+  "sessionDay": 10,
+  "sessionTitle": "fsda",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:53:58.053Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:53:58.063Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.891Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896132"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2f"
+  },
+  "sessionDay": 11,
+  "sessionTitle": "adsfads",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:53:58.869Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:53:58.873Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.892Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896134"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b30"
+  },
+  "sessionDay": 12,
+  "sessionTitle": "fsda",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:53:59.468Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:53:59.470Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.893Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896136"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b31"
+  },
+  "sessionDay": 13,
+  "sessionTitle": "dfsdaf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:53:59.990Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:53:59.990Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.896Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896138"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b32"
+  },
+  "sessionDay": 14,
+  "sessionTitle": "asdfas",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:00.730Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:00.730Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.898Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89613a"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b33"
+  },
+  "sessionDay": 15,
+  "sessionTitle": "das",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:01.368Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:01.369Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.899Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89613c"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b34"
+  },
+  "sessionDay": 16,
+  "sessionTitle": "dafasdf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:03.764Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:03.772Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.900Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89613e"
+  },
+  "student": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b35"
+  },
+  "sessionDay": 17,
+  "sessionTitle": "adfasf",
+  "completed": false,
+  "updatedAt": {
+    "$date": "2025-04-01T17:50:31.653Z"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.902Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896140"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b24"
+  },
+  "sessionDay": 0,
+  "sessionTitle": "INTRODUCTION",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-01T18:05:32.745Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-01T18:05:32.747Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.904Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896142"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b25"
+  },
+  "sessionDay": 1,
+  "sessionTitle": "asdf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-01T18:05:33.328Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-01T18:05:33.330Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.905Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896144"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b26"
+  },
+  "sessionDay": 2,
+  "sessionTitle": "dsafds",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-01T18:05:33.711Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-01T18:05:33.713Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.906Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896146"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b27"
+  },
+  "sessionDay": 3,
+  "sessionTitle": "dsf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-01T18:05:34.096Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-01T18:05:34.097Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.908Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896148"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b28"
+  },
+  "sessionDay": 4,
+  "sessionTitle": "fsdaf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-01T18:05:35.130Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-01T18:05:35.131Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.910Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89614a"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b29"
+  },
+  "sessionDay": 5,
+  "sessionTitle": "adsfas",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:53:54.587Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:53:54.589Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.912Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89614c"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2a"
+  },
+  "sessionDay": 6,
+  "sessionTitle": "ddfdsaf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:10.767Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:10.770Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.913Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89614e"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2b"
+  },
+  "sessionDay": 7,
+  "sessionTitle": "dsafdsa",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:10.376Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:10.377Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.914Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896150"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2c"
+  },
+  "sessionDay": 8,
+  "sessionTitle": "fdsadsaf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:09.889Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:09.891Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.916Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896152"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2d"
+  },
+  "sessionDay": 9,
+  "sessionTitle": "dsafasd",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:09.390Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:09.391Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.918Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896154"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2e"
+  },
+  "sessionDay": 10,
+  "sessionTitle": "fsda",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:08.747Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:08.747Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.919Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896156"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b2f"
+  },
+  "sessionDay": 11,
+  "sessionTitle": "adsfads",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:07.479Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:07.481Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.921Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896158"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b30"
+  },
+  "sessionDay": 12,
+  "sessionTitle": "fsda",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:06.864Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:06.866Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.924Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89615a"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b31"
+  },
+  "sessionDay": 13,
+  "sessionTitle": "dfsdaf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:06.443Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:06.445Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.926Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89615c"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b32"
+  },
+  "sessionDay": 14,
+  "sessionTitle": "asdfas",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:05.857Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:05.859Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.929Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d89615e"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b33"
+  },
+  "sessionDay": 15,
+  "sessionTitle": "das",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:05.425Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:05.426Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.930Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896160"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b34"
+  },
+  "sessionDay": 16,
+  "sessionTitle": "dafasdf",
+  "completed": true,
+  "completionDate": {
+    "$date": "2025-04-02T02:54:04.169Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T02:54:04.172Z"
+  },
+  "markedBy": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.932Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67eca6ec3c6359424d896162"
+  },
+  "student": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "class": {
+    "$oid": "67e19727d22296705a90ec30"
+  },
+  "subject": {
+    "$oid": "67e18ad3cdc6ef9bbd1bf4c0"
+  },
+  "session": {
+    "$oid": "67ec08f9d72d8e8d19504b35"
+  },
+  "sessionDay": 17,
+  "sessionTitle": "adfasf",
+  "completed": false,
+  "completionDate": null,
+  "updatedAt": {
+    "$date": "2025-04-01T18:05:51.086Z"
+  },
+  "markedBy": null,
+  "semester": "1st Semester",
+  "createdAt": {
+    "$date": "2025-04-02T02:54:36.933Z"
+  },
+  "__v": 0
+}]
