@@ -1,0 +1,57 @@
+[{
+  "_id": {
+    "$oid": "67e62355dfd862f481bf174e"
+  },
+  "class": {
+    "$oid": "67e62221dfd862f481bf1723"
+  },
+  "adviser": {
+    "$oid": "67e622fbdfd862f481bf1733"
+  },
+  "status": "active",
+  "createdAt": {
+    "$date": "2025-03-28T04:19:33.846Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-28T04:19:33.846Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67ecbd1709a6d43e697bbf25"
+  },
+  "class": {
+    "$oid": "67e5cf52bb0330135d071773"
+  },
+  "adviser": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "status": "active",
+  "createdAt": {
+    "$date": "2025-04-02T04:29:11.922Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T05:53:12.273Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67ecd0d08f7f0d0fa99a3ce5"
+  },
+  "class": {
+    "$oid": "67ecbce009a6d43e697bbc29"
+  },
+  "adviser": {
+    "$oid": "67e5d249bb0330135d071bdb"
+  },
+  "status": "active",
+  "createdAt": {
+    "$date": "2025-04-02T05:53:20.948Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T05:53:20.949Z"
+  },
+  "__v": 0
+}]

@@ -1,0 +1,593 @@
+[{
+  "_id": {
+    "$oid": "67e56a07fddb2f5b6b43aac0"
+  },
+  "sspCode": "SSP 008",
+  "name": "SSP 008",
+  "yearLevel": "3rd",
+  "semester": "1st Semester",
+  "hours": 3,
+  "sessions": [
+    {
+      "day": 0,
+      "title": "INTRODUCTION",
+      "_id": {
+        "$oid": "67eae1e7500366b763891cd6"
+      }
+    },
+    {
+      "day": 1,
+      "title": "hb",
+      "_id": {
+        "$oid": "67eae1e7500366b763891cd7"
+      }
+    },
+    {
+      "day": 2,
+      "title": "hb",
+      "_id": {
+        "$oid": "67eae1e7500366b763891cd8"
+      }
+    },
+    {
+      "day": 3,
+      "title": "b",
+      "_id": {
+        "$oid": "67eae1e7500366b763891cd9"
+      }
+    },
+    {
+      "day": 4,
+      "title": "hbh",
+      "_id": {
+        "$oid": "67eae1e7500366b763891cda"
+      }
+    },
+    {
+      "day": 5,
+      "title": "jbh",
+      "_id": {
+        "$oid": "67eae1e7500366b763891cdb"
+      }
+    },
+    {
+      "day": 6,
+      "title": "jkbhj",
+      "_id": {
+        "$oid": "67eae1e7500366b763891cdc"
+      }
+    },
+    {
+      "day": 7,
+      "title": "bhj",
+      "_id": {
+        "$oid": "67eae1e7500366b763891cdd"
+      }
+    },
+    {
+      "day": 8,
+      "title": "bhj",
+      "_id": {
+        "$oid": "67eae1e7500366b763891cde"
+      }
+    },
+    {
+      "day": 9,
+      "title": "vh",
+      "_id": {
+        "$oid": "67eae1e7500366b763891cdf"
+      }
+    },
+    {
+      "day": 10,
+      "title": "jvhj",
+      "_id": {
+        "$oid": "67eae1e7500366b763891ce0"
+      }
+    },
+    {
+      "day": 11,
+      "title": "vhj",
+      "_id": {
+        "$oid": "67eae1e7500366b763891ce1"
+      }
+    },
+    {
+      "day": 12,
+      "title": "vhj",
+      "_id": {
+        "$oid": "67eae1e7500366b763891ce2"
+      }
+    },
+    {
+      "day": 13,
+      "title": "vhj",
+      "_id": {
+        "$oid": "67eae1e7500366b763891ce3"
+      }
+    },
+    {
+      "day": 14,
+      "title": "vhj",
+      "_id": {
+        "$oid": "67eae1e7500366b763891ce4"
+      }
+    },
+    {
+      "day": 15,
+      "title": "vhjv",
+      "_id": {
+        "$oid": "67eae1e7500366b763891ce5"
+      }
+    },
+    {
+      "day": 16,
+      "title": "hjv",
+      "_id": {
+        "$oid": "67eae1e7500366b763891ce6"
+      }
+    },
+    {
+      "day": 17,
+      "title": "jh",
+      "_id": {
+        "$oid": "67eae1e7500366b763891ce7"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-03-27T15:08:55.472Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-31T18:41:43.508Z"
+  },
+  "__v": 1,
+  "schoolYear": "2024 - 2025"
+},
+{
+  "_id": {
+    "$oid": "67e57fa5942613d004d8bf44"
+  },
+  "sspCode": "SSP 009",
+  "name": "SSP 009",
+  "yearLevel": "4th",
+  "semester": "1st Semester",
+  "hours": 3,
+  "sessions": [
+    {
+      "day": 0,
+      "title": "INTRODUCTION",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c3b"
+      }
+    },
+    {
+      "day": 1,
+      "title": "dsdafb",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c3c"
+      }
+    },
+    {
+      "day": 2,
+      "title": "kljl",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c3d"
+      }
+    },
+    {
+      "day": 3,
+      "title": "bhlb",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c3e"
+      }
+    },
+    {
+      "day": 4,
+      "title": "hb",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c3f"
+      }
+    },
+    {
+      "day": 5,
+      "title": "hjb",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c40"
+      }
+    },
+    {
+      "day": 6,
+      "title": "hjbhj",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c41"
+      }
+    },
+    {
+      "day": 7,
+      "title": "bhj",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c42"
+      }
+    },
+    {
+      "day": 8,
+      "title": "bhjb",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c43"
+      }
+    },
+    {
+      "day": 9,
+      "title": "hjb",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c44"
+      }
+    },
+    {
+      "day": 10,
+      "title": "hjb",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c45"
+      }
+    },
+    {
+      "day": 11,
+      "title": "hjb",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c46"
+      }
+    },
+    {
+      "day": 12,
+      "title": "hjbhj",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c47"
+      }
+    },
+    {
+      "day": 13,
+      "title": "bhj",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c48"
+      }
+    },
+    {
+      "day": 14,
+      "title": "bhj",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c49"
+      }
+    },
+    {
+      "day": 15,
+      "title": "bhj",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c4a"
+      }
+    },
+    {
+      "day": 16,
+      "title": "bhj",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c4b"
+      }
+    },
+    {
+      "day": 17,
+      "title": "bhj",
+      "_id": {
+        "$oid": "67eb6de73a80f2ff13019c4c"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-03-27T16:41:09.379Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-01T04:39:03.071Z"
+  },
+  "__v": 2,
+  "schoolYear": "2024 - 2025"
+},
+{
+  "_id": {
+    "$oid": "67e5c4b14c7f80bce53df2ef"
+  },
+  "sspCode": "SSP 001",
+  "name": "SSP 001",
+  "yearLevel": "1st",
+  "schoolYear": "2025 - 2026",
+  "semester": "1st Semester",
+  "hours": 1,
+  "sessions": [
+    {
+      "day": 0,
+      "title": "INTRODUCTION",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e24"
+      }
+    },
+    {
+      "day": 1,
+      "title": "h",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e25"
+      }
+    },
+    {
+      "day": 2,
+      "title": "h",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e26"
+      }
+    },
+    {
+      "day": 3,
+      "title": "h",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e27"
+      }
+    },
+    {
+      "day": 4,
+      "title": "h",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e28"
+      }
+    },
+    {
+      "day": 5,
+      "title": "h",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e29"
+      }
+    },
+    {
+      "day": 6,
+      "title": "h",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e2a"
+      }
+    },
+    {
+      "day": 7,
+      "title": "h",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e2b"
+      }
+    },
+    {
+      "day": 8,
+      "title": "hh",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e2c"
+      }
+    },
+    {
+      "day": 9,
+      "title": "h",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e2d"
+      }
+    },
+    {
+      "day": 10,
+      "title": "h",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e2e"
+      }
+    },
+    {
+      "day": 11,
+      "title": "h",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e2f"
+      }
+    },
+    {
+      "day": 12,
+      "title": "h",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e30"
+      }
+    },
+    {
+      "day": 13,
+      "title": "k",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e31"
+      }
+    },
+    {
+      "day": 14,
+      "title": "dsafds",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e32"
+      }
+    },
+    {
+      "day": 15,
+      "title": "kk",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e33"
+      }
+    },
+    {
+      "day": 16,
+      "title": "k",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e34"
+      }
+    },
+    {
+      "day": 17,
+      "title": "fgdfg",
+      "_id": {
+        "$oid": "67eae1f0500366b763891e35"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-03-27T21:35:45.396Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-31T18:41:52.897Z"
+  },
+  "__v": 2
+},
+{
+  "_id": {
+    "$oid": "67ecbc6f09a6d43e697bb9b7"
+  },
+  "sspCode": "SSP 007",
+  "name": "SSP 007",
+  "yearLevel": "2nd",
+  "schoolYear": "2025 - 2026",
+  "semester": "1st Semester",
+  "hours": 3,
+  "sessions": [
+    {
+      "day": 0,
+      "title": "INTRODUCTION",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9b8"
+      }
+    },
+    {
+      "day": 1,
+      "title": "b",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9b9"
+      }
+    },
+    {
+      "day": 2,
+      "title": "hb",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9ba"
+      }
+    },
+    {
+      "day": 3,
+      "title": "bhb",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9bb"
+      }
+    },
+    {
+      "day": 4,
+      "title": "kb",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9bc"
+      }
+    },
+    {
+      "day": 5,
+      "title": "klb",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9bd"
+      }
+    },
+    {
+      "day": 6,
+      "title": "lb",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9be"
+      }
+    },
+    {
+      "day": 7,
+      "title": "hkbhk",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9bf"
+      }
+    },
+    {
+      "day": 8,
+      "title": "bklh",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9c0"
+      }
+    },
+    {
+      "day": 9,
+      "title": "bkhl",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9c1"
+      }
+    },
+    {
+      "day": 10,
+      "title": "bhkl",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9c2"
+      }
+    },
+    {
+      "day": 11,
+      "title": "bhk",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9c3"
+      }
+    },
+    {
+      "day": 12,
+      "title": "bh",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9c4"
+      }
+    },
+    {
+      "day": 13,
+      "title": "bhlk",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9c5"
+      }
+    },
+    {
+      "day": 14,
+      "title": "bhkl",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9c6"
+      }
+    },
+    {
+      "day": 15,
+      "title": "bhl",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9c7"
+      }
+    },
+    {
+      "day": 16,
+      "title": "b",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9c8"
+      }
+    },
+    {
+      "day": 17,
+      "title": "khbkkh",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9c9"
+      }
+    }
+  ],
+  "secondSemesterSessions": [
+    {
+      "day": 0,
+      "title": "INTRODUCTION",
+      "_id": {
+        "$oid": "67ecbc6f09a6d43e697bb9ca"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-02T04:26:23.825Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T04:26:23.825Z"
+  },
+  "__v": 0
+}]

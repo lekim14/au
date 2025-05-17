@@ -1,0 +1,224 @@
+[{
+  "_id": {
+    "$oid": "67e500101854869d5d3ce59b"
+  },
+  "pendingRegistration": {
+    "firstName": "Bads",
+    "middleName": "P",
+    "lastName": "Collado",
+    "nameExtension": "Jr.",
+    "idNumber": "01-2223-030683",
+    "email": "spcollado.au@phinmaed.com",
+    "password": "Password123!"
+  },
+  "classDetails": {
+    "yearLevel": "2nd",
+    "section": "South - 2",
+    "major": "Business Informatics"
+  },
+  "gender": "Male",
+  "contactNumber": "9986174791",
+  "major": "Business Informatics",
+  "odysseyPlanCompleted": false,
+  "srmSurveyCompleted": false,
+  "status": "active",
+  "approvalStatus": "approved",
+  "approvalNotes": "",
+  "consultations": [],
+  "createdAt": {
+    "$date": "2025-03-27T07:36:48.557Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-01T04:12:09.917Z"
+  },
+  "__v": 0,
+  "user": {
+    "$oid": "67e500b61854869d5d3ce60f"
+  },
+  "address": {
+    "block": "274",
+    "street": "Purok 3",
+    "barangay": "San Isidro",
+    "municipality": "Zaragoza",
+    "province": "Nueva Ecija"
+  },
+  "class": {
+    "$oid": "67ecbce009a6d43e697bbc29"
+  }
+},
+{
+  "_id": {
+    "$oid": "67e623f3dfd862f481bf183e"
+  },
+  "pendingRegistration": {
+    "firstName": "katrina",
+    "middleName": "Ramos",
+    "lastName": "SAntiago",
+    "nameExtension": "N/A",
+    "idNumber": "01-2223-030680",
+    "email": "kahe.santiago.au@phinmaed.com",
+    "password": "Password123!"
+  },
+  "classDetails": {
+    "yearLevel": "2nd",
+    "section": "South - 2",
+    "major": "Business Informatics"
+  },
+  "gender": "Female",
+  "contactNumber": "9986174791",
+  "major": "Business Informatics",
+  "odysseyPlanCompleted": false,
+  "srmSurveyCompleted": false,
+  "status": "active",
+  "approvalStatus": "approved",
+  "approvalNotes": "",
+  "consultations": [],
+  "createdAt": {
+    "$date": "2025-03-28T04:22:11.663Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-28T04:22:11.663Z"
+  },
+  "__v": 0,
+  "user": {
+    "$oid": "67e62406dfd862f481bf1850"
+  },
+  "class": {
+    "$oid": "67ecbce009a6d43e697bbc29"
+  }
+},
+{
+  "_id": {
+    "$oid": "67eae6c5500366b7638921a3"
+  },
+  "pendingRegistration": {
+    "firstName": "Danica",
+    "middleName": "Llana",
+    "lastName": "Navarro",
+    "nameExtension": "Cutey",
+    "idNumber": "01-2223-030672",
+    "email": "dancia.navarro.au@phinmaed.com",
+    "password": "Dada123!"
+  },
+  "class": null,
+  "classDetails": {
+    "yearLevel": "3rd",
+    "section": "South - 2",
+    "major": "System Development"
+  },
+  "gender": "Female",
+  "contactNumber": "639986174791",
+  "major": "System Development",
+  "odysseyPlanCompleted": false,
+  "srmSurveyCompleted": false,
+  "status": "active",
+  "approvalStatus": "approved",
+  "approvalNotes": "",
+  "consultations": [],
+  "createdAt": {
+    "$date": "2025-03-31T19:02:29.841Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-31T19:02:29.841Z"
+  },
+  "__v": 0,
+  "user": {
+    "$oid": "67eae6de500366b7638921aa"
+  }
+},
+{
+  "_id": {
+    "$oid": "67eb66baf2cd68867736570c"
+  },
+  "pendingRegistration": {
+    "firstName": "Gray",
+    "middleName": "Ragandap",
+    "lastName": "Sanchez",
+    "nameExtension": "Gray Sanchez",
+    "idNumber": "01-2223-030650",
+    "email": "gray.au@phinmaed.com",
+    "password": "Gray123!"
+  },
+  "classDetails": {
+    "yearLevel": "2nd",
+    "section": "South - 2",
+    "major": "Business Informatics"
+  },
+  "gender": "Male",
+  "contactNumber": "639986174791",
+  "address": {
+    "block": "274",
+    "street": "Purok3",
+    "barangay": "San Isidro",
+    "municipality": "Zaragoza",
+    "province": "Nueva Ecija"
+  },
+  "major": "Business Informatics",
+  "odysseyPlanCompleted": false,
+  "srmSurveyCompleted": false,
+  "status": "active",
+  "approvalStatus": "approved",
+  "approvalNotes": "",
+  "consultations": [],
+  "createdAt": {
+    "$date": "2025-04-01T04:08:26.754Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T05:31:46.322Z"
+  },
+  "__v": 0,
+  "user": {
+    "$oid": "67eb66d6f2cd68867736576d"
+  },
+  "class": {
+    "$oid": "67ecbce009a6d43e697bbc29"
+  }
+},
+{
+  "_id": {
+    "$oid": "67ecc615102f90667c0d0c50"
+  },
+  "pendingRegistration": {
+    "firstName": "Ashley",
+    "middleName": "Ramos",
+    "lastName": "Sanchez",
+    "nameExtension": "N/A",
+    "idNumber": "01-2223-030666",
+    "email": "april.au@phinmaed.com",
+    "password": "Ashley123!"
+  },
+  "class": {
+    "$oid": "67ecbce009a6d43e697bbc29"
+  },
+  "classDetails": {
+    "yearLevel": "2nd",
+    "section": "South - 2",
+    "major": "Business Informatics"
+  },
+  "gender": "Female",
+  "contactNumber": "639986174792",
+  "address": {
+    "block": "274",
+    "street": "Purok 4",
+    "barangay": "Cabu",
+    "municipality": "Palayan",
+    "province": "Nueva Ecija"
+  },
+  "major": "Business Informatics",
+  "odysseyPlanCompleted": false,
+  "srmSurveyCompleted": false,
+  "status": "active",
+  "approvalStatus": "approved",
+  "approvalNotes": "",
+  "consultations": [],
+  "createdAt": {
+    "$date": "2025-04-02T05:07:33.461Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T05:07:33.461Z"
+  },
+  "__v": 0,
+  "user": {
+    "$oid": "67ecc621102f90667c0d0c57"
+  }
+}]

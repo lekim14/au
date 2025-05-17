@@ -1,0 +1,148 @@
+[{
+  "_id": {
+    "$oid": "67e56d8a535e600a16f9c1f0"
+  },
+  "yearLevel": "2nd",
+  "section": "South-1",
+  "major": "System Development",
+  "daySchedule": "Monday",
+  "timeSchedule": "7:00 AM - 8:00 AM",
+  "room": "Room 302",
+  "hours": 3,
+  "sspSubject": {
+    "$oid": "67ecbc6f09a6d43e697bb9b7"
+  },
+  "students": [],
+  "status": "inactive",
+  "lastActive": {
+    "$date": "2025-03-27T15:23:54.891Z"
+  },
+  "createdAt": {
+    "$date": "2025-03-27T15:23:54.891Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T04:31:35.401Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e5cde83f9785e2c2a99729"
+  },
+  "yearLevel": "4th",
+  "section": "South-2",
+  "major": "Business Informatics",
+  "daySchedule": "Friday",
+  "timeSchedule": "8:00 AM - 11:00 AM",
+  "room": "Room 401",
+  "hours": 3,
+  "sspSubject": {
+    "$oid": "67e57fa5942613d004d8bf44"
+  },
+  "students": [],
+  "status": "inactive",
+  "lastActive": {
+    "$date": "2025-03-27T22:15:04.353Z"
+  },
+  "createdAt": {
+    "$date": "2025-03-27T22:15:04.353Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-01T04:24:19.488Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e5cf52bb0330135d071773"
+  },
+  "yearLevel": "1st",
+  "section": "Section 1",
+  "major": "Digital Arts",
+  "daySchedule": "Monday",
+  "timeSchedule": "9:00 AM - 10:00 AM",
+  "room": "Room 402",
+  "hours": 1,
+  "sspSubject": {
+    "$oid": "67e5c4b14c7f80bce53df2ef"
+  },
+  "students": [],
+  "status": "active",
+  "lastActive": {
+    "$date": "2025-03-28T03:34:31.308Z"
+  },
+  "createdAt": {
+    "$date": "2025-03-27T22:21:06.443Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-28T03:34:31.309Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e62221dfd862f481bf1723"
+  },
+  "yearLevel": "3rd",
+  "section": "South-2",
+  "major": "Digital Arts",
+  "daySchedule": "Monday",
+  "timeSchedule": "7:00 AM - 10:00 AM",
+  "room": "Room 301 ",
+  "hours": 3,
+  "sspSubject": {
+    "$oid": "67e56a07fddb2f5b6b43aac0"
+  },
+  "students": [],
+  "status": "active",
+  "lastActive": {
+    "$date": "2025-03-28T04:14:25.390Z"
+  },
+  "createdAt": {
+    "$date": "2025-03-28T04:14:25.390Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-28T04:14:25.390Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67ecbce009a6d43e697bbc29"
+  },
+  "yearLevel": "2nd",
+  "section": "South-2",
+  "major": "Business Informatics",
+  "daySchedule": "Monday",
+  "timeSchedule": "7:00 AM - 10:00 AM",
+  "room": "Room 302",
+  "hours": 3,
+  "sspSubject": {
+    "$oid": "67ecbc6f09a6d43e697bb9b7"
+  },
+  "students": [
+    {
+      "$oid": "67ecc615102f90667c0d0c50"
+    },
+    {
+      "$oid": "67e500101854869d5d3ce59b"
+    },
+    {
+      "$oid": "67e623f3dfd862f481bf183e"
+    },
+    {
+      "$oid": "67eb66baf2cd68867736570c"
+    }
+  ],
+  "status": "active",
+  "lastActive": {
+    "$date": "2025-04-02T04:28:16.740Z"
+  },
+  "createdAt": {
+    "$date": "2025-04-02T04:28:16.740Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-02T04:28:16.740Z"
+  },
+  "__v": 0
+}]
