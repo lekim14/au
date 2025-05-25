@@ -194,6 +194,21 @@
                 <p class="text-xs text-gray-500 mt-1">Fixed school year for all new subjects</p>
               </td>
             </tr>
+            <tr>
+              <td class="border-r border-gray-300 font-medium p-2">Semester *</td>
+              <td class="p-2">
+                <select
+                  v-model="newSubject.semester"
+                  class="w-full p-1 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  :class="{ 'border-red-500': errors.semester }"
+                >
+                  <option value="">Select Semester</option>
+                  <option :value="'1st Semester'">1st Semester</option>
+                  <option :value="'2nd Semester'">2nd Semester</option>
+                </select>
+                <p v-if="errors.semester" class="mt-1 text-sm text-red-500">{{ errors.semester }}</p>
+              </td>
+            </tr>
           </table>
         </div>
         
@@ -208,24 +223,24 @@
             class="px-4 py-2 text-sm font-medium"
             :class="activeSessionTabAdd === '1st' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'"
           >
-            1st Semester Sessions
+            {{ newSubject.semester }} Sessions
           </button>
-          <button 
+          <!-- <button 
             @click="activeSessionTabAdd = '2nd'"
             class="px-4 py-2 text-sm font-medium"
             :class="activeSessionTabAdd === '2nd' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'"
           >
             2nd Semester Sessions
-          </button>
+          </button> -->
         </div>
         
         <!-- 1st Semester Sessions Table -->
-        <div v-if="activeSessionTabAdd === '1st'" class="overflow-x-auto">
+        <div v-if="newSubject.semester" class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Day</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">1st Semester Session Title</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ newSubject.semester }} Session Title</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -355,18 +370,7 @@
             class="px-4 py-2 text-sm font-medium"
             :class="viewSessionsTab === '1st' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'"
           >
-            1st Semester Sessions
-          </button>
-          <button 
-            @click="viewSessionsTab = '2nd'"
-            class="px-4 py-2 text-sm font-medium"
-            :class="viewSessionsTab === '2nd' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'"
-            :disabled="!selectedSubject?.secondSemesterSessions?.length"
-          >
-            2nd Semester Sessions
-            <span class="ml-1 text-xs" v-if="selectedSubject?.secondSemesterSessions?.length">
-              ({{ selectedSubject.secondSemesterSessions.length }})
-            </span>
+            {{ selectedSubject.semester }} Sessions
           </button>
         </div>
         
@@ -499,14 +503,7 @@
             class="px-4 py-2 text-sm font-medium"
             :class="activeSessionTab === '1st' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'"
           >
-            1st Semester Sessions
-          </button>
-          <button 
-            @click="activeSessionTab = '2nd'"
-            class="px-4 py-2 text-sm font-medium"
-            :class="activeSessionTab === '2nd' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-gray-700'"
-          >
-            2nd Semester Sessions
+            {{ editedSubject.semester }} Sessions
           </button>
         </div>
         
@@ -656,7 +653,8 @@ const newSubject = reactive({
   sessions: [],
   semester: '',
   hours: 1,
-  schoolYear: '2025 - 2026'
+  schoolYear: '2025 - 2026',
+  semester: ''
 })
 
 // Error state
@@ -823,7 +821,7 @@ function validateForm() {
   }
   
   // Always use 1st Semester as default
-  newSubject.semester = '1st Semester'
+  // newSubject.semester = '1st Semester'
   
   if (!newSubject.hours) {
     errors.hours = 'Hours are required'
@@ -835,6 +833,11 @@ function validateForm() {
   
   if (!newSubject.schoolYear) {
     errors.schoolYear = 'School Year is required'
+    isValid = false
+  }
+
+  if (!newSubject.semester) {
+    errors.semester = 'Semester is required'
     isValid = false
   }
   
@@ -923,12 +926,12 @@ async function addSubject() {
       hours: parseInt(newSubject.hours, 10),
       schoolYear: newSubject.schoolYear,
       sessions: sessions,
-      secondSemesterSessions: secondSemesterSessions
+      // secondSemesterSessions: secondSemesterSessions
     }
     
     // Log the data we're sending
     console.log('Sending subject data:', JSON.stringify(subjectToCreate))
-    
+
     const response = await subjectService.create(subjectToCreate)
     console.log('New subject created:', response)
     

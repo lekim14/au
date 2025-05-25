@@ -57,22 +57,6 @@
             </div>
           </router-link>
           
-          <!-- Academic Evaluation -->
-          <router-link 
-            to="/student/academic-evaluation" 
-            class="block px-4 py-2 rounded-md transition-colors"
-            :class="isActive('/student/academic-evaluation') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
-          >
-            <div class="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path d="M12 14l9-5-9-5-9 5 9 5z" />
-                <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998a12.078 12.078 0 01.665-6.479L12 14z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998a12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
-              </svg>
-              Academic Evaluation
-            </div>
-          </router-link>
-          
           <!-- Consultations -->
           <router-link 
             to="/student/consultations" 
@@ -146,19 +130,64 @@
             </div>
           </div>
           
-          <!-- Odyssey Plan -->
-          <router-link 
-            to="/student/odyssey-plan" 
-            class="block px-4 py-2 rounded-md transition-colors"
-            :class="isActive('/student/odyssey-plan') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
-          >
-            <div class="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Odyssey Plan
+          <!-- Odyssey Plan with dropdown -->
+          <div class="relative">
+            <button 
+              @click="toggleOdysseyDropdown" 
+              class="block w-full text-left px-4 py-2 rounded-md transition-colors"
+              :class="isActive('/student/odyssey-plan') || isActive('/student/archived-odyssey-plans') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Odyssey Plan
+                </div>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  class="h-4 w-4 transition-transform duration-200" 
+                  :class="{'transform rotate-180': odysseyDropdownOpen}"
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </button>
+            
+            <!-- Odyssey Plan Dropdown Items -->
+            <div v-if="odysseyDropdownOpen" class="pl-8 mt-1 space-y-1">
+              <router-link 
+                to="/student/odyssey-plan" 
+                class="block px-4 py-2 rounded-md transition-colors"
+                :class="isActive('/student/odyssey-plan') && !isActive('/student/archived-odyssey-plans') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+                @click="showMobileMenu = false"
+              >
+                <div class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Current Plan
+                </div>
+              </router-link>
+              
+              <router-link 
+                to="/student/archived-odyssey-plans" 
+                class="block px-4 py-2 rounded-md transition-colors"
+                :class="isActive('/student/archived-odyssey-plans') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+                @click="showMobileMenu = false"
+              >
+                <div class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Archive Odyssey Plan
+                </div>
+              </router-link>
             </div>
-          </router-link>
+          </div>
           
           <!-- Surveys -->
           <router-link 
@@ -251,22 +280,6 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                 </svg>
                 Announcements
-              </div>
-            </router-link>
-            
-            <router-link 
-              to="/student/academic-evaluation" 
-              class="block px-4 py-2 rounded-md transition-colors"
-              :class="isActive('/student/academic-evaluation') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
-              @click="showMobileMenu = false"
-            >
-              <div class="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 14l9-5-9-5-9 5 9 5z" />
-                  <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998a12.078 12.078 0 01.665-6.479L12 14z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998a12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
-                </svg>
-                Academic Evaluation
               </div>
             </router-link>
             
@@ -445,6 +458,7 @@ const showMobileMenu = ref(false);
 const profileMenuOpen = ref(false);
 const sspDropdownOpen = ref(false);
 const mobileSSPDropdownOpen = ref(false);
+const odysseyDropdownOpen = ref(false);
 
 // Computed properties
 const pageTitle = computed(() => {
@@ -483,6 +497,11 @@ function toggleSSPDropdown() {
 function toggleMobileSSPDropdown() {
   mobileSSPDropdownOpen.value = !mobileSSPDropdownOpen.value;
 }
+
+// Add toggleOdysseyDropdown function
+function toggleOdysseyDropdown() {
+  odysseyDropdownOpen.value = !odysseyDropdownOpen.value;
+}
 </script>
 
 <style scoped>
@@ -512,5 +531,14 @@ function toggleMobileSSPDropdown() {
 
 .transition-colors {
   transition: color 0.2s, background-color 0.2s;
+}
+
+/* Add styles for dropdown */
+.relative {
+  position: relative;
+}
+
+.z-50 {
+  z-index: 50;
 }
 </style> 

@@ -198,24 +198,22 @@
             </div>
           </router-link>
           
-          <!-- Academic Monitoring -->
+          <!-- Announcements -->
           <router-link 
-            to="/adviser/academic" 
+            to="/adviser/announcements" 
             class="block px-4 py-2 rounded-md transition-colors"
             :class="{ 
-              'bg-primary-light text-primary-dark': isActive('/adviser/academic'), 
-              'text-gray-700 hover:bg-gray-100': !isActive('/adviser/academic'),
+              'bg-primary-light text-primary-dark': isActive('/adviser/announcements'), 
+              'text-gray-700 hover:bg-gray-100': !isActive('/adviser/announcements'),
               'opacity-50 cursor-not-allowed': authStore.passwordChangeRequired
             }"
-            @click.prevent="navigateTo('/adviser/academic')"
+            @click.prevent="navigateTo('/adviser/announcements')"
           >
             <div class="flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path d="M12 14l9-5-9-5-9 5 9 5z" />
-                <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998a12.078 12.078 0 01.665-6.479L12 14z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998a12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
               </svg>
-              Academic Monitoring
+              Announcements
             </div>
           </router-link>
         </div>
@@ -342,6 +340,21 @@
                 </router-link>
               </div>
             </div>
+            
+            <!-- Mobile Announcements Link -->
+            <router-link 
+              to="/adviser/announcements" 
+              class="block px-4 py-2 rounded-md transition-colors"
+              :class="isActive('/adviser/announcements') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+              @click="showMobileMenu = false"
+            >
+              <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                </svg>
+                Announcements
+              </div>
+            </router-link>
           </div>
         </nav>
       </div>

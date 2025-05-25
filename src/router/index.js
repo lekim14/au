@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Semester from '../views/admin/Semester.vue'
 
 // Admin views
 const Login = () => import('../views/Login.vue')
@@ -25,15 +26,14 @@ const AdviserClasses = () => import('../views/adviser/Classes.vue')
 const AdviserConsultations = () => import('../views/adviser/Consultations.vue')
 const AdviserMM = () => import('../views/adviser/MM.vue')
 const AdviserMonitoring = () => import('../views/adviser/Monitoring.vue')
-const AdviserAcademic = () => import('../views/adviser/Academic.vue')
 const AdviserAttendance = () => import('../views/adviser/Attendance.vue')
 const ClassesHistory = () => import('../views/adviser/ClassesHistory.vue')
+const AdviserAnnouncements = () => import('../views/adviser/Announcements.vue')
 
 // Student views 
 const StudentLayout = () => import('../components/layout/StudentLayout.vue')
 const StudentDashboard = () => import('../views/student/Dashboard.vue')
 const StudentProfile = () => import('../views/student/Profile.vue')
-const StudentAcademic = () => import('../views/student/AcademicEvaluation.vue')
 const StudentConsultations = () => import('../views/student/Consultations.vue')
 const StudentAnnouncements = () => import('../views/student/Announcements.vue')
 const StudentSSP = () => import('../views/student/SSP.vue')
@@ -166,6 +166,12 @@ const routes = [
         name: 'SystemOptions',
         component: SystemOptions,
         meta: { title: 'System Options' }
+      },
+      {
+        path: 'semester',
+        name: 'Semester',
+        component: Semester,
+        meta: { title: 'Semester' }
       }
     ]
   },
@@ -223,10 +229,10 @@ const routes = [
         meta: { title: 'Monitoring' }
       },
       {
-        path: 'academic',
-        name: 'AdviserAcademic',
-        component: AdviserAcademic,
-        meta: { title: 'Academic Monitoring' }
+        path: 'announcements',
+        name: 'AdviserAnnouncements',
+        component: AdviserAnnouncements,
+        meta: { title: 'Announcements' }
       }
     ]
   },
@@ -246,12 +252,6 @@ const routes = [
         name: 'StudentProfile',
         component: StudentProfile,
         meta: { title: 'Profile' }
-      },
-      {
-        path: 'academic-evaluation',
-        name: 'StudentAcademic',
-        component: StudentAcademic,
-        meta: { title: 'Academic Evaluation' }
       },
       {
         path: 'consultations',

@@ -26,7 +26,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     unique: true,
     trim: true,
-    match: /^\d{2}-\d{4}-\d{6}$/
+    // match: /^\d{2}-\d{4}-\d{6}$/
   },
   salutation: {
     type: String,

@@ -9,7 +9,7 @@ const { authenticate, authorizeAdmin, authorizeAdviser } = require('../middlewar
 const Student = require('../models/Student');
 
 // Get all advisers
-router.get('/', authenticate, authorizeAdmin, async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     const advisers = await User.find({ role: 'adviser', status: 'active' }).select('-password');
     res.json(advisers);
@@ -594,6 +594,169 @@ router.get('/classes', authenticate, async (req, res) => {
   } catch (error) {
     console.error('Error getting advised classes:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get consultation requests for adviser's students
+router.get('/consultations/all', authenticate, authorizeAdviser, async (req, res) => {
+  try {
+    // Ensure the user is an adviser
+    if (req.user.role !== 'adviser') {
+      return res.status(403).json({ message: 'Only advisers can access this endpoint' });
+    }
+    
+    // Get all advisory classes for this adviser
+    const advisoryClasses = await AdvisoryClass.find({
+      adviser: req.user._id,
+      status: 'active'
+    }).populate({
+      path: 'class',
+      select: 'students'
+    });
+
+    // Get all student IDs from the adviser's classes
+    const studentIds = advisoryClasses.reduce((ids, ac) => {
+      if (ac.class && ac.class.students) {
+        return [...ids, ...ac.class.students];
+      }
+      return ids;
+    }, []);
+
+    // Get all consultations for these students
+    const students = await Student.find({
+      _id: { $in: studentIds },
+      status: 'active'
+    }).populate('user', 'firstName lastName idNumber email')
+      .populate('consultations.adviser', 'firstName lastName salutation email');
+
+    // Extract and format consultations
+    const consultations = students.reduce((acc, student) => {
+      const studentConsultations = student.consultations.map(consultation => ({
+        id: consultation._id,
+        studentId: student._id,
+        studentName: `${student.user.firstName} ${student.user.lastName}`,
+        studentIdNumber: student.user.idNumber,
+        title: consultation.title,
+        date: consultation.date,
+        startTime: consultation.startTime,
+        endTime: consultation.endTime,
+        location: consultation.location,
+        status: consultation.status,
+        notes: consultation.notes,
+        feedback: consultation.feedback,
+        rejectionReason: consultation.rejectionReason
+      }));
+      return [...acc, ...studentConsultations];
+    }, []);
+
+    res.json(consultations);
+  } catch (error) {
+    console.error('Get consultations error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Approve a consultation request
+router.put('/consultations/:id/approve', authenticate, async (req, res) => {
+  try {
+    // Ensure the user is an adviser
+    if (req.user.role !== 'adviser') {
+      return res.status(403).json({ message: 'Only advisers can approve consultations' });
+    }
+
+    const { id } = req.params;
+    const { location, consultationId } = req.body;
+    
+    // Find the student with this consultation
+    const student = await Student.findOne({
+      'consultations._id': consultationId
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Find the consultation
+    const consultation = student.consultations.id(consultationId);
+    if (!consultation) {
+      return res.status(404).json({ message: 'Consultation not found' });
+    }
+
+    // Verify this adviser is assigned to the student's class
+    const advisoryClass = await AdvisoryClass.findOne({
+      adviser: req.user._id,
+      class: student.class,
+      status: 'active'
+    });
+
+    if (!advisoryClass) {
+      return res.status(403).json({ message: 'You are not authorized to approve this consultation' });
+    }
+
+    // Update the consultation
+    consultation.status = 'approved';
+    if (location) {
+      consultation.location = location;
+    }
+
+    await student.save();
+    res.json({ message: 'Consultation approved successfully' });
+  } catch (error) {
+    console.error('Approve consultation error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Reject a consultation request
+router.put('/consultations/:id/reject', authenticate, async (req, res) => {
+  try {
+    // Ensure the user is an adviser
+    if (req.user.role !== 'adviser') {
+      return res.status(403).json({ message: 'Only advisers can reject consultations' });
+    }
+
+    const { id } = req.params;
+    const { rejectionReason } = req.body;
+
+    if (!rejectionReason) {
+      return res.status(400).json({ message: 'Rejection reason is required' });
+    }
+
+    // Find the student with this consultation
+    const student = await Student.findOne({
+      'consultations._id': id
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: 'Consultation not found' });
+    }
+
+    // Find the consultation
+    const consultation = student.consultations.id(id);
+    if (!consultation) {
+      return res.status(404).json({ message: 'Consultation not found' });
+    }
+
+    // Verify this adviser is assigned to the student's class
+    const advisoryClass = await AdvisoryClass.findOne({
+      adviser: req.user._id,
+      class: student.class,
+      status: 'active'
+    });
+
+    if (!advisoryClass) {
+      return res.status(403).json({ message: 'You are not authorized to reject this consultation' });
+    }
+
+    // Update the consultation
+    consultation.status = 'rejected';
+    consultation.rejectionReason = rejectionReason;
+
+    await student.save();
+    res.json({ message: 'Consultation rejected successfully' });
+  } catch (error) {
+    console.error('Reject consultation error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

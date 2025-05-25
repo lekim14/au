@@ -8,6 +8,7 @@ const { authenticate, authorizeAdmin, authorizeAdviser } = require('../middlewar
 const mongoose = require('mongoose');
 const SessionHistory = require('../models/SessionHistory');
 const User = require('../models/User');
+const AdvisoryClass = require('../models/AdvisoryClass');
 
 // Initialize sessions for a student (creates all session records for a class)
 router.post('/init/:studentId/:classId', authenticate, async (req, res) => {
@@ -237,24 +238,31 @@ router.get('/matrix/:classId', authenticate, async (req, res) => {
     
     // If user is an adviser, verify they are assigned to this class
     if (userRole === 'adviser') {
-      const hasAccess = await Class.findOne({ 
+      // First check the direct assignment in Class model
+      const hasDirectAccess = await Class.findOne({ 
         _id: classId, 
         adviser: userId,
         status: 'active'
       });
       
-      if (!hasAccess) {
-        // Check if the user is designated as an admin-adviser (special case)
-        const isAdminAdviser = await User.findOne({
-          _id: userId,
-          role: 'adviser',
-          isAdminAdviser: true
-        });
-        
-        if (!isAdminAdviser) {
-          console.warn(`Adviser ${userId} attempted to access class ${classId} they are not assigned to`);
-          return res.status(403).json({ message: 'Access denied. You are not assigned to this class.' });
-        }
+      // If not directly assigned, check the AdvisoryClass model
+      const hasAdvisoryAccess = await AdvisoryClass.findOne({
+        adviser: userId,
+        class: classId,
+        status: 'active'
+      });
+      
+      // Check if the user is designated as an admin-adviser (special case)
+      const isAdminAdviser = await User.findOne({
+        _id: userId,
+        role: 'adviser',
+        isAdminAdviser: true
+      });
+      
+      // If none of these access paths are valid, deny access
+      if (!hasDirectAccess && !hasAdvisoryAccess && !isAdminAdviser) {
+        console.warn(`Adviser ${userId} attempted to access class ${classId} they are not assigned to`);
+        return res.status(403).json({ message: 'Access denied. You are not assigned to this class.' });
       }
     }
     

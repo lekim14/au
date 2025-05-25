@@ -88,16 +88,87 @@ export const sessionService = {
   getSessionMatrix: async (classId) => {
     try {
       console.log(`Fetching session matrix for class ${classId}`);
-      const response = await api.get(`/sessions/matrix/${classId}`);
       
-      const matrixData = response.data;
-      console.log(`Matrix data retrieved with ${matrixData?.sessions?.length || 0} sessions and ${matrixData?.students?.length || 0} students`);
-      
-      if (!matrixData || !matrixData.sessions || !matrixData.students) {
-        console.warn('Incomplete matrix data received');
+      // First try the standard endpoint
+      try {
+        console.log('Trying the standard matrix endpoint');
+        const response = await api.get(`/sessions/matrix/${classId}`);
+        
+        const matrixData = response.data;
+        console.log(`Matrix data retrieved with ${matrixData?.sessions?.length || 0} sessions and ${matrixData?.students?.length || 0} students`);
+        
+        if (!matrixData || !matrixData.sessions || !matrixData.students) {
+          console.warn('Incomplete matrix data received');
+          throw new Error('Invalid matrix data received');
+        }
+        
+        return response;
+      } catch (matrixError) {
+        console.warn('Error fetching via standard matrix endpoint:', matrixError.message);
+        
+        // If there's a 403 forbidden error, try an alternative approach
+        if (matrixError.response && matrixError.response.status === 403) {
+          console.log('Permission denied, attempting to construct matrix manually');
+          
+          // Check if there's an AdvisoryClass entry for this class and current adviser
+          try {
+            console.log('Checking if there is an AdvisoryClass entry for this class');
+            const userId = localStorage.getItem('userId');
+            
+            if (userId) {
+              const advisoryResponse = await api.get('/advisers/my/classes');
+              const advisoryClasses = advisoryResponse.data || [];
+              
+              const relevantAdvisoryClass = advisoryClasses.find(ac => 
+                ac.class && ac.class._id === classId
+              );
+              
+              if (relevantAdvisoryClass) {
+                console.log('Found AdvisoryClass entry, this is likely an authentication mismatch issue');
+              }
+            }
+          } catch (advisoryError) {
+            console.warn('Error checking advisory classes:', advisoryError.message);
+          }
+          
+          // Get the class details with students
+          const classResponse = await api.get(`/classes/${classId}`);
+          
+          if (!classResponse.data || !classResponse.data.sspSubject) {
+            throw new Error('No class data or subject found');
+          }
+          
+          const classData = classResponse.data;
+          const students = classData.students || [];
+          
+          // Get the subject with sessions
+          const subjectResponse = await api.get(`/subjects/${classData.sspSubject._id}`);
+          if (!subjectResponse.data || !subjectResponse.data.sessions) {
+            throw new Error('No subject sessions found');
+          }
+          
+          const sessions = subjectResponse.data.sessions;
+          
+          // Create a simplified matrix with empty session data
+          const matrix = {
+            sessions: sessions,
+            students: students.map(student => {
+              return {
+                id: student._id,
+                name: student.user ? `${student.user.firstName} ${student.user.lastName}` : 'Unknown',
+                idNumber: student.user ? student.user.idNumber : 'Unknown',
+                sessions: {} // Empty sessions object since we don't have completion data
+              };
+            })
+          };
+          
+          console.log(`Manually created matrix with ${matrix.students.length} students and ${matrix.sessions.length} sessions`);
+          return { data: matrix };
+        }
+        
+        // If it's not a permission issue, rethrow the original error
+        throw matrixError;
       }
-      
-      return response;
     } catch (error) {
       console.error(`Error fetching session matrix for class ${classId}:`, error);
       throw error;

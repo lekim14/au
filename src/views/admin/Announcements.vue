@@ -166,6 +166,16 @@ const selectedAnnouncement = ref(null);
 const isAnnouncementModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 
+// Pagination
+const pagination = ref({
+  currentPage: 1,
+  perPage: 10,
+  total: 0,
+  from: 0,
+  to: 0,
+  totalPages: 0
+});
+
 // Filters
 const filters = reactive({
   targetAudience: '',
@@ -189,14 +199,31 @@ function handleSearchInput() {
 async function fetchAnnouncements() {
   try {
     loading.value = true
+    console.log('Fetching announcements...')
     const response = await announcementService.getAll()
-    allAnnouncements.value = response.data || []
+    console.log('Raw API response:', response)
+    
+    // Handle different response formats
+    if (response && response.data) {
+      allAnnouncements.value = response.data
+      console.log(`Loaded ${allAnnouncements.value.length} announcements from response.data`)
+    } else if (Array.isArray(response)) {
+      // If getAll returns the array directly
+      allAnnouncements.value = response
+      console.log(`Loaded ${allAnnouncements.value.length} announcements from array`)
+    } else {
+      console.error('Unexpected response format from announcementService.getAll()', response)
+      allAnnouncements.value = []
+    }
+    
+    console.log('All announcements:', allAnnouncements.value)
     
     // Apply filters and pagination
     applyFiltersAndPagination()
+    console.log('Filtered announcements:', announcements.value)
   } catch (error) {
     console.error('Failed to fetch announcements:', error)
-    notificationService.error('Failed to load announcements. Please try again.')
+    notificationService.showError('Failed to load announcements. Please try again.')
     allAnnouncements.value = []
     announcements.value = []
   } finally {
@@ -307,7 +334,7 @@ function closeAnnouncementModal() {
 
 function handleAnnouncementSaved() {
   fetchAnnouncements()
-  notificationService.success(
+  notificationService.showSuccess(
     selectedAnnouncement.value 
       ? 'Announcement updated successfully' 
       : 'Announcement created successfully'
@@ -327,12 +354,12 @@ function closeDeleteModal() {
 async function confirmDelete() {
   try {
     await announcementService.delete(selectedAnnouncement.value._id)
-    notificationService.success('Announcement deleted successfully')
+    notificationService.showSuccess('Announcement deleted successfully')
     fetchAnnouncements()
     closeDeleteModal()
   } catch (error) {
     console.error('Error deleting announcement:', error)
-    notificationService.error('Failed to delete announcement. Please try again.')
+    notificationService.showError('Failed to delete announcement. Please try again.')
   }
 }
 </script> 

@@ -176,6 +176,13 @@
               >
                 Announcements
               </router-link>
+              <router-link 
+                to="/admin/semester" 
+                class="block px-4 py-2 rounded-md transition-colors"
+                :class="isActive('/admin/semester') ? 'bg-primary-light text-primary-dark' : 'text-gray-700 hover:bg-gray-100'"
+              >
+                Semester
+              </router-link>
             </div>
           </div>
           

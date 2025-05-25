@@ -123,6 +123,32 @@ const StudentSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'completed', 'cancelled'],
+      default: 'pending'
+    },
+    title: {
+      type: String,
+      required: true
+    },
+    startTime: {
+      type: String,
+      required: true
+    },
+    endTime: {
+      type: String,
+      required: true
+    },
+    location: {
+      type: String
+    },
+    feedback: {
+      type: String
+    },
+    rejectionReason: {
+      type: String
     }
   }],
   status: {

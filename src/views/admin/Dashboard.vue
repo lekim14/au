@@ -112,33 +112,62 @@
     <!-- Recent Announcements -->
     <div class="card bg-white">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold">Recent Announcements</h3>
-        <router-link to="/admin/announcements" class="text-primary text-sm hover:underline">
-          View All
+        <h3 class="text-lg font-semibold">Announcements</h3>
+        <router-link to="/admin/announcements" class="bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded-md text-sm flex items-center transition-colors">
+          <span>Manage Announcements</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
         </router-link>
       </div>
       
-      <div v-if="loading" class="py-4 text-center">
-        <p>Loading announcements...</p>
+      <div v-if="loading" class="py-6 text-center">
+        <div class="inline-flex items-center">
+          <svg class="animate-spin h-5 w-5 text-primary mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Loading announcements...
+        </div>
       </div>
       
-      <div v-else-if="announcements.length === 0" class="py-4 text-center">
-        <p>No announcements found</p>
+      <div v-else-if="announcements.length === 0" class="py-8 text-center border border-dashed border-gray-300 rounded-lg">
+        <svg class="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+        </svg>
+        <p class="text-gray-500 mb-4">No announcements have been created yet</p>
+        <router-link to="/admin/announcements" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          Create Announcement
+        </router-link>
       </div>
       
-      <div v-else class="space-y-4">
-        <div v-for="announcement in announcements" :key="announcement._id" class="border-b pb-4 last:border-0">
-          <div class="flex justify-between">
-            <h4 class="font-medium text-gray-800">{{ announcement.title }}</h4>
-            <span class="text-xs text-gray-500">{{ formatDate(announcement.createdAt) }}</span>
+      <div v-else>
+        <div class="space-y-4">
+          <div v-for="announcement in announcements" :key="announcement._id" class="border-b pb-4 last:border-0">
+            <div class="flex justify-between">
+              <h4 class="font-medium text-gray-800">{{ announcement.title }}</h4>
+              <span class="text-xs text-gray-500">{{ formatDate(announcement.createdAt) }}</span>
+            </div>
+            <p class="text-sm text-gray-600 mt-1">{{ truncateText(announcement.content, 100) }}</p>
+            <div class="mt-2 flex justify-between items-center">
+              <span class="text-xs text-gray-500">By: {{ announcement.author?.firstName }} {{ announcement.author?.lastName }}</span>
+              <span class="px-2 py-1 text-xs rounded-full" :class="getBadgeClass(announcement.targetAudience)">
+                {{ getAudienceLabel(announcement.targetAudience) }}
+              </span>
+            </div>
           </div>
-          <p class="text-sm text-gray-600 mt-1">{{ truncateText(announcement.content, 100) }}</p>
-          <div class="mt-2 flex justify-between items-center">
-            <span class="text-xs text-gray-500">By: {{ announcement.author?.firstName }} {{ announcement.author?.lastName }}</span>
-            <span class="badge" :class="getBadgeClass(announcement.targetAudience)">
-              {{ announcement.targetAudience }}
-            </span>
-          </div>
+        </div>
+        
+        <div class="mt-4 text-center">
+          <router-link to="/admin/announcements" class="text-primary hover:text-primary-dark text-sm font-medium flex items-center justify-center">
+            <span>View all announcements</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </router-link>
         </div>
       </div>
     </div>
@@ -153,6 +182,8 @@ import CompletionChart from '../../components/ui/CompletionChart.vue';
 import ConsultationChart from '../../components/ui/ConsultationChart.vue';
 import api from '../../services/api';
 import { studentService } from '../../services/studentService';
+import { announcementService } from '../../services/announcementService';
+import { notificationService } from '../../services/notificationService';
 
 const router = useRouter();
 const API_URL = 'http://localhost:5000/api';
@@ -239,10 +270,23 @@ async function fetchStats() {
 
 async function fetchAnnouncements() {
   try {
-    const response = await api.get('/announcements?limit=5');
-    announcements.value = response.data;
+    const response = await announcementService.getAll();
+    
+    // Ensure we have proper data structure
+    if (response && response.data) {
+      announcements.value = response.data;
+      console.log(`Loaded ${announcements.value.length} announcements`);
+    } else if (Array.isArray(response)) {
+      // If getAll returns the array directly
+      announcements.value = response;
+      console.log(`Loaded ${announcements.value.length} announcements`);
+    } else {
+      console.error('Unexpected response format from announcementService.getAll()', response);
+      announcements.value = [];
+    }
   } catch (error) {
     console.error('Failed to fetch announcements:', error);
+    notificationService.showError('Failed to load announcements');
     announcements.value = [];
   }
 }
@@ -264,13 +308,26 @@ function truncateText(text, maxLength) {
 function getBadgeClass(targetAudience) {
   switch (targetAudience) {
     case 'all':
-      return 'badge-info';
+      return 'bg-blue-100 text-blue-800';
     case 'advisers':
-      return 'badge-success';
+      return 'bg-green-100 text-green-800';
     case 'students':
-      return 'badge-warning';
+      return 'bg-yellow-100 text-yellow-800';
     default:
-      return 'badge-info';
+      return 'bg-gray-100 text-gray-800';
+  }
+}
+
+function getAudienceLabel(targetAudience) {
+  switch (targetAudience) {
+    case 'all':
+      return 'All Audience';
+    case 'advisers':
+      return 'Advisers';
+    case 'students':
+      return 'Students';
+    default:
+      return 'All Audience';
   }
 }
 

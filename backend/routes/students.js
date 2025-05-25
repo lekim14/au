@@ -901,9 +901,18 @@ router.delete('/:id', authenticate, authorizeAdmin, async (req, res) => {
 });
 
 // Add consultation record
-router.post('/:id/consultations', authenticate, authorizeAdviser, async (req, res) => {
+router.post('/:id/consultations', authenticate, async (req, res) => {
   try {
-    const { notes, date } = req.body;
+    const { notes, date, title, adviserId, startTime, endTime, location, status } = req.body;
+    // title: newConsultation.value.title,
+    //     adviser: adviser.firstName + ' ' + adviser.middleName + ' ' + adviser.lastName,
+    //     adviserId: newConsultation.value.adviserId,
+    //     date: newConsultation.value.date,
+    //     startTime: selectedSlot.startTime,
+    //     endTime: selectedSlot.endTime,
+    //     location: 'To be confirmed',
+    //     status: 'confirmed',
+    //     notes: newConsultation.value.notes
     
     if (!notes || !date) {
       return res.status(400).json({ message: 'Notes and date are required' });
@@ -917,9 +926,13 @@ router.post('/:id/consultations', authenticate, authorizeAdviser, async (req, re
     
     // Add consultation
     student.consultations.push({
-      notes,
-      date,
-      adviser: req.user._id
+      notes : notes,
+      date : date,
+      adviser: adviserId,
+      title : title,
+      startTime: startTime,
+      endTime: endTime,
+      location: location,
     });
     
     student.updatedAt = Date.now();

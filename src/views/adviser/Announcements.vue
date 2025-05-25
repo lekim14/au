@@ -43,7 +43,7 @@
               >
                 <option value="">All Types</option>
                 <option value="all">Everyone</option>
-                <option value="students">Students Only</option>
+                <option value="advisers">Advisers Only</option>
               </select>
             </div>
           </div>
@@ -136,7 +136,7 @@ onMounted(async () => {
     loading.value = true;
     
     // Fetch real announcements from API
-    // The API automatically filters for 'all' and 'students' targetAudience
+    // The API automatically filters for 'all' and 'advisers' targetAudience for adviser users
     const response = await announcementService.getAll();
     
     // Handle different response formats
@@ -149,7 +149,7 @@ onMounted(async () => {
       announcements.value = [];
     }
     
-    console.log(`Loaded ${announcements.value.length} announcements for student`);
+    console.log(`Loaded ${announcements.value.length} announcements for adviser`);
   } catch (error) {
     console.error('Failed to load announcements:', error);
     notificationService.showError('Failed to load announcements');
@@ -231,7 +231,7 @@ function getAuthorName(author) {
 function getAudienceLabel(targetAudience) {
   switch (targetAudience) {
     case 'all': return 'Everyone';
-    case 'students': return 'Students Only';
+    case 'advisers': return 'Advisers Only';
     default: return 'General';
   }
 }
@@ -239,7 +239,7 @@ function getAudienceLabel(targetAudience) {
 function getAudienceBadgeClass(targetAudience) {
   switch (targetAudience) {
     case 'all': return 'bg-blue-100 text-blue-800';
-    case 'students': return 'bg-yellow-100 text-yellow-800';
+    case 'advisers': return 'bg-green-100 text-green-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 }

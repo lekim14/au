@@ -49,7 +49,9 @@
               @change="applyFilters"
             >
               <option value="">All Advisers</option>
-              <option v-for="adviser in advisers" :key="adviser.id" :value="adviser.id">{{ adviser.name }}</option>
+              <option v-for="adviser in advisers" :key="adviser._id" :value="adviser._id">
+                {{ adviser.salutation }}{{ adviser.firstName }} {{ adviser.middleName }} {{ adviser.lastName }}
+              </option>
             </select>
           </div>
         </div>
@@ -225,7 +227,9 @@
                 @change="loadAvailableSlots"
               >
                 <option value="" disabled>Select an adviser</option>
-                <option v-for="adviser in advisers" :key="adviser.id" :value="adviser.id">{{ adviser.name }}</option>
+                <option v-for="adviser in advisers" :key="adviser._id" :value="adviser._id">
+                  {{ adviser.salutation }} {{ adviser.firstName }} {{ adviser.middleName }} {{ adviser.lastName }}
+                </option>
               </select>
             </div>
             
@@ -353,6 +357,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { notificationService } from '../../services/notificationService';
+import api from '../../services/api';
+import userService from '../../services/userService';
+import studentService from '../../services/studentService';
 
 // State
 const loading = ref(true);
@@ -364,6 +371,7 @@ const selectedConsultation = ref(null);
 const consultations = ref([]);
 const advisers = ref([]);
 const availableTimeSlots = ref([]);
+const myInfo = ref(null);
 
 // Filters
 const filters = ref({
@@ -416,9 +424,11 @@ onMounted(async () => {
     
     // Simulate API calls
     await Promise.all([
-      loadConsultations(),
       loadAdvisers()
     ]);
+    const infoData = await studentService.getStudentDetails();
+    myInfo.value = infoData.data;
+    consultations.value = infoData.data.consultations;
     
   } catch (error) {
     console.error('Failed to load consultations:', error);
@@ -427,6 +437,11 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+async function initConsultation(){
+    const resp = await api.get(`/students/user/${myInfo.value._id}`);
+    consultations.value = resp.data;
+}
 
 // Load consultations
 async function loadConsultations() {
@@ -487,15 +502,17 @@ async function loadConsultations() {
 
 // Load advisers
 async function loadAdvisers() {
+  const adviserAPI = await api.get('/advisers');
+  advisers.value = adviserAPI.data;
   // Simulate API call with mock data
-  setTimeout(() => {
-    advisers.value = [
-      { id: 1, name: 'Prof. Sarah Johnson', department: 'Computer Science' },
-      { id: 2, name: 'Dr. Michael Chen', department: 'Mathematics' },
-      { id: 3, name: 'Dr. Emily Rodriguez', department: 'Engineering' },
-      { id: 4, name: 'Prof. David Kim', department: 'Physics' }
-    ];
-  }, 300);
+  // setTimeout(() => {
+  //   advisers.value = [
+  //     { id: 1, name: 'Prof. Sarah Johnson', department: 'Computer Science' },
+  //     { id: 2, name: 'Dr. Michael Chen', department: 'Mathematics' },
+  //     { id: 3, name: 'Dr. Emily Rodriguez', department: 'Engineering' },
+  //     { id: 4, name: 'Prof. David Kim', department: 'Physics' }
+  //   ];
+  // }, 300);
 }
 
 // Load available time slots
@@ -531,15 +548,15 @@ async function scheduleConsultation() {
     const selectedSlot = availableTimeSlots.value.find(slot => slot.id === newConsultation.value.timeSlot);
     
     // Get the adviser name
-    const adviser = advisers.value.find(a => a.id === newConsultation.value.adviserId);
+    const adviser = advisers.value.find(a => a._id === newConsultation.value.adviserId);
     
     // In a real app, this would be an API call
-    setTimeout(() => {
+    setTimeout(async () => {
       // Create a new consultation object
       const newConsultationObj = {
-        id: consultations.value.length + 1,
+        // id: consultations.value.length + 1,
         title: newConsultation.value.title,
-        adviser: adviser.name,
+        adviser: adviser.firstName + ' ' + adviser.middleName + ' ' + adviser.lastName,
         adviserId: newConsultation.value.adviserId,
         date: newConsultation.value.date,
         startTime: selectedSlot.startTime,
@@ -549,6 +566,7 @@ async function scheduleConsultation() {
         notes: newConsultation.value.notes
       };
       
+      await api.post(`/students/${myInfo.value._id}/consultations`, newConsultationObj)
       // Add to consultations
       consultations.value.push(newConsultationObj);
       

@@ -519,8 +519,8 @@ async function fetchAdvisers() {
   try {
     loading.value = true
     const response = await adviserService.getAll()
-    advisers.value = response
-    allAdvisers.value = response
+    advisers.value = response.data;
+    allAdvisers.value = response.data;
   } catch (error) {
     console.error('Error fetching advisers:', error)
     notificationService.showError('Failed to load advisers. Please try again.')

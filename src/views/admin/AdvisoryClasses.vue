@@ -342,19 +342,6 @@
             </select>
             <p v-if="errors.classId" class="mt-1 text-sm text-red-500">{{ errors.classId }}</p>
           </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
-            <select
-              v-model="editedAdvisoryClass.status"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-              :class="{ 'border-red-500': errors.status }"
-            >
-              <option value="active">Active</option>
-              <option value="archived">Archived</option>
-            </select>
-            <p v-if="errors.status" class="mt-1 text-sm text-red-500">{{ errors.status }}</p>
-          </div>
         </div>
         
         <div class="flex justify-end mt-6">
@@ -468,12 +455,12 @@ async function fetchAdvisoryClasses() {
 }
 
 async function fetchAdvisers() {
-  if (advisers.value.length > 0) return;
+  // if (advisers.value.length > 0) return;
   
   try {
     loadingAdvisers.value = true;
     const response = await adviserService.getAll();
-    advisers.value = response;
+    advisers.value = response.data;
   } catch (error) {
     console.error('Error fetching advisers:', error);
     notificationService.showError('Failed to load advisers. Please try again.');
@@ -785,7 +772,6 @@ function validateEditForm() {
   // Reset errors
   errors.adviserId = '';
   errors.classId = '';
-  errors.status = '';
   
   if (!editedAdvisoryClass.adviserId) {
     errors.adviserId = 'Adviser is required';
@@ -794,11 +780,6 @@ function validateEditForm() {
   
   if (!editedAdvisoryClass.classId) {
     errors.classId = 'Class is required';
-    isValid = false;
-  }
-  
-  if (!editedAdvisoryClass.status) {
-    errors.status = 'Status is required';
     isValid = false;
   }
   
@@ -817,14 +798,14 @@ async function updateAdvisoryClass() {
       await api.post('/advisers/advisory/classes', {
         adviser: editedAdvisoryClass.adviserId,
         class: editedAdvisoryClass.classId,
-        status: editedAdvisoryClass.status
+        status: 'active' // Always set to active
       });
     } else {
       // Update existing record
       await api.put(`/advisers/advisory/classes/${editedAdvisoryClass._id}`, {
         adviser: editedAdvisoryClass.adviserId,
         class: editedAdvisoryClass.classId,
-        status: editedAdvisoryClass.status
+        status: 'active' // Always set to active
       });
     }
     

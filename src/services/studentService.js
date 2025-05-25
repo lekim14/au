@@ -382,15 +382,47 @@ export const studentService = {
       }
       
       console.log(`Loading students for class: ${classId}`)
-      const response = await api.get(`/students/class/${classId}`)
       
-      if (!response || !response.data || !Array.isArray(response.data)) {
-        console.error('Invalid response from students API:', response?.data)
-        return []
+      // First try to get the class with populated students
+      try {
+        console.log('Attempting to get class with populated students')
+        const classResponse = await api.get(`/classes/${classId}`)
+        
+        if (classResponse && classResponse.data && classResponse.data.students && 
+            Array.isArray(classResponse.data.students) && classResponse.data.students.length > 0) {
+          
+          console.log(`Retrieved ${classResponse.data.students.length} students from class data`)
+          return classResponse.data.students
+        } 
+        console.log('No students found in class data or unexpected structure')
+      } catch (classError) {
+        console.warn('Error fetching class with students:', classError.message)
       }
       
-      console.log(`Loaded ${response.data.length} students for class ${classId}`)
-      return response.data
+      // If that fails, try using the more general students endpoint
+      try {
+        console.log('Falling back to general students endpoint')
+        // Getting all students and filtering for this class
+        const response = await api.get('/students', { 
+          params: { status: 'active' } 
+        })
+        
+        if (!Array.isArray(response.data)) {
+          console.error('Invalid response from students API:', response.data)
+          return []
+        }
+        
+        // Filter students for this class ID
+        const classStudents = response.data.filter(student => 
+          student.class && student.class._id === classId
+        )
+        
+        console.log(`Filtered ${classStudents.length} students for class ${classId}`)
+        return classStudents
+      } catch (error) {
+        console.error('Error fetching students:', error)
+        throw new Error(`Failed to load students: ${error.message}`)
+      }
     } catch (error) {
       console.error('Error loading students by class:', error)
       throw new Error(`Failed to load students: ${error.message}`)

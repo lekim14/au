@@ -346,6 +346,7 @@ const authStore = useAuthStore();
 const errorMessage = ref('');
 const selectedStudent = ref(null);
 const sessions = ref([]);
+const students = ref([]);
 
 // Computed properties
 const hasChanges = computed(() => {
@@ -434,13 +435,25 @@ async function loadClasses() {
     });
     
     // Use the enhanced adviser service to get classes
+    console.log('Calling adviserService.getAdvisedClasses()');
     const loadedClasses = await adviserService.getAdvisedClasses();
-    console.log(`Loaded ${loadedClasses.length} classes`);
+    console.log(`Loaded ${loadedClasses.length} classes from adviserService`);
     
     if (!loadedClasses || loadedClasses.length === 0) {
       console.warn('No classes returned from service');
       classes.value = [];
-      notificationService.showWarning('No advisory classes found. This could be due to a connection issue or you may not have classes assigned yet.');
+      
+      // Check token information to diagnose potential authentication issues
+      const token = localStorage.getItem('token');
+      if (!token) {
+        notificationService.showError('Authentication error: No token found. Please log out and log in again.');
+      } else if (!authStore.user || !authStore.user.role) {
+        notificationService.showError('Authentication error: User information not complete. Please log out and log in again.');
+      } else if (authStore.user.role !== 'adviser') {
+        notificationService.showError(`You are logged in as a ${authStore.user.role}, not as an adviser.`);
+      } else {
+        notificationService.showWarning('No advisory classes found. This could be due to a connection issue or you may not have classes assigned yet.');
+      }
       return;
     }
     
@@ -469,12 +482,20 @@ async function loadClasses() {
     if (classes.value.length > 0 && !selectedClass.value) {
       console.log('Auto-selecting first class');
       await selectClass(classes.value[0]);
-        }
-      } catch (error) {
+    }
+  } catch (error) {
     console.error('Error loading classes:', error);
     errorMessage.value = `Failed to load classes: ${error.message}`;
     classes.value = [];
-    notificationService.showError(`Failed to load advisory classes: ${error.message}`);
+    
+    // Provide a more specific error message based on the error
+    if (error.message.includes('NetworkError') || error.message.includes('Network Error')) {
+      notificationService.showError('Failed to load advisory classes: Network error. Please check your internet connection.');
+    } else if (error.message.includes('401') || error.message.includes('403')) {
+      notificationService.showError('Failed to load advisory classes: Authentication error. Please log out and log in again.');
+    } else {
+      notificationService.showError(`Failed to load advisory classes: ${error.message}`);
+    }
   } finally {
     loading.value = false;
   }
@@ -496,47 +517,83 @@ async function selectClass(classData) {
     // Store selected class ID in localStorage
     localStorage.setItem('selectedClassId', classData._id)
 
-    try {
-      console.log(`Loading students for class: ${classData.yearLevel}-${classData.section} (${classData._id})`)
-      const loadedStudents = await studentService.loadStudentsByClass(classData._id)
-      
-      if (!loadedStudents || loadedStudents.length === 0) {
-        console.warn(`No students found for class ${classData.yearLevel}-${classData.section}`)
+    // If the class already has students array populated, use it
+    if (classData.students && Array.isArray(classData.students) && classData.students.length > 0) {
+      console.log(`Using ${classData.students.length} students from class data directly`)
+      students.value = classData.students
+    } else {
+      // Otherwise load students from the API
+      try {
+        console.log(`Loading students for class: ${classData.yearLevel}-${classData.section} (${classData._id})`)
+        const loadedStudents = await studentService.loadStudentsByClass(classData._id)
+        
+        if (!loadedStudents || loadedStudents.length === 0) {
+          console.warn(`No students found for class ${classData.yearLevel}-${classData.section}`)
+          students.value = []
+          notificationService.showWarning('No students found in this class')
+        } else {
+          console.log(`Loaded ${loadedStudents.length} students for class ${classData.yearLevel}-${classData.section}`)
+          students.value = loadedStudents
+        }
+      } catch (studentError) {
+        console.error('Error loading students:', studentError)
+        errorMessage.value = `Failed to load students: ${studentError.message}`
+        notificationService.showError(`Error loading students: ${studentError.message}`)
         students.value = []
-        notificationService.showWarning('No students found in this class')
-      } else {
-        console.log(`Loaded ${loadedStudents.length} students for class ${classData.yearLevel}-${classData.section}`)
-        students.value = loadedStudents
       }
-    } catch (studentError) {
-      console.error('Error loading students:', studentError)
-      errorMessage.value = `Failed to load students: ${studentError.message}`
-      notificationService.showError(`Error loading students: ${studentError.message}`)
-      students.value = []
     }
 
     try {
       console.log(`Loading session matrix for class: ${classData.yearLevel}-${classData.section}`)
-      const matrix = await sessionService.loadSessionMatrix(classData._id)
+      const matrix = await sessionService.getSessionMatrix(classData._id)
       
-      if (!matrix) {
+      if (!matrix || !matrix.data) {
         console.warn('No session matrix returned from API')
-        sessionMatrix.value = null
+        sessionMatrix.value = {
+          sessions: [],
+          students: []
+        }
+        notificationService.showWarning('Unable to load session data. Some features may be limited.')
       } else {
-        console.log('Session matrix loaded successfully:', matrix)
-        sessionMatrix.value = matrix
+        console.log('Session matrix loaded successfully:', matrix.data)
+        sessionMatrix.value = matrix.data
+        
+        // Check if we have data in the matrix but didn't get students earlier
+        if (students.value.length === 0 && sessionMatrix.value.students && sessionMatrix.value.students.length > 0) {
+          console.log('Using students from session matrix as fallback')
+          
+          // Convert matrix students to compatible format if we have access to users
+          const matrixStudents = sessionMatrix.value.students
+            .filter(s => s.id && s.name)
+            .map(s => ({
+              _id: s.id,
+              user: {
+                firstName: s.name.split(' ')[0] || '',
+                lastName: s.name.split(' ')[1] || '',
+                idNumber: s.idNumber || 'Unknown'
+              }
+            }))
+          
+          if (matrixStudents.length > 0) {
+            students.value = matrixStudents
+            console.log(`Converted ${matrixStudents.length} students from matrix data`)
+          }
+        }
       }
     } catch (matrixError) {
       console.error('Error loading session matrix:', matrixError)
       errorMessage.value = `Failed to load session matrix: ${matrixError.message}`
       notificationService.showError(`Error loading session data: ${matrixError.message}`)
-      sessionMatrix.value = null
+      sessionMatrix.value = {
+        sessions: [],
+        students: []
+      }
     }
     
     // Reset selected student when changing class
     selectedStudent.value = null
     sessions.value = []
-        } catch (error) {
+  } catch (error) {
     console.error('Error in selectClass function:', error)
     errorMessage.value = `Error selecting class: ${error.message}`
     notificationService.showError(`Failed to select class: ${error.message}`)

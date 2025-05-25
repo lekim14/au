@@ -40,44 +40,11 @@
             </router-link>
           </div>
         </div>
-        
-        <!-- GPA Card -->
-        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-semibold text-gray-800">Current Semester GPA</h3>
-            <span class="badge bg-primary-light text-primary text-xs px-2 py-1 rounded">Academic</span>
-          </div>
-          <div class="text-2xl font-bold text-gray-900 mb-2">{{ currentGPA }}</div>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              <span class="text-gray-700">Academic Record</span>
-            </div>
-            <router-link to="/student/academic-evaluation" class="text-primary text-sm hover:underline">
-              View Details
-            </router-link>
-          </div>
-        </div>
       </div>
     </div>
     
-    <!-- Charts Section (similar to adviser layout) -->
+    <!-- Charts Section -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <!-- Academic Progress -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-semibold mb-4">Academic Progress</h3>
-        <div class="h-64 flex items-center justify-center bg-gray-50 rounded border border-gray-200">
-          <div class="text-center p-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <p class="text-gray-500">Your academic progress will be displayed here</p>
-          </div>
-        </div>
-      </div>
-      
       <!-- SSP Progress -->
       <div class="bg-white rounded-lg shadow p-6">
         <h3 class="text-lg font-semibold mb-4">SSP Completion Status</h3>
@@ -203,6 +170,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/authStore';
 import { notificationService } from '../../services/notificationService';
+import { announcementService } from '../../services/announcementService';
+import { consultationService } from '../../services/consultationService';
 
 // State
 const loading = ref(true);
@@ -212,7 +181,6 @@ const consultations = ref([]);
 // Stats
 const attendanceRate = ref(95);
 const upcomingConsultations = ref(0);
-const currentGPA = ref('3.75');
 
 // Auth store
 const authStore = useAuthStore();
@@ -238,53 +206,47 @@ onMounted(async () => {
   }
 });
 
-// Fetch announcements
+// Fetch announcements from API
 async function fetchAnnouncements() {
-  // Simulated data - replace with actual API call
-  announcements.value = [
-    {
-      title: 'Upcoming Midterm Exams',
-      content: 'Midterm examinations will be held from November 15-19, 2023. Please check your course schedule for specific dates and times.',
-      createdAt: new Date('2023-11-01'),
-      priority: 'high'
-    },
-    {
-      title: 'Library Hours Extended',
-      content: 'The university library will extend its operating hours to 11 PM during the exam period to provide students with additional study space.',
-      createdAt: new Date('2023-10-28'),
-      priority: 'medium'
-    },
-    {
-      title: 'Student Council Elections',
-      content: 'Nominations for Student Council positions are now open. Submit your candidacy by November 10, 2023.',
-      createdAt: new Date('2023-10-25'),
-      priority: 'low',
-      link: 'https://example.com/student-council-elections'
+  try {
+    const response = await announcementService.getAll();
+    
+    if (Array.isArray(response)) {
+      announcements.value = response;
+    } else if (response && response.data && Array.isArray(response.data)) {
+      announcements.value = response.data;
+    } else {
+      console.error('Unexpected response format from announcementService:', response);
+      announcements.value = [];
     }
-  ];
+  } catch (error) {
+    console.error('Failed to fetch announcements:', error);
+    notificationService.showError('Failed to load announcements');
+    announcements.value = [];
+  }
 }
 
-// Fetch upcoming consultations
+// Fetch upcoming consultations from API
 async function fetchConsultations() {
-  // Simulated data - replace with actual API call
-  consultations.value = [
-    {
-      title: 'Academic Progress Review',
-      adviser: 'Prof. Sarah Johnson',
-      date: new Date('2023-11-10'),
-      startTime: '14:00',
-      endTime: '14:30'
-    },
-    {
-      title: 'Career Planning Session',
-      adviser: 'Dr. Michael Chen',
-      date: new Date('2023-11-15'),
-      startTime: '10:00',
-      endTime: '11:00'
+  try {
+    const response = await consultationService.getUpcoming();
+    
+    if (Array.isArray(response)) {
+      consultations.value = response;
+    } else if (response && response.data && Array.isArray(response.data)) {
+      consultations.value = response.data;
+    } else {
+      console.error('Unexpected response format from consultationService:', response);
+      consultations.value = [];
     }
-  ];
-  
-  upcomingConsultations.value = consultations.value.length;
+    
+    upcomingConsultations.value = consultations.value.length;
+  } catch (error) {
+    console.error('Failed to fetch consultations:', error);
+    notificationService.showError('Failed to load consultations');
+    consultations.value = [];
+    upcomingConsultations.value = 0;
+  }
 }
 
 // Format date

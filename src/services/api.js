@@ -77,7 +77,9 @@ export const studentService = {
   create: (student) => api.post('/students', student),
   update: (id, student) => api.put(`/students/${id}`, student),
   delete: (id) => api.delete(`/students/${id}`),
-  importStudents: (studentsData) => api.post('/students/import', studentsData)
+  importStudents: (studentsData) => api.post('/students/import', studentsData),
+  getByClass: (classId) => api.get(`/students/class/${classId}`),
+  getByClasses: (classIds) => api.post('/students/classes', { classIds })
 };
 
 // Announcements services
@@ -88,6 +90,20 @@ export const announcementService = {
   update: (id, announcement) => api.put(`/announcements/${id}`, announcement),
   delete: (id) => api.delete(`/announcements/${id}`),
   pin: (id, isPinned) => api.put(`/announcements/${id}/pin`, { isPinned })
+};
+
+// Survey services
+export const surveyService = {
+  submitSurvey: (formData) => {
+    return api.post('/surveys/submit', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  },
+  getMySubmissions: () => api.get('/surveys/my-submissions'),
+  getAllSubmissions: () => api.get('/surveys/all'),
+  updateStatus: (id, status) => api.put(`/surveys/${id}/status`, { status })
 };
 
 export default api; 

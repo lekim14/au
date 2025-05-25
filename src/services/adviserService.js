@@ -47,12 +47,18 @@ async function loadClassById(classId) {
 
 export const adviserService = {
   getAll: async () => {
-    const response = await api.get('/advisers');
-    return response.data;
+    return await api.get('/advisers');
   },
   getById: async (id) => {
-    const response = await api.get(`/advisers/${id}`);
-    return response.data;
+    return await api.get(`/advisers/${id}`);
+  },
+  getByDepartment: async (department) => {
+    return await api.get(`/advisers/department/${department}`);
+  },
+  getAvailability: async (adviserId, date) => {
+    return await api.get(`/advisers/${adviserId}/availability`, { 
+      params: { date } 
+    });
   },
   create: async (adviser) => {
     const response = await api.post('/advisers', adviser);
@@ -72,90 +78,50 @@ export const adviserService = {
    */
   getAdvisedClasses: async () => {
     try {
-      console.log('Fetching advised classes - enhanced logic');
+      console.log('Fetching advised classes');
       
-      // Track attempts for debugging
-      let attemptResults = [];
-      
-      // Try the new all-for-adviser endpoint first (most reliable)
+      // Try the primary endpoint first
       try {
-        console.log('Trying new all-for-adviser endpoint');
-        const response = await api.get('/classes/all-for-adviser');
-        console.log(`Retrieved ${response.data?.length || 0} classes from all-for-adviser endpoint`);
-        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-          return response.data;
-        }
-        attemptResults.push('All-for-adviser endpoint returned empty array');
-      } catch (newEndpointError) {
-        console.warn('All-for-adviser endpoint failed:', newEndpointError.message);
-        attemptResults.push(`All-for-adviser endpoint error: ${newEndpointError.message}`);
-      }
-      
-      // Try the enhanced endpoint next
-      try {
-        console.log('Trying enhanced endpoint /advisers/classes');
-        const response = await api.get('/advisers/classes');
-        console.log(`Retrieved ${response.data?.length || 0} classes from enhanced endpoint`);
-        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-          return response.data;
-        }
-        attemptResults.push('Enhanced endpoint returned empty array');
-      } catch (enhancedError) {
-        console.warn('Enhanced endpoint failed:', enhancedError.message);
-        attemptResults.push(`Enhanced endpoint error: ${enhancedError.message}`);
-      }
-      
-      // Try the legacy endpoint
-      try {
-        console.log('Trying legacy endpoint /classes/advised');
-        const response = await api.get('/classes/advised');
-        console.log(`Retrieved ${response.data?.length || 0} classes from legacy endpoint`);
-        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-          return response.data;
-        }
-        attemptResults.push('Legacy endpoint returned empty array');
-      } catch (legacyError) {
-        console.warn('Legacy endpoint failed:', legacyError.message);
-        attemptResults.push(`Legacy endpoint error: ${legacyError.message}`);
-      }
-      
-      // If all else fails, attempt to directly fetch user profile to check assigned classes
-      try {
-        console.log('Trying to fetch user profile to check for classes');
-        const profileResponse = await api.get('/users/profile');
+        console.log('Trying primary endpoint: /advisers/my/classes');
+        const response = await api.get('/advisers/my/classes');
         
-        if (profileResponse.data && profileResponse.data.advisedClasses && 
-            Array.isArray(profileResponse.data.advisedClasses) && 
-            profileResponse.data.advisedClasses.length > 0) {
+        // Check if we got a proper response with class data
+        if (response && Array.isArray(response.data) && response.data.length > 0) {
+          console.log(`Retrieved ${response.data.length} advisory classes`);
           
-          console.log(`Found ${profileResponse.data.advisedClasses.length} classes in user profile`);
-          
-          // Need to fetch full class details for each class ID
-          const classDetails = [];
-          for (const classId of profileResponse.data.advisedClasses) {
-            try {
-              const classResponse = await api.get(`/classes/${classId}`);
-              if (classResponse.data) {
-                classDetails.push(classResponse.data);
+          // Map to expected format - each advisory class has a 'class' property
+          return response.data.map(advisoryClass => {
+            if (advisoryClass.class) {
+              // Add sspSubject directly to the class object if not present
+              if (!advisoryClass.class.sspSubject && advisoryClass.sspSubject) {
+                advisoryClass.class.sspSubject = advisoryClass.sspSubject;
               }
-            } catch (classError) {
-              console.warn(`Failed to fetch details for class ${classId}:`, classError.message);
+              return advisoryClass.class;
             }
-          }
-          
-          if (classDetails.length > 0) {
-            console.log(`Successfully retrieved ${classDetails.length} class details from user profile`);
-            return classDetails;
-          }
+            return advisoryClass; // Return as is if structure is different
+          }).filter(Boolean); // Remove any null/undefined entries
         }
-        attemptResults.push('Profile approach returned no classes');
-      } catch (profileError) {
-        console.warn('Profile approach failed:', profileError.message);
-        attemptResults.push(`Profile approach error: ${profileError.message}`);
+        console.log('No classes found in response from primary endpoint');
+      } catch (primaryError) {
+        console.warn('Primary endpoint failed:', primaryError.message);
+      }
+      
+      // Try the fallback endpoint
+      try {
+        console.log('Trying fallback endpoint: /classes/advised');
+        const response = await api.get('/classes/advised');
+        
+        if (response && Array.isArray(response.data) && response.data.length > 0) {
+          console.log(`Retrieved ${response.data.length} classes from fallback endpoint`);
+          return response.data;
+        }
+        console.log('No classes found in response from fallback endpoint');
+      } catch (fallbackError) {
+        console.warn('Fallback endpoint failed:', fallbackError.message);
       }
       
       // If we've tried everything and nothing worked, log detailed debugging info
-      console.error('All class loading attempts failed:', attemptResults);
+      console.warn('All class loading attempts failed, returning empty array');
       
       // Return empty array instead of throwing to avoid crashing the UI
       return [];

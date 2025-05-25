@@ -1,16 +1,42 @@
 <template>
-  <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">M&M</h2>
-    <div class="py-20 text-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-      </svg>
-      <h3 class="text-lg font-medium text-gray-700 mb-2">M&M Module</h3>
-      <p class="text-gray-500 max-w-md mx-auto">This feature will be available soon. Check back later for updates.</p>
-    </div>
-  </div>
+  <table class="table table-auto border-collapse border-gray-400 w-full">
+    <thead>
+      <tr>
+        <th class="border border-gray-400 px-4 py-2">Student ID</th>
+        <th class="border border-gray-400 px-4 py-2">Name</th>
+        <th class="border border-gray-400 px-4 py-2">Year</th>
+        <th class="border border-gray-400 px-4 py-2">Section</th>
+        <th class="border border-gray-400 px-4 py-2">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="student of surveys" :key="student.idNumber" class="text-center">
+        <td class="border border-gray-400 px-4 py-2">{{ student.userData.idNumber }}</td>
+        <td class="border border-gray-400 px-4 py-2">{{ student.userData.firstName }} {{ student.userData.middleName }} {{ student.userData.lastName }}</td>
+        <td class="border border-gray-400 px-4 py-2">{{ student.studentData.classDetails.yearLevel }}</td>
+        <td class="border border-gray-400 px-4 py-2">{{ student.studentData.classDetails.section }}</td>
+        <td class="border border-gray-400 px-4 py-2">
+          <span v-if="student.status === 'submitted'" class="inline-block px-3 py-1 text-sm font-semibold rounded-full text-white bg-green-500">
+            Submitted
+          </span>
+          <span v-if="student.status === 'pending'" class="inline-block px-3 py-1 text-sm font-semibold rounded-full text-white bg-red-500">
+            Pending
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </template>
 
 <script setup>
-// Component logic will be implemented in future updates
-</script> 
+import { onMounted, ref } from 'vue';
+import { surveyService } from '../../services/api';
+
+const surveys = ref([]);
+
+onMounted(async() => {
+  const surveysResp = await surveyService.getAllSubmissions();
+  surveys.value = surveysResp.data.data;
+})
+
+</script>
