@@ -127,7 +127,7 @@
         </div>
 
         <!-- Submit Button -->
-        <div class="text-center">
+        <div v-if="!hasOdyssey" class="text-center">
           <button
             @click="validateAndSubmit"
             class="bg-primary text-white px-6 py-2 rounded hover:bg-primary-dark transition-colors"
@@ -295,12 +295,17 @@
 </template>
 
 <script>
+import { odysseyService } from '../../services/odyssey';
+import { semesterService } from '../../services/semester';
+
 export default {
   name: 'OdysseyPlan',
   data() {
     return {
       currentPlan: null,
       selectedYear: null,
+      hasOdyssey: false,
+      odyssey: null,
       academicGoals: [
         { description: '', steps: [{ description: '' }] },
         { description: '', steps: [{ description: '' }] },
@@ -319,6 +324,27 @@ export default {
       showErrors: false,
       loading: false
     };
+  },
+  async mounted() {
+    const response = await odysseyService.get(localStorage.getItem('userId'));
+    if(response[0].status === 'submitted'){
+      this.hasOdyssey = true;
+      this.academicGoals = response[0].form?.academicGoals;
+      this.personalGoals = response[0].form?.personalGoals;
+      this.financialGoals = response[0].form?.financialGoals;
+    }
+
+    // Archiving Odyssey Plan
+    // Check for active semester
+    const allSemester = await semesterService.getAll();
+    const activeSemester = allSemester.filter(sem => sem.status === 'active');
+
+    // Check the current odyssey plan semester
+    const odysseySemester = response.filter(od => od.semester === activeSemester[0]?._id);
+    if(!odysseySemester.length){
+      // Archive if current odyssey plan semester is not the active semester
+      await odysseyService.archive(response[0]?._id);
+    }
   },
   computed: {
     currentYear() {
@@ -401,6 +427,7 @@ export default {
         
         // TODO: Add API call to save the plan
         console.log('Submitting plan:', planData);
+        await odysseyService.create(planData, localStorage.getItem('userId'))
         
         // Simulate successful submission
         this.currentPlan = {

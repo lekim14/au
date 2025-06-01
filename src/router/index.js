@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Semester from '../views/admin/Semester.vue'
+import OdysseyPlanHistory from '../views/student/Odyssey Plan History.vue'
 
 // Admin views
 const Login = () => import('../views/Login.vue')
@@ -281,6 +282,12 @@ const routes = [
         path: 'odyssey-plan',
         name: 'StudentOdysseyPlan',
         component: StudentOdysseyPlan,
+        meta: { title: 'Odyssey Plan' }
+      },
+      {
+        path: 'archived-odyssey-plans',
+        name: 'StudentOdysseyPlanArchived',
+        component: OdysseyPlanHistory,
         meta: { title: 'Odyssey Plan' }
       },
       {

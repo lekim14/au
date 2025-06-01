@@ -12,8 +12,8 @@
 
     <!-- Year Filter -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 class="text-lg font-semibold text-gray-800 mb-4">Filter by Year</h2>
-      <div class="flex flex-wrap gap-2">
+      <!-- <h2 class="text-lg font-semibold text-gray-800 mb-4">Filter by Year</h2> -->
+      <!-- <div class="flex flex-wrap gap-2">
         <button
           v-for="year in availableYears"
           :key="year"
@@ -30,25 +30,25 @@
         >
           All Years
         </button>
-      </div>
+      </div> -->
     </div>
 
     <!-- Archived Plans List -->
     <div class="space-y-6">
-      <div v-if="filteredPlans.length === 0" class="bg-white rounded-lg shadow-md p-6 text-center">
+      <div v-if="archivedPlans.length === 0" class="bg-white rounded-lg shadow-md p-6 text-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
         <p class="text-gray-500 text-lg">No archived plans found for the selected year</p>
       </div>
 
-      <div v-else v-for="plan in filteredPlans" :key="plan.id" class="bg-white rounded-lg shadow-md p-6">
+      <div v-else v-for="plan in archivedPlans" :key="plan._id" class="bg-white rounded-lg shadow-md p-6">
         <!-- Plan Header -->
         <div class="border-b border-gray-200 pb-4 mb-4">
           <div class="flex justify-between items-center">
             <div>
-              <h2 class="text-xl font-semibold text-gray-800">Y{{ plan.year }}S{{ plan.semester }}</h2>
-              <p class="text-sm text-gray-500">Submitted on {{ formatDate(plan.submittedAt) }}</p>
+              <h2 class="text-xl font-semibold text-gray-800">Y{{ plan.semester.schoolYear }} S {{ plan.semester.description }}</h2>
+              <p class="text-sm text-gray-500">Submitted on {{ formatDate(plan.submissionDate) }}</p>
             </div>
             <span class="px-3 py-1 rounded-full text-sm" :class="getStatusClass(plan.status)">
               {{ plan.status }}
@@ -61,11 +61,11 @@
           <!-- Academic Goals -->
           <div class="bg-gray-50 rounded-lg p-4">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">Academic Goals</h3>
-            <p class="text-gray-600 mb-4">{{ plan.academicGoal }}</p>
+            <p v-for="desc in plan.form.academicGoals" class="text-gray-600 mb-4">{{ desc.description }}</p>
             <div class="space-y-3">
-              <div v-for="(step, index) in plan.academicSteps" :key="index" class="flex items-start">
+              <div v-for="(step, index) in plan.form.academicGoals" :key="index" class="flex items-start">
                 <span class="text-primary mr-2">•</span>
-                <span class="text-gray-600">{{ step }}</span>
+                <span class="text-gray-600">{{ step.steps[0].description }}</span>
               </div>
             </div>
           </div>
@@ -73,11 +73,11 @@
           <!-- Personal Goals -->
           <div class="bg-gray-50 rounded-lg p-4">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">Personal Goals</h3>
-            <p class="text-gray-600 mb-4">{{ plan.personalGoal }}</p>
+            <p v-for="desc in plan.form.personalGoals" class="text-gray-600 mb-4">{{ desc.description }}</p>
             <div class="space-y-3">
-              <div v-for="(step, index) in plan.personalSteps" :key="index" class="flex items-start">
+              <div v-for="(step, index) in plan.form.personalGoals" :key="index" class="flex items-start">
                 <span class="text-primary mr-2">•</span>
-                <span class="text-gray-600">{{ step }}</span>
+                <span class="text-gray-600">{{ step.steps[0].description }}</span>
               </div>
             </div>
           </div>
@@ -85,11 +85,11 @@
           <!-- Financial Goals -->
           <div class="bg-gray-50 rounded-lg p-4">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">Financial Goals</h3>
-            <p class="text-gray-600 mb-4">{{ plan.financialGoal }}</p>
+            <p v-for="desc in plan.form.financialGoals" class="text-gray-600 mb-4">{{ desc.description }}</p>
             <div class="space-y-3">
-              <div v-for="(step, index) in plan.financialSteps" :key="index" class="flex items-start">
+              <div v-for="(step, index) in plan.form.financialGoals" :key="index" class="flex items-start">
                 <span class="text-primary mr-2">•</span>
-                <span class="text-gray-600">{{ step }}</span>
+                <span class="text-gray-600">{{ step.steps[0].description }}</span>
               </div>
             </div>
           </div>
@@ -100,13 +100,20 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { odysseyService } from '../../services/odyssey';
+
+const archivedPlans = ref([]);
+
+onMounted(async () => {
+  archivedPlans.value = await odysseyService.archives(localStorage.getItem('userId'));
+})
 
 // State
 const selectedYear = ref(null);
 
 // Mock data - Replace with actual API call
-const archivedPlans = ref([
+const archivedPlans1 = ref([
   {
     id: 1,
     year: 1,

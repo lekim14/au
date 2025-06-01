@@ -244,11 +244,13 @@ function openRejectModal(consultation) {
   showRejectModal.value = true;
 }
 
-function rejectConsultation() {
+async function rejectConsultation() {
   if (!selectedConsultation.value) return;
   // Implement API call to reject consultation
   selectedConsultation.value.status = 'rejected';
   selectedConsultation.value.rejectionReason = rejectionReason.value;
+  await api.put(`/advisers/consultations/${selectedConsultation.value.id}/reject`, 
+  { rejectionReason: rejectionReason.value })
   showRejectModal.value = false;
   notificationService.showSuccess('Consultation rejected');
 }

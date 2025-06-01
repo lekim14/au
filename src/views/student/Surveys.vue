@@ -21,6 +21,7 @@
         <div>
           <label for="screenshot" class="block text-gray-700 font-medium mb-2">Survey Screenshot</label>
           <input 
+            :disabled="checkForPending()"
             type="file" 
             id="screenshot" 
             @change="handleFileUpload" 
@@ -39,6 +40,7 @@
         <div class="pt-4">
           <button 
             type="submit" 
+            v-if="!checkForPending()"
             class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             :disabled="isSubmitting"
           >
@@ -55,21 +57,21 @@
           <div 
             v-for="submission in previousSubmissions" 
             :key="submission._id"
-            class="border border-blue-300 bg-blue-50 rounded-lg p-4"
+            :class="`border ${submission.status === 'pending' || submission.status === 'submitted' ? 'border-blue-300 bg-blue-50' : 'border-red-300 bg-red-50'} rounded-lg p-4`"
           >
             <div class="flex justify-between items-start">
               <div>
                 <p class="text-gray-700">
-                  <span class="font-medium">Submitted:</span> {{ formatDate(submission.createdAt) }}
+                  <span class="font-medium">Uploaded:</span> {{ formatDate(submission.createdAt) }}
                 </p>
                 <p class="mt-1">
-                  <span class="px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">
-                    Submitted
+                  <span class="px-2 py-1 capitalize text-xs font-medium rounded bg-blue-100 text-blue-800">
+                    {{ submission.status }}
                   </span>
                 </p>
               </div>
               <a 
-                :href="submission.screenshotUrl" 
+                :href="'../../backend' + submission.screenshotUrl" 
                 target="_blank" 
                 class="text-blue-600 hover:text-blue-800 underline text-sm"
               >
@@ -86,6 +88,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { surveyService } from '../../services/api';
+import { semesterService } from '../../services/semester';
 
 // Form data
 const formData = reactive({
@@ -98,6 +101,7 @@ const isSubmitting = ref(false);
 const successMessage = ref('');
 const errorMessage = ref('');
 const previousSubmissions = ref([]);
+const activeSemester = ref({});
 
 // Handle file upload
 const handleFileUpload = (event) => {
@@ -165,7 +169,15 @@ const fetchPreviousSubmissions = async () => {
 };
 
 // Load previous submissions on component mount
-onMounted(fetchPreviousSubmissions);
+onMounted(async () => {
+  await fetchPreviousSubmissions();
+  const response = await semesterService.getAll();
+  activeSemester.value = response.find(sem => sem.status === 'active');
+});
+
+function checkForPending(){
+  return previousSubmissions.value.find(survey => (survey.status === 'pending' || survey.status === 'submitted') && survey.semester === activeSemester.value._id)
+}
 </script>
 
 <style scoped>

@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const SurveyData = require('../models/SurveyData');
 const { authenticate } = require('../middleware/auth');
+const Semester = require('../models/Semester');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -42,9 +43,15 @@ router.post('/submit', authenticate, upload.single('screenshot'), async (req, re
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
+    const activeSemester = await Semester.find({ status: 'active' });
+    if(!activeSemester){
+      return res.status(400).json({ message: 'Action cannot be done.' });
+    }
+    console.log(activeSemester)
     const newSurveyData = new SurveyData({
       studentId: req.user._id,
-      screenshotUrl: `/uploads/surveys/${req.file.filename}`
+      screenshotUrl: `/uploads/surveys/${req.file.filename}`,
+      semester: activeSemester[0]?._id
     });
 
     await newSurveyData.save();
@@ -162,7 +169,7 @@ router.put('/:id/status', authenticate, async (req, res) => {
     
     const { status } = req.body;
     if (!status || !['approved', 'rejected', 'pending'].includes(status)) {
-      return res.status(400).json({ message: 'Invalid status' });
+      // return res.status(400).json({ message: 'Invalid status' });
     }
     
     const submission = await SurveyData.findByIdAndUpdate(

@@ -311,7 +311,8 @@ router.get('/matrix/:classId', authenticate, async (req, res) => {
           sessionsMap[session.session.toString()] = {
             completed: session.completed,
             completionDate: session.completionDate,
-            id: session._id
+            id: session._id,
+            status: session.status
           };
         });
         
@@ -336,7 +337,7 @@ router.get('/matrix/:classId', authenticate, async (req, res) => {
 router.put('/:sessionId', authenticate, async (req, res) => {
   try {
     const { sessionId } = req.params;
-    const { completed } = req.body;
+    const { completed, status } = req.body;
     
     console.log(`Session update request for ${sessionId}: completed=${completed}, user=${req.user.id}`);
     
@@ -367,7 +368,7 @@ router.put('/:sessionId', authenticate, async (req, res) => {
       session.markedBy = null;
       console.log(`Session marked as incomplete by ${req.user.id}`);
     }
-    
+    session.status = status;
     session.updatedAt = new Date();
     await session.save();
     

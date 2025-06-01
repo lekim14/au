@@ -1,6 +1,15 @@
 import api from './api';
 
 export const subjectService = {
+  getAllPerActiveSem: async () => {
+    try {
+      const response = await api.get('/subjects/active');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching subjects:', error);
+      throw error;
+    }
+  },
   getAll: async () => {
     try {
       const response = await api.get('/subjects');

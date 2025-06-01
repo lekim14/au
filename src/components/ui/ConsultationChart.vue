@@ -26,7 +26,7 @@ const props = defineProps({
 
 // Computed values
 const pendingStudents = computed(() => {
-  return Math.max(0, props.totalStudents - props.consultations)
+  return Math.max(0, props.totalStudents - props.consultations.pending)
 })
 
 const consultationPercentage = computed(() => {
@@ -39,7 +39,7 @@ const chartData = computed(() => ({
   labels: ['Consultations Completed', 'Pending Consultations'],
   datasets: [
     {
-      data: [props.consultations, pendingStudents.value],
+      data: [props.consultations.approved, props.consultations.pending],
       backgroundColor: [
         'rgba(76, 175, 80, 0.8)',
         'rgba(229, 231, 235, 0.8)'

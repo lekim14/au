@@ -32,6 +32,10 @@ const SessionCompletionSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  status: {
+    type: String,
+    enum: ['passed', 'failed']
+  },
   completionDate: {
     type: Date
   },

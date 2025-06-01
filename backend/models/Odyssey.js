@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
 
-const surveyDataSchema = new mongoose.Schema({
+const odysseySchema = new mongoose.Schema({
   studentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
     required: true
   },
-  screenshotUrl: {
-    type: String,
+  form: {
+    type: Object,
     required: true
   },
   submissionDate: {
@@ -16,16 +16,16 @@ const surveyDataSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    default: 'pending'
+    default: 'submitted'
   },
   semester: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Semester',
     required: true
   }
 }, { timestamps: true });
 
 // This will create a 'surveydata' collection in the MongoDB database
-const SurveyData = mongoose.model('SurveyData', surveyDataSchema);
+const OdysseyData = mongoose.model('Odyssey', odysseySchema);
 
-module.exports = SurveyData; 
+module.exports = OdysseyData; 

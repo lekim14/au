@@ -816,12 +816,14 @@ async function ensureStudentClassAssignments() {
   }
 }
 
+
 // Fetch data on mount
 onMounted(async () => {
   try {
     await loadSystemOptions()
     await fetchClasses()
     await fetchSubjects()
+    console.log(await subjectService.getAllPerActiveSem())
     
     // Run auto-assignment after loading classes
     await ensureStudentClassAssignments()

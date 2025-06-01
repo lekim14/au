@@ -2,6 +2,19 @@ const express = require('express');
 const router = express.Router();
 const Subject = require('../models/Subject');
 const { authenticate, authorizeAdmin } = require('../middleware/auth');
+const Semester = require('../models/Semester');
+
+// Get all subject depends on active semester
+router.get('/active', authenticate, authorizeAdmin, async(req, res) => {
+  try {
+    const activeSemester = await Semester.find({ status: 'active' });
+    const subjects = await Subject.find({ semester: activeSemester[0]?.description })
+    res.json(subjects)
+  } catch (error) {
+    console.error('Get subjects error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+})
 
 // Get all subjects
 router.get('/', authenticate, authorizeAdmin, async (req, res) => {

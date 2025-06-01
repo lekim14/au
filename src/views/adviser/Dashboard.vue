@@ -22,7 +22,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
-              <span class="text-gray-700">{{ classItem.studentCount || 0 }} Students</span>
+              <span class="text-gray-700">{{ classItem.class?.students?.length || 0 }} Students</span>
             </div>
             <router-link :to="`/adviser/classes/${classItem._id}`" class="text-primary text-sm hover:underline">
               View Details
@@ -63,27 +63,18 @@
       <!-- Chart 3: Consultation Status -->
       <div class="bg-white rounded-lg shadow p-6">
         <h3 class="text-lg font-semibold mb-4">Consultation Status</h3>
-        <div class="h-64 flex items-center justify-center bg-gray-50 rounded border border-gray-200">
-          <div class="text-center p-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p class="text-gray-500">Consultation status chart will be displayed here</p>
-          </div>
-        </div>
+        <ConsultationChart 
+          :consultations="consultationStat || 0" 
+          :totalStudents="consultationStat.totalStudents || 0" 
+        />
       </div>
       
       <!-- Chart 4: Attendance Overview -->
       <div class="bg-white rounded-lg shadow p-6">
         <h3 class="text-lg font-semibold mb-4">Attendance Overview</h3>
-        <div class="h-64 flex items-center justify-center bg-gray-50 rounded border border-gray-200">
-          <div class="text-center p-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <p class="text-gray-500">Attendance overview chart will be displayed here</p>
-          </div>
-        </div>
+        <AttendanceChart 
+        :classes="classes"
+        />
       </div>
     </div>
     
@@ -130,17 +121,22 @@ import { advisoryClassService } from '../../services/advisoryClassService';
 import { useAuthStore } from '../../stores/authStore';
 import { notificationService } from '../../services/notificationService';
 import api from '../../services/api';
+import { chartService } from '../../services/chart';
+import ConsultationChart from '../../components/ui/ConsultationChart.vue';
+import AttendanceChart from '../../components/ui/AttendanceChart.vue';
 
 const authStore = useAuthStore();
 const loading = ref(true);
 const loadingActivities = ref(true);
 const classes = ref([]);
 const activities = ref([]);
+const consultationStat = ref({});
 
 onMounted(async () => {
   try {
     await fetchAdvisoryClasses();
     await fetchActivities();
+    consultationStat.value = await chartService.adviserConsultationChart(localStorage.getItem('userId'));
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
     notificationService.showError('Failed to load dashboard data');

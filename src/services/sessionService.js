@@ -181,10 +181,10 @@ export const sessionService = {
    * @param {boolean} completed - Whether the session is completed
    * @returns {Promise<Object>} - The response data
    */
-  updateSessionStatus: async (sessionId, completed) => {
+  updateSessionStatus: async (sessionId, completed, status) => {
     try {
       console.log(`Updating session ${sessionId} to completed=${completed}`);
-      const response = await api.put(`/sessions/${sessionId}`, { completed });
+      const response = await api.put(`/sessions/${sessionId}`, { completed, status });
       console.log('Session update successful:', response.data);
       return response;
     } catch (error) {

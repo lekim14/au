@@ -87,8 +87,9 @@
         <h3 class="text-lg font-semibold mb-4">Completion Rates</h3>
         <CompletionChart 
           v-if="!loading"
-          :odysseyRate="stats.odysseyCompletionRate || 0" 
-          :srmRate="stats.srmCompletionRate || 0" 
+          :odysseyRate="completion.odyssey || 0" 
+          :srmRate="completion.survey || 0"
+          :totalStudents="completion.totalStudents || 0"
         />
         <div v-else class="flex justify-center items-center h-64">
           <p>Loading chart data...</p>
@@ -100,8 +101,8 @@
         <h3 class="text-lg font-semibold mb-4">Student Consultations</h3>
         <ConsultationChart 
           v-if="!loading"
-          :consultations="stats.consultations || 0" 
-          :totalStudents="stats.students || 0" 
+          :consultations="consultations || 0" 
+          :totalStudents="consultations.totalStudents || 0" 
         />
         <div v-else class="flex justify-center items-center h-64">
           <p>Loading chart data...</p>
@@ -184,17 +185,22 @@ import api from '../../services/api';
 import { studentService } from '../../services/studentService';
 import { announcementService } from '../../services/announcementService';
 import { notificationService } from '../../services/notificationService';
+import { chartService } from '../../services/chart';
 
 const router = useRouter();
 const API_URL = 'http://localhost:5000/api';
 const loading = ref(true);
 const stats = ref({});
 const announcements = ref([]);
+const completion = ref({});
+const consultations = ref({});
 
 onMounted(async () => {
   try {
     await fetchStats();
     await fetchAnnouncements();
+    completion.value = await chartService.odysseyChart();
+    consultations.value = await chartService.consultationChart();
   } finally {
     loading.value = false;
   }

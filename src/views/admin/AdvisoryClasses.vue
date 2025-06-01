@@ -97,7 +97,7 @@
                 Details
               </button>
               <button 
-                @click="editAdvisoryClass(advisoryClass)" 
+                @click="editAdvisoryClassPopUp(advisoryClass)" 
                 class="text-primary hover:text-primary-dark"
               >
                 Edit
@@ -108,64 +108,94 @@
       </table>
     </div>
 
-    <!-- Add Advisory Class Modal -->
-    <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
+    <!-- Pop up before edit modal -->
+    <div v-if="showAddModalFirst" class="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
       <div class="bg-white rounded-lg shadow-lg w-full max-w-lg mx-auto p-6 z-50">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold">Add New Advisory Class</h2>
-          <button @click="closeAddModal" class="text-gray-500 hover:text-gray-700">
+          <button @click="" class="text-gray-500 hover:text-gray-700">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-        
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Adviser *</label>
-            <select
-              v-model="newAdvisoryClass.adviserId"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-              :class="{ 'border-red-500': errors.adviserId }"
+        <div class="text-center">
+          <span>Do you want to change adviser?</span>
+        </div>
+        <div class="flex justify-end mt-6">
+            <button
+              @click="closePopUp()"
+              class="px-4 py-2 mr-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
-              <option value="">Select Adviser</option>
-              <option v-for="adviser in advisers" :key="adviser._id" :value="adviser._id">
-                {{ adviser.salutation }} {{ adviser.firstName }} {{ adviser.lastName }}
-              </option>
-            </select>
-            <p v-if="errors.adviserId" class="mt-1 text-sm text-red-500">{{ errors.adviserId }}</p>
+              Cancel
+            </button>
+            <button
+              @click="editAdvisoryClass('')"
+              class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+              Yes
+            </button>
+          </div>
+      </div>
+    </div>
+
+      <!-- Add Advisory Class Modal -->
+      <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg mx-auto p-6 z-50">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">Add New Advisory Class</h2>
+            <button @click="closeAddModal" class="text-gray-500 hover:text-gray-700">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
           
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Class *</label>
-            <select
-              v-model="newAdvisoryClass.classId"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-              :class="{ 'border-red-500': errors.classId }"
-            >
-              <option value="">Select Class</option>
-              <option v-for="classItem in classes" :key="classItem._id" :value="classItem._id">
-                {{ classItem.yearLevel }} Year - {{ classItem.section }} ({{ classItem.major }})
-              </option>
-            </select>
-            <p v-if="errors.classId" class="mt-1 text-sm text-red-500">{{ errors.classId }}</p>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Adviser *</label>
+              <select
+                v-model="newAdvisoryClass.adviserId"
+                class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                :class="{ 'border-red-500': errors.adviserId }"
+              >
+                <option value="">Select Adviser</option>
+                <option v-for="adviser in advisers" :key="adviser._id" :value="adviser._id">
+                  {{ adviser.salutation }} {{ adviser.firstName }} {{ adviser.lastName }}
+                </option>
+              </select>
+              <p v-if="errors.adviserId" class="mt-1 text-sm text-red-500">{{ errors.adviserId }}</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Class *</label>
+              <select
+                v-model="newAdvisoryClass.classId"
+                class="w-full p-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                :class="{ 'border-red-500': errors.classId }"
+              >
+                <option value="">Select Class</option>
+                <option v-for="classItem in classes" :key="classItem._id" :value="classItem._id">
+                  {{ classItem.yearLevel }} Year - {{ classItem.section }} ({{ classItem.major }})
+                </option>
+              </select>
+              <p v-if="errors.classId" class="mt-1 text-sm text-red-500">{{ errors.classId }}</p>
+            </div>
           </div>
-        </div>
-        
-        <div class="flex justify-end mt-6">
-          <button
-            @click="closeAddModal"
-            class="px-4 py-2 mr-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            Cancel
-          </button>
-          <button
-            @click="addAdvisoryClass"
-            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            Add Advisory Class
-          </button>
-        </div>
+          
+          <div class="flex justify-end mt-6">
+            <button
+              @click="closeAddModal"
+              class="px-4 py-2 mr-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+              Cancel
+            </button>
+            <button
+              @click="addAdvisoryClass"
+              class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+              Add Advisory Class
+            </button>
+          </div>
       </div>
     </div>
 
@@ -384,6 +414,7 @@ const loading = ref(true);
 const search = ref('');
 const statusFilter = ref('active');
 const showAddModal = ref(false);
+const showAddModalFirst = ref(false);
 const advisers = ref([]);
 const classes = ref([]);
 const loadingAdvisers = ref(false);
@@ -725,7 +756,16 @@ function closeDetailsModal() {
   showStudents.value = false;
 }
 
+function editAdvisoryClassPopUp(advisoryClass){
+  selectedAdvisoryClass.value = { ...advisoryClass };
+  showAddModalFirst.value = true;
+}
+
+
+const closePopUp = () => showAddModalFirst.value = false;
+
 function editAdvisoryClass(advisoryClass) {
+  closePopUp();
   console.log('Edit advisory class:', advisoryClass);
   
   // Reset errors
@@ -734,18 +774,18 @@ function editAdvisoryClass(advisoryClass) {
   errors.status = '';
   
   // Set current advisory class data
-  selectedAdvisoryClass.value = { ...advisoryClass };
+  // selectedAdvisoryClass.value = { ...advisoryClass };
   
   // Check if this is a temporary unassigned class entry
-  const isTemp = advisoryClass._id && advisoryClass._id.startsWith('temp_');
+  const isTemp = selectedAdvisoryClass.value._id && selectedAdvisoryClass.value._id.startsWith('temp_');
   
   // Set edited advisory class fields
-  editedAdvisoryClass._id = isTemp ? '' : (advisoryClass._id || '');
-  editedAdvisoryClass.adviserId = advisoryClass.adviser?._id || '';
+  editedAdvisoryClass._id = isTemp ? '' : (selectedAdvisoryClass.value._id || '');
+  editedAdvisoryClass.adviserId = selectedAdvisoryClass.value.adviser?._id || '';
   editedAdvisoryClass.classId = isTemp ? 
-    advisoryClass.class?._id : 
-    advisoryClass.class?._id || '';
-  editedAdvisoryClass.status = advisoryClass.status || 'active';
+  selectedAdvisoryClass.value.class?._id : 
+  selectedAdvisoryClass.value.class?._id || '';
+  editedAdvisoryClass.status = selectedAdvisoryClass.value.status || 'active';
   
   console.log('Populated edit form with:', editedAdvisoryClass);
   

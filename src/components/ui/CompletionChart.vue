@@ -21,6 +21,10 @@ const props = defineProps({
   srmRate: {
     type: Number,
     default: 0
+  },
+  totalStudents: {
+    type: Number,
+    default: 0
   }
 })
 
@@ -51,9 +55,9 @@ const chartOptions = {
   scales: {
     y: {
       beginAtZero: true,
-      max: 100,
+      max: props.totalStudents,
       ticks: {
-        callback: (value) => `${value}%`
+        callback: (value) => `${value}`
       }
     }
   },

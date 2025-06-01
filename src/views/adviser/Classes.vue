@@ -189,16 +189,47 @@
                   >
                     <div 
                       v-if="student.sessions[session._id]"
-                      class="relative inline-block"
+                      class="grid gap-1"
                     >
-                      <label class="inline-flex items-center">
+                    <!-- PASSED -->
+                      <!-- <label class="inline-flex items-center">
                         <input 
                           type="checkbox" 
                           v-model="student.sessions[session._id].completed"
                           @change="toggleSessionCompletion(student.id, session._id, student.sessions[session._id].completed)"
-                          class="form-checkbox h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
+                          class="form-checkbox h-4 w-4 rounded text-green-300"
                         />
+                      </label> -->
+                      <label class="inline-block relative w-5 h-5">
+                        <input 
+                          :value="'passed'"
+                          :checked="student.sessions[session._id].status === 'passed'"
+                          @change="toggleSessionCompletion(student.id, session._id, student.sessions[session._id].completed, 'passed')"
+                          type="checkbox" class="peer appearance-none w-5 h-5 bg-white border border-green-500 rounded-sm checked:bg-green-600 checked:border-transparent focus:outline-none focus:ring-2 focus:ring-green-500" />
+                        <svg class="hidden peer-checked:block absolute top-0 left-0 w-5 h-5 text-white pointer-events-none" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                          <path d="M5 13l4 4L19 7" />
+                        </svg>
                       </label>
+
+                      <!-- FAILED -->
+                      <label class="inline-block relative w-5 h-5">
+                        <input 
+                          :value="'failed'"
+                          :checked="student.sessions[session._id].status === 'failed'"
+                          @change="toggleSessionCompletion(student.id, session._id, student.sessions[session._id].completed, 'failed')"
+                          type="checkbox" class="peer appearance-none w-5 h-5 bg-white border border-red-500 rounded-sm checked:bg-red-600 checked:border-transparent focus:outline-none focus:ring-2 focus:ring-red-500" />
+                        <svg class="hidden peer-checked:block absolute top-0 left-0 w-5 h-5 text-white pointer-events-none" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                          <path d="M5 13l4 4L19 7" />
+                        </svg>
+                      </label>
+                      <!-- <label class="inline-flex items-center">
+                        <input 
+                          type="checkbox" 
+                          v-model="student.sessions[session._id].completed"
+                          @change="toggleSessionCompletion(student.id, session._id, student.sessions[session._id].completed)"
+                          class="form-checkbox h-4 w-4 rounded text-red-300"
+                        />
+                      </label> -->
                     </div>
                     <div v-else class="text-xs text-gray-400">N/A</div>
                   </td>
@@ -395,7 +426,7 @@ const overallCompliancePercentage = computed(() => {
   
   sessionMatrix.value.students.forEach(student => {
     Object.values(student.sessions).forEach(session => {
-      if (session.completed) {
+      if (session.completed && session.status === 'passed') {
         completed++;
       }
     });
@@ -703,7 +734,7 @@ async function initializeSessionsForStudents(classItem) {
 }
 
 // Toggle session completion status
-async function toggleSessionCompletion(studentId, sessionId, completed) {
+async function toggleSessionCompletion(studentId, sessionId, completed, status) {
   try {
     console.log(`Updating session status: Student ${studentId}, Session ${sessionId}, Completed: ${completed}`);
     
@@ -731,7 +762,7 @@ async function toggleSessionCompletion(studentId, sessionId, completed) {
     try {
       // Call the direct API endpoint for immediate update
       console.log(`Calling API to update session ${sessionCompletionId} with status ${completed}`);
-      const response = await sessionService.updateSessionStatus(sessionCompletionId, completed);
+      const response = await sessionService.updateSessionStatus(sessionCompletionId, completed, status);
       console.log('Session update response:', response);
       
       // Show success notification
@@ -794,7 +825,7 @@ function getStudentCompliancePercentage(student) {
   const sessionEntries = Object.values(student.sessions);
   if (sessionEntries.length === 0) return 0;
   
-  const completedCount = sessionEntries.filter(session => session.completed).length;
+  const completedCount = sessionEntries.filter(session => session.completed && session.status === 'passed').length;
   return Math.round((completedCount / sessionEntries.length) * 100);
 }
 
